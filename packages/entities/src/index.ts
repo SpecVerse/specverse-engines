@@ -61,3 +61,6 @@ export { BehaviouralConventionProcessor } from './_shared/behaviour/convention-p
 export { commandsModule } from './extensions/commands/index.js';
 export { measuresModule } from './extensions/measures/index.js';
 export { conventionsModule } from './extensions/conventions/index.js';
+
+// Engine discovery registry
+export { EngineRegistry, type EngineRegistryOptions } from './engine-registry.js';
