@@ -10,7 +10,6 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import AjvModule from 'ajv';
 import addFormatsModule from 'ajv-formats';
-// ESM/CJS compat: ajv may export as default or as module
 const Ajv = (AjvModule as any).default || AjvModule;
 const addFormats = (addFormatsModule as any).default || addFormatsModule;
 import { ConventionProcessor } from './convention-processor.js';
@@ -1014,7 +1013,7 @@ export class UnifiedSpecVerseParser {
       };
       
       // Add any additional properties (unknown ones) that were preserved
-      const knownProps = new Set(['name', 'namespace', 'version', 'description', 'tags', 'imports', 'exports', 'primitives', 'models', 'controllers', 'services', 'views', 'events']);
+      const knownProps = new Set(['name', 'namespace', 'version', 'description', 'tags', 'imports', 'exports', 'primitives', 'models', 'controllers', 'services', 'views', 'events', 'commands', 'constraints']);
       Object.keys(component).forEach(key => {
         if (!knownProps.has(key)) {
           result.components[component.name][key] = (component as any)[key];
@@ -1163,6 +1162,15 @@ export class UnifiedSpecVerseParser {
             ...(Object.keys(view.uiComponents).length > 0 && { uiComponents: view.uiComponents }),
             ...(Object.keys(view.properties).length > 0 && { properties: view.properties })
           };
+        }
+      }
+
+      // Add commands back as object format (convert from CommandSpec[] to {name: def})
+      if (component.commands && (component.commands as any[]).length > 0) {
+        result.components[component.name].commands = {};
+        for (const cmd of component.commands as any[]) {
+          const { name: cmdName, ...cmdDef } = cmd;
+          result.components[component.name].commands[cmdName] = cmdDef;
         }
       }
     }
