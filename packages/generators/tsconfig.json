@@ -3,9 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "strict": false,
-    "jsx": "react-jsx"
+    "strict": false
   },
   "include": ["src"],
-  "exclude": ["src/__tests__", "src/**/__tests__", "src/libs/**/*.ts", "src/libs/**/*.tsx"]
+  "exclude": ["src/__tests__", "src/**/__tests__"]
 }

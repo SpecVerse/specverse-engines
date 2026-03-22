@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@specverse/types": "3.5.2",
+    "@specverse/engine-parser": "3.5.2",
+    "@specverse/engine-generators": "3.5.2",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "glob": "^10.3.10",
