@@ -54,6 +54,9 @@ export { deploymentsModule } from './core/deployments/index.js';
 // Runtime schema composition
 export { composeSchemaFromRegistry } from './_shared/schema/compose-runtime.js';
 
+// Behavioural convention processor
+export { BehaviouralConventionProcessor } from './_shared/behaviour/convention-processor.js';
+
 // Extension entity modules
 export { commandsModule } from './extensions/commands/index.js';
 export { measuresModule } from './extensions/measures/index.js';

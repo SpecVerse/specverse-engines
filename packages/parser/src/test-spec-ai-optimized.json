@@ -1,0 +1,256 @@
+{
+  "metadata": {
+    "component": "TestCLI",
+    "version": "1.0.0",
+    "description": "Test specification for CLI",
+    "tags": []
+  },
+  "imports": [],
+  "exports": [],
+  "models": [
+    {
+      "name": "User",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": {
+            "required": true,
+            "unique": true,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "format": "uuid"
+          },
+          "dbMapping": {
+            "columnName": "id",
+            "columnType": "UUID",
+            "index": true,
+            "nullable": false
+          },
+          "validation": {
+            "rules": [
+              "required",
+              "unique"
+            ]
+          },
+          "metadata": {
+            "encrypted": false,
+            "audit": false
+          }
+        },
+        {
+          "name": "email",
+          "type": "Email",
+          "constraints": {
+            "required": true,
+            "unique": true,
+            "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            "format": "email"
+          },
+          "dbMapping": {
+            "columnName": "email",
+            "columnType": "VARCHAR(255)",
+            "index": true,
+            "nullable": false
+          },
+          "validation": {
+            "rules": [
+              "required",
+              "unique",
+              "email",
+              "verified"
+            ]
+          },
+          "metadata": {
+            "encrypted": false,
+            "audit": false
+          }
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "constraints": {
+            "required": true,
+            "unique": false
+          },
+          "dbMapping": {
+            "columnName": "name",
+            "columnType": "VARCHAR(255)",
+            "index": false,
+            "nullable": false
+          },
+          "validation": {
+            "rules": [
+              "required"
+            ]
+          },
+          "metadata": {
+            "encrypted": false,
+            "audit": false
+          }
+        }
+      ],
+      "relationships": [],
+      "behaviors": [],
+      "lifecycle": {
+        "states": [
+          "pending",
+          "active",
+          "suspended"
+        ],
+        "transitions": {},
+        "currentStateField": "accountState"
+      },
+      "dbMapping": {
+        "tableName": "users",
+        "indexes": [
+          "idx_user_id_unique",
+          "idx_user_email_unique"
+        ]
+      }
+    }
+  ],
+  "controllers": [
+    {
+      "name": "UserController",
+      "modelReference": "User",
+      "basePath": "/user",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/user",
+          "parameters": {
+            "path": {},
+            "query": {},
+            "body": {
+              "user": {
+                "name": "user",
+                "type": "User",
+                "constraints": {
+                  "required": true,
+                  "unique": false
+                },
+                "dbMapping": {
+                  "columnName": "user",
+                  "columnType": "VARCHAR(255)",
+                  "index": false,
+                  "nullable": false
+                },
+                "validation": {
+                  "rules": [
+                    "required"
+                  ]
+                },
+                "metadata": {
+                  "encrypted": false,
+                  "audit": false
+                }
+              }
+            }
+          },
+          "responseType": {
+            "success": "User",
+            "error": "Error"
+          },
+          "businessRules": {
+            "preconditions": [],
+            "postconditions": []
+          },
+          "metadata": {
+            "authenticated": true,
+            "authorized": [
+              "create"
+            ]
+          }
+        }
+      ],
+      "subscriptions": [],
+      "middleware": [
+        "authenticate",
+        "authorize",
+        "validate"
+      ]
+    }
+  ],
+  "services": [],
+  "views": [],
+  "events": [
+    {
+      "name": "UserCreated",
+      "payload": [
+        {
+          "name": "id",
+          "type": "UUID",
+          "constraints": {
+            "required": true,
+            "unique": false,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "format": "uuid"
+          },
+          "dbMapping": {
+            "columnName": "id",
+            "columnType": "UUID",
+            "index": false,
+            "nullable": false
+          },
+          "validation": {
+            "rules": [
+              "required"
+            ]
+          },
+          "metadata": {
+            "encrypted": false,
+            "audit": false
+          }
+        },
+        {
+          "name": "email",
+          "type": "Email",
+          "constraints": {
+            "required": true,
+            "unique": false,
+            "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+            "format": "email"
+          },
+          "dbMapping": {
+            "columnName": "email",
+            "columnType": "VARCHAR(255)",
+            "index": false,
+            "nullable": false
+          },
+          "validation": {
+            "rules": [
+              "required",
+              "email"
+            ]
+          },
+          "metadata": {
+            "encrypted": false,
+            "audit": false
+          }
+        }
+      ],
+      "metadata": {
+        "persistent": true,
+        "ttl": 86400,
+        "priority": "normal"
+      }
+    }
+  ],
+  "infrastructure": {
+    "database": {
+      "type": "postgresql",
+      "migrations": true,
+      "seedData": false
+    },
+    "messaging": {
+      "type": "rabbitmq",
+      "queues": [
+        "user-created"
+      ]
+    },
+    "caching": {
+      "type": "redis",
+      "ttl": 3600
+    }
+  }
+}

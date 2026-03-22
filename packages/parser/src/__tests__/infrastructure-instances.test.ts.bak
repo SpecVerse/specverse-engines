@@ -1,0 +1,285 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { ConventionProcessor } from '../convention-processor.js';
+
+describe('Infrastructure Instances Processing', () => {
+  let processor: ConventionProcessor;
+
+  beforeEach(() => {
+    processor = new ConventionProcessor();
+  });
+
+  it('should process basic infrastructure instance', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            infrastructure: {
+              apiGateway: {
+                component: 'myapp',
+                namespace: 'gateway',
+                type: 'gateway',
+                provider: 'nginx'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    
+    expect(result.deployments).toHaveLength(1);
+    expect(result.deployments[0].instances?.infrastructure).toBeDefined();
+    expect(result.deployments[0].instances!.infrastructure!.apiGateway).toBeDefined();
+    
+    const infraInstance = result.deployments[0].instances!.infrastructure!.apiGateway;
+    expect(infraInstance.component).toBe('myapp');
+    expect(infraInstance.namespace).toBe('gateway');
+    expect(infraInstance.type).toBe('gateway');
+    expect(infraInstance.provider).toBe('nginx');
+    expect(infraInstance.tier).toBe('regional'); // default
+    expect(infraInstance.redundancy).toBe('basic'); // default
+  });
+
+  it('should expand capability patterns for infrastructure instances', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            infrastructure: {
+              loadBalancer: {
+                component: 'myapp',
+                namespace: 'lb',
+                type: 'loadbalancer',
+                provider: 'aws',
+                advertises: 'balancing.*'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const infraInstance = result.deployments[0].instances!.infrastructure!.loadBalancer;
+    
+    // Capability patterns are expanded
+    expect(infraInstance.advertises).toEqual([
+      'balancing.create',
+      'balancing.read',
+      'balancing.update',
+      'balancing.delete'
+    ]);
+  });
+
+  it('should handle all infrastructure types', () => {
+    const infrastructureTypes = ['gateway', 'loadbalancer', 'cdn', 'dns', 'vpc', 'firewall', 'nat', 'proxy'];
+    
+    infrastructureTypes.forEach(type => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              infrastructure: {
+                [`test${type}`]: {
+                  component: 'myapp',
+                  namespace: 'infra',
+                  type: type,
+                  provider: 'aws'
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const key = `test${type}`;
+      const infraInstance = result.deployments[0].instances!.infrastructure![key];
+      
+      expect(infraInstance).toBeDefined();
+      expect(infraInstance.type).toBe(type);
+    });
+  });
+
+  it('should handle all infrastructure providers', () => {
+    const providers = ['aws', 'azure', 'gcp', 'cloudflare', 'akamai', 'nginx', 'haproxy', 'envoy', 'local'];
+    
+    providers.forEach(provider => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              infrastructure: {
+                gateway: {
+                  component: 'myapp',
+                  namespace: 'gateway',
+                  type: 'gateway',
+                  provider: provider
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const infraInstance = result.deployments[0].instances!.infrastructure!.gateway;
+      
+      expect(infraInstance.provider).toBe(provider);
+    });
+  });
+
+  it('should handle all tier levels', () => {
+    const tiers = ['local', 'regional', 'global', 'edge'];
+    
+    tiers.forEach(tier => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              infrastructure: {
+                cdn: {
+                  component: 'myapp',
+                  namespace: 'cdn',
+                  type: 'cdn',
+                  provider: 'cloudflare',
+                  tier: tier
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const infraInstance = result.deployments[0].instances!.infrastructure!.cdn;
+      
+      expect(infraInstance.tier).toBe(tier);
+    });
+  });
+
+  it('should handle all redundancy levels', () => {
+    const redundancyLevels = ['none', 'basic', 'high', 'enterprise'];
+    
+    redundancyLevels.forEach(redundancy => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              infrastructure: {
+                gateway: {
+                  component: 'myapp',
+                  namespace: 'gateway',
+                  type: 'gateway',
+                  provider: 'nginx',
+                  redundancy: redundancy
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const infraInstance = result.deployments[0].instances!.infrastructure!.gateway;
+      
+      expect(infraInstance.redundancy).toBe(redundancy);
+    });
+  });
+
+  it('should process infrastructure with all properties', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            infrastructure: {
+              enterpriseGateway: {
+                component: 'myapp',
+                namespace: 'gateway',
+                type: 'gateway',
+                provider: 'aws',
+                tier: 'global',
+                redundancy: 'enterprise',
+                advertises: ['routing.*', 'balancing.*'],
+                uses: ['auth.*'],
+                protocols: ['http', 'https', 'websocket'],
+                endpoints: ['api.example.com', 'ws.example.com'],
+                healthChecks: true,
+                autoScaling: true
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const infraInstance = result.deployments[0].instances!.infrastructure!.enterpriseGateway;
+    
+    expect(infraInstance).toMatchObject({
+      component: 'myapp',
+      namespace: 'gateway',
+      type: 'gateway',
+      provider: 'aws',
+      tier: 'global',
+      redundancy: 'enterprise',
+      advertises: [
+        'routing.create', 'routing.read', 'routing.update', 'routing.delete',
+        'balancing.create', 'balancing.read', 'balancing.update', 'balancing.delete'
+      ],
+      uses: ['auth.create', 'auth.read', 'auth.update', 'auth.delete'],
+      protocols: ['http', 'https', 'websocket'],
+      endpoints: ['api.example.com', 'ws.example.com'],
+      healthChecks: true,
+      autoScaling: true
+    });
+  });
+
+  it('should handle multiple infrastructure instances', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            infrastructure: {
+              gateway: {
+                component: 'myapp',
+                namespace: 'gateway',
+                type: 'gateway',
+                provider: 'nginx'
+              },
+              loadBalancer: {
+                component: 'myapp',
+                namespace: 'lb',
+                type: 'loadbalancer',
+                provider: 'aws'
+              },
+              cdn: {
+                component: 'myapp',
+                namespace: 'cdn',
+                type: 'cdn',
+                provider: 'cloudflare'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const infrastructure = result.deployments[0].instances!.infrastructure!;
+    
+    expect(Object.keys(infrastructure)).toHaveLength(3);
+    expect(infrastructure.gateway).toBeDefined();
+    expect(infrastructure.loadBalancer).toBeDefined();
+    expect(infrastructure.cdn).toBeDefined();
+  });
+});

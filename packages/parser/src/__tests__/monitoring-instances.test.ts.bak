@@ -1,0 +1,392 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { ConventionProcessor } from '../convention-processor.js';
+
+describe('Monitoring Instances Processing', () => {
+  let processor: ConventionProcessor;
+
+  beforeEach(() => {
+    processor = new ConventionProcessor();
+  });
+
+  it('should process basic monitoring instance', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            monitoring: {
+              metricsCollector: {
+                component: 'myapp',
+                namespace: 'monitoring',
+                type: 'metrics',
+                provider: 'prometheus'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    
+    expect(result.deployments).toHaveLength(1);
+    expect(result.deployments[0].instances?.monitoring).toBeDefined();
+    expect(result.deployments[0].instances!.monitoring!.metricsCollector).toBeDefined();
+    
+    const monitoringInstance = result.deployments[0].instances!.monitoring!.metricsCollector;
+    expect(monitoringInstance.component).toBe('myapp');
+    expect(monitoringInstance.namespace).toBe('monitoring');
+    expect(monitoringInstance.type).toBe('metrics');
+    expect(monitoringInstance.provider).toBe('prometheus');
+    expect(monitoringInstance.scope).toBe('component'); // default
+    expect(monitoringInstance.retention).toBe('medium'); // default
+  });
+
+  it('should expand capability patterns for monitoring instances', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            monitoring: {
+              logger: {
+                component: 'myapp',
+                namespace: 'logging',
+                type: 'logging',
+                provider: 'elasticsearch',
+                advertises: 'logs.*'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const monitoringInstance = result.deployments[0].instances!.monitoring!.logger;
+    
+    // Capability patterns are expanded
+    expect(monitoringInstance.advertises).toEqual([
+      'logs.create',
+      'logs.read',
+      'logs.update',
+      'logs.delete'
+    ]);
+  });
+
+  it('should handle all monitoring types', () => {
+    const monitoringTypes = ['metrics', 'logging', 'tracing', 'alerting', 'analytics', 'profiling', 'uptime', 'synthetic'];
+    
+    monitoringTypes.forEach(type => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              monitoring: {
+                [`test${type}`]: {
+                  component: 'myapp',
+                  namespace: 'monitoring',
+                  type: type,
+                  provider: 'local'
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const key = `test${type}`;
+      const monitoringInstance = result.deployments[0].instances!.monitoring![key];
+      
+      expect(monitoringInstance).toBeDefined();
+      expect(monitoringInstance.type).toBe(type);
+    });
+  });
+
+  it('should handle all monitoring providers', () => {
+    const providers = [
+      'prometheus', 'grafana', 'datadog', 'newrelic', 'splunk', 
+      'elasticsearch', 'jaeger', 'zipkin', 'sentry', 'rollbar',
+      'cloudwatch', 'stackdriver', 'azure-monitor', 'local'
+    ];
+    
+    providers.forEach(provider => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              monitoring: {
+                monitor: {
+                  component: 'myapp',
+                  namespace: 'monitoring',
+                  type: 'metrics',
+                  provider: provider
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const monitoringInstance = result.deployments[0].instances!.monitoring!.monitor;
+      
+      expect(monitoringInstance.provider).toBe(provider);
+    });
+  });
+
+  it('should handle all scope levels', () => {
+    const scopes = ['global', 'component', 'namespace', 'instance', 'service', 'request'];
+    
+    scopes.forEach(scope => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              monitoring: {
+                metrics: {
+                  component: 'myapp',
+                  namespace: 'monitoring',
+                  type: 'metrics',
+                  provider: 'prometheus',
+                  scope: scope
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const monitoringInstance = result.deployments[0].instances!.monitoring!.metrics;
+      
+      expect(monitoringInstance.scope).toBe(scope);
+    });
+  });
+
+  it('should handle all retention periods', () => {
+    const retentionPeriods = ['short', 'medium', 'long', 'permanent'];
+    
+    retentionPeriods.forEach(retention => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              monitoring: {
+                logs: {
+                  component: 'myapp',
+                  namespace: 'logging',
+                  type: 'logging',
+                  provider: 'elasticsearch',
+                  retention: retention
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const monitoringInstance = result.deployments[0].instances!.monitoring!.logs;
+      
+      expect(monitoringInstance.retention).toBe(retention);
+    });
+  });
+
+  it('should handle all resolution levels', () => {
+    const resolutions = ['high', 'medium', 'low'];
+    
+    resolutions.forEach(resolution => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              monitoring: {
+                metrics: {
+                  component: 'myapp',
+                  namespace: 'monitoring',
+                  type: 'metrics',
+                  provider: 'prometheus',
+                  resolution: resolution
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const monitoringInstance = result.deployments[0].instances!.monitoring!.metrics;
+      
+      expect(monitoringInstance.resolution).toBe(resolution);
+    });
+  });
+
+  it('should process monitoring with all properties', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            monitoring: {
+              enterpriseMonitoring: {
+                component: 'myapp',
+                namespace: 'monitoring',
+                type: 'metrics',
+                provider: 'datadog',
+                scope: 'global',
+                retention: 'long',
+                resolution: 'high',
+                sampling: 0.1,
+                advertises: ['metrics.*', 'health.*'],
+                uses: ['auth.*'],
+                dashboards: ['service-overview', 'performance'],
+                alerts: ['high-error-rate', 'service-down'],
+                exporters: ['datadog', 's3'],
+                aggregation: true,
+                realtime: true
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const monitoringInstance = result.deployments[0].instances!.monitoring!.enterpriseMonitoring;
+    
+    expect(monitoringInstance).toMatchObject({
+      component: 'myapp',
+      namespace: 'monitoring',
+      type: 'metrics',
+      provider: 'datadog',
+      scope: 'global',
+      retention: 'long',
+      resolution: 'high',
+      sampling: 0.1,
+      advertises: [
+        'metrics.create', 'metrics.read', 'metrics.update', 'metrics.delete',
+        'health.create', 'health.read', 'health.update', 'health.delete'
+      ],
+      uses: ['auth.create', 'auth.read', 'auth.update', 'auth.delete'],
+      dashboards: ['service-overview', 'performance'],
+      alerts: ['high-error-rate', 'service-down'],
+      exporters: ['datadog', 's3'],
+      aggregation: true,
+      realtime: true
+    });
+  });
+
+  it('should handle sampling values', () => {
+    const samplingValues = [0.0, 0.1, 0.5, 1.0];
+    
+    samplingValues.forEach(sampling => {
+      const yamlData = {
+        deployments: {
+          test: {
+            version: '3.1.0',
+            instances: {
+              monitoring: {
+                tracer: {
+                  component: 'myapp',
+                  namespace: 'tracing',
+                  type: 'tracing',
+                  provider: 'jaeger',
+                  sampling: sampling
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = processor.process(yamlData);
+      const monitoringInstance = result.deployments[0].instances!.monitoring!.tracer;
+      
+      expect(monitoringInstance.sampling).toBe(sampling);
+    });
+  });
+
+  it('should handle multiple monitoring instances', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            monitoring: {
+              metrics: {
+                component: 'myapp',
+                namespace: 'metrics',
+                type: 'metrics',
+                provider: 'prometheus'
+              },
+              logs: {
+                component: 'myapp',
+                namespace: 'logging',
+                type: 'logging',
+                provider: 'elasticsearch'
+              },
+              traces: {
+                component: 'myapp',
+                namespace: 'tracing',
+                type: 'tracing',
+                provider: 'jaeger'
+              },
+              alerts: {
+                component: 'myapp',
+                namespace: 'alerting',
+                type: 'alerting',
+                provider: 'sentry'
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const monitoring = result.deployments[0].instances!.monitoring!;
+    
+    expect(Object.keys(monitoring)).toHaveLength(4);
+    expect(monitoring.metrics).toBeDefined();
+    expect(monitoring.logs).toBeDefined();
+    expect(monitoring.traces).toBeDefined();
+    expect(monitoring.alerts).toBeDefined();
+  });
+
+  it('should handle monitoring with dashboards and alerts', () => {
+    const yamlData = {
+      deployments: {
+        test: {
+          version: '3.1.0',
+          instances: {
+            monitoring: {
+              monitoring: {
+                component: 'myapp',
+                namespace: 'monitoring',
+                type: 'metrics',
+                provider: 'grafana',
+                dashboards: ['overview', 'performance', 'errors'],
+                alerts: ['cpu-high', 'memory-high', 'error-rate-high']
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const result = processor.process(yamlData);
+    const monitoringInstance = result.deployments[0].instances!.monitoring!.monitoring;
+    
+    expect(monitoringInstance.dashboards).toHaveLength(3);
+    expect(monitoringInstance.dashboards).toContain('overview');
+    expect(monitoringInstance.alerts).toHaveLength(3);
+    expect(monitoringInstance.alerts).toContain('cpu-high');
+  });
+});
