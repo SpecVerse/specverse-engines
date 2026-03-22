@@ -1,0 +1,22 @@
+{
+  "name": "@specverse/engine-inference",
+  "version": "3.5.2",
+  "description": "SpecVerse inference engine — generate architecture from models",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@specverse/types": "3.5.2",
+    "@specverse/engine-entities": "3.5.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0"
+  },
+  "files": ["dist"],
+  "license": "MIT"
+}

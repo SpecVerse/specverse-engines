@@ -1,0 +1,79 @@
+name: MongoDB6
+version: "1.0.0"
+category: storage
+description: "MongoDB 6 document database with sharding and replication support"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [mongodb, database, nosql, document]
+
+compatibility:
+  specverse: "^3.3.0"
+  mongodb: ">=6.0"
+
+capabilities:
+  provides:
+    - "storage.database"
+    - "storage.database.document"
+    - "storage.database.nosql"
+    - "database.mongodb"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  database: "mongodb"
+  version: "6.x"
+
+dependencies:
+  runtime: []  # Database runs separately
+
+  dev:
+    - name: "mongodb"
+      version: "^6.3.0"
+      description: "MongoDB driver for Node.js"
+
+codeTemplates:
+  config:
+    engine: typescript
+    generator: "libs/instance-factories/storage/templates/mongodb/config-generator.ts"
+    outputPattern: "config/database.{instance}.ts"
+
+  docker:
+    engine: typescript
+    generator: "libs/instance-factories/storage/templates/mongodb/docker-generator.ts"
+    outputPattern: "docker/mongodb.{instance}.yml"
+
+configuration:
+  # Database connection
+  host: "${MONGO_HOST:-localhost}"
+  port: 27017
+  database: "${MONGO_DB}"
+  username: "${MONGO_USER}"
+  password: "${MONGO_PASSWORD}"
+  authSource: "admin"
+
+  # Connection options
+  options:
+    maxPoolSize: 10
+    minPoolSize: 2
+    serverSelectionTimeoutMS: 5000
+    socketTimeoutMS: 45000
+
+  # Replication
+  replication:
+    enabled: false
+    replSetName: "rs0"
+    replicas: 3
+
+  # Sharding
+  sharding:
+    enabled: false
+    shardKey: "_id"
+
+  # Backup
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2am
+    retention: 7  # days

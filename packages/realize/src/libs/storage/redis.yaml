@@ -1,0 +1,79 @@
+name: Redis7
+version: "1.0.0"
+category: storage
+description: "Redis 7 in-memory data store for caching and session management"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [redis, cache, session, key-value]
+
+compatibility:
+  specverse: "^3.3.0"
+  redis: ">=7.0"
+
+capabilities:
+  provides:
+    - "storage.cache"
+    - "storage.cache.memory"
+    - "storage.session"
+    - "database.redis"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  database: "redis"
+  version: "7.x"
+
+dependencies:
+  runtime: []  # Database runs separately
+
+  dev:
+    - name: "redis"
+      version: "^4.6.0"
+      description: "Redis client for Node.js"
+    - name: "@types/redis"
+      version: "^4.0.11"
+
+codeTemplates:
+  config:
+    engine: typescript
+    generator: "libs/instance-factories/storage/templates/redis/config-generator.ts"
+    outputPattern: "config/cache.{instance}.ts"
+
+  docker:
+    engine: typescript
+    generator: "libs/instance-factories/storage/templates/redis/docker-generator.ts"
+    outputPattern: "docker/redis.{instance}.yml"
+
+configuration:
+  # Connection
+  host: "${REDIS_HOST:-localhost}"
+  port: 6379
+  password: "${REDIS_PASSWORD}"
+  database: 0
+
+  # Connection options
+  options:
+    connectTimeout: 10000
+    commandTimeout: 5000
+    retryStrategy: "exponential"
+    maxRetriesPerRequest: 3
+
+  # Memory management
+  memory:
+    maxMemory: "256mb"
+    evictionPolicy: "allkeys-lru"
+
+  # Persistence
+  persistence:
+    enabled: true
+    strategy: "aof"  # append-only file
+    fsync: "everysec"
+
+  # Backup
+  backup:
+    enabled: true
+    schedule: "0 * * * *"  # Hourly
+    retention: 24  # hours

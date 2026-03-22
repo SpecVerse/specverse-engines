@@ -1,0 +1,65 @@
+name: GenericScaffold
+version: "1.0.0"
+category: scaffolding
+description: "Generic project scaffolding that adapts to manifest choices"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [scaffolding, project-setup, generic]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "project.scaffold"
+    - "project.package.json"
+    - "project.tsconfig"
+    - "project.gitignore"
+    - "project.env"
+
+technology:
+  runtime: "node"
+  language: "typescript"
+
+codeTemplates:
+  packageJson:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/package-json-generator.ts"
+    outputPattern: "package.json"
+
+  tsconfig:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/tsconfig-generator.ts"
+    outputPattern: "tsconfig.json"
+
+  tsconfigReact:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/tsconfig-react-generator.ts"
+    outputPattern: "tsconfig.react.json"
+
+  env:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/env-generator.ts"
+    outputPattern: ".env"
+
+  envExample:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/env-example-generator.ts"
+    outputPattern: ".env.example"
+
+  gitignore:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/gitignore-generator.ts"
+    outputPattern: ".gitignore"
+
+  readme:
+    engine: typescript
+    generator: "libs/instance-factories/scaffolding/templates/generic/readme-generator.ts"
+    outputPattern: "README.md"
+
+configuration:
+  defaultNodeVersion: "18.0.0"
+  defaultLicense: "MIT"

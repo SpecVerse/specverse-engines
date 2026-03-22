@@ -1,0 +1,66 @@
+name: PythonSDK
+version: "1.0.0"
+category: view
+description: "Python SDK generator for consuming REST APIs with async support and type hints"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [python, sdk, client, rest-api, async]
+
+compatibility:
+  specverse: "^3.3.0"
+  python: ">=3.8"
+
+capabilities:
+  provides:
+    - "sdk.python"
+    - "client.rest.async"
+  requires:
+    - "api.rest"
+    - "api.rest.crud"
+
+technology:
+  runtime: "python"
+  language: "python"
+  framework: "native"
+  httpClient: "aiohttp"
+
+dependencies:
+  runtime:
+    - name: "aiohttp"
+      version: "^3.9.0"
+    - name: "pydantic"
+      version: "^2.0.0"
+  dev:
+    - name: "mypy"
+      version: "^1.7.0"
+    - name: "pytest"
+      version: "^7.4.0"
+    - name: "pytest-asyncio"
+      version: "^0.21.0"
+
+codeTemplates:
+  sdk:
+    engine: typescript
+    generator: "libs/instance-factories/sdks/templates/python/sdk-generator.ts"
+    outputPattern: "sdk-python/"
+
+configuration:
+  packageName: "specverse_client"
+  packageVersion: "1.0.0"
+  includeAuth: true
+  includeRetry: true
+  includeAsync: true
+  timeout: 30000
+  retries: 3
+
+# NOTE: This implementation type wraps the existing generate-sdk-python.js script
+# TODO: Future enhancement - Convert generate-sdk-python.js to native TypeScript template generator
+#       The current script is 1000+ lines and generates a complete Python package structure.
+#       Converting to native templates would require breaking it into multiple template files:
+#       - client-generator.ts (main async client class)
+#       - resource-generator.ts (per-controller resource classes)
+#       - types-generator.ts (Pydantic models)
+#       - errors-generator.ts (exception classes)
+#       - package-generator.ts (setup.py, requirements.txt)

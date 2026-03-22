@@ -1,0 +1,63 @@
+name: VitestTests
+version: "1.0.0"
+category: service
+description: "Comprehensive test suite generator with Vitest - unit, integration, and e2e tests"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [vitest, testing, typescript, unit, integration, e2e]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "testing.unit"
+    - "testing.integration"
+    - "testing.e2e"
+  requires:
+    - "api.rest"
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  testFramework: "vitest"
+  testRunner: "vitest"
+
+dependencies:
+  dev:
+    - name: "vitest"
+      version: "^1.0.0"
+    - name: "@vitest/ui"
+      version: "^1.0.0"
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  tests:
+    engine: typescript
+    generator: "libs/instance-factories/testing/templates/vitest/tests-generator.ts"
+    outputPattern: "tests/"
+
+configuration:
+  testFramework: "vitest"
+  generateUnitTests: true
+  generateIntegrationTests: true
+  generateE2ETests: true
+  generateFixtures: true
+  generateMocks: true
+
+# NOTE: This implementation type wraps the existing generate-tests.js script
+# TODO: Future enhancement - Convert generate-tests.js to native TypeScript template generator
+#       The current script is 700+ lines and generates a complete test suite structure.
+#       Converting to native templates would require breaking it into multiple template files:
+#       - unit-tests-generator.ts (service layer unit tests)
+#       - integration-tests-generator.ts (route integration tests)
+#       - e2e-tests-generator.ts (end-to-end workflow tests)
+#       - fixtures-generator.ts (test data fixtures)
+#       - mocks-generator.ts (Prisma and EventBus mocks)
+#       - setup-generator.ts (database and server setup utilities)

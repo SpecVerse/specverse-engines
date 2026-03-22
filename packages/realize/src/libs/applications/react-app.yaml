@@ -1,0 +1,186 @@
+name: ReactApp
+version: "1.0.0"
+category: view
+description: "Complete React application scaffolding with Vite, Router, and TypeScript"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [react, vite, spa, frontend, application]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "app.frontend"
+    - "ui.scaffolding"
+    - "ui.router"
+  requires:
+    - "ui.components"  # Needs React components to be generated
+
+technology:
+  runtime: "browser"
+  language: "typescript"
+  framework: "react"
+  bundler: "vite"
+  router: "react-router"
+  version: "^18.2.0"
+
+dependencies:
+  runtime:
+    - name: "react"
+      version: "^18.2.0"
+    - name: "react-dom"
+      version: "^18.2.0"
+    - name: "react-router-dom"
+      version: "^6.18.0"
+    - name: "@tanstack/react-query"
+      version: "^5.0.0"
+
+  dev:
+    - name: "@types/react"
+      version: "^18.2.0"
+    - name: "@types/react-dom"
+      version: "^18.2.0"
+    - name: "typescript"
+      version: "^5.2.0"
+    - name: "vite"
+      version: "^5.0.0"
+    - name: "@vitejs/plugin-react"
+      version: "^4.2.0"
+
+codeTemplates:
+  index-html:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/index-html-generator.ts"
+    outputPattern: "{frontendDir}/index.html"
+
+  app-tsx:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/app-tsx-generator.ts"
+    outputPattern: "{frontendDir}/src/App.tsx"
+
+  main-tsx:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/main-tsx-generator.ts"
+    outputPattern: "{frontendDir}/src/main.tsx"
+
+  vite-config:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/vite-config-generator.ts"
+    outputPattern: "{frontendDir}/vite.config.ts"
+
+  tsconfig:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/tsconfig-generator.ts"
+    outputPattern: "{frontendDir}/tsconfig.json"
+
+  package-json:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/package-json-generator.ts"
+    outputPattern: "{frontendDir}/package.json"
+
+  index-css:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/index-css-generator.ts"
+    outputPattern: "{frontendDir}/src/index.css"
+
+  gitignore:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/gitignore-generator.ts"
+    outputPattern: "{frontendDir}/.gitignore"
+
+  env-example:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/env-example-generator.ts"
+    outputPattern: "{frontendDir}/.env.example"
+
+  api-client:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/api-client-generator.ts"
+    outputPattern: "{frontendDir}/src/lib/apiClient.ts"
+
+  pattern-adapter:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/pattern-adapter-generator.ts"
+    outputPattern: "{frontendDir}/src/lib/react-pattern-adapter.tsx"
+
+  tailwind-adapter:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/tailwind-adapter-wrapper-generator.ts"
+    outputPattern: "{frontendDir}/src/lib/tailwind-adapter-generator.ts"
+
+  view-form:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/view-form-generator.ts"
+    outputPattern: "{frontendDir}/src/components/views/FormView.tsx"
+
+  view-list:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/view-list-generator.ts"
+    outputPattern: "{frontendDir}/src/components/views/ListView.tsx"
+
+  view-detail:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/view-detail-generator.ts"
+    outputPattern: "{frontendDir}/src/components/views/DetailView.tsx"
+
+  view-dashboard:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/view-dashboard-generator.ts"
+    outputPattern: "{frontendDir}/src/components/views/DashboardView.tsx"
+
+  view-router:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/view-router-generator.ts"
+    outputPattern: "{frontendDir}/src/components/views/StandardViewRouter.tsx"
+
+  field-helpers:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/field-helpers-generator.ts"
+    outputPattern: "{frontendDir}/src/utils/field-helpers.ts"
+
+  relationship-field:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/relationship-field-generator.ts"
+    outputPattern: "{frontendDir}/src/components/fields/RelationshipField.tsx"
+
+  use-api-hooks:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/use-api-hooks-generator.ts"
+    outputPattern: "{frontendDir}/src/hooks/useApi.ts"
+
+  api-types:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/react/api-types-generator.ts"
+    outputPattern: "{frontendDir}/src/types/api.ts"
+
+configuration:
+  projectStructure: "monorepo"
+  frontendDir: "frontend"
+  backendDir: "backend"
+
+  vite:
+    port: 5173
+    host: "localhost"
+    proxy:
+      "/api": "http://localhost:3000"
+
+  routing:
+    library: "react-router"
+    version: "^6.18.0"
+    basename: "/"
+
+requirements:
+  dependencies:
+    npm:
+      devDependencies:
+        "@vitejs/plugin-react": "^4.2.0"
+        "vite": "^5.0.0"
+
+  scripts:
+    "dev:frontend": "cd frontend && vite"
+    "build:frontend": "cd frontend && vite build"
+    "preview:frontend": "cd frontend && vite preview"

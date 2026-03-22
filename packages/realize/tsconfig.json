@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": false,
+    "jsx": "react-jsx"
+  },
+  "include": ["src"],
+  "exclude": ["src/__tests__", "src/**/__tests__", "src/libs/**/*.ts", "src/libs/**/*.tsx", "src/utils/ai-spec-loader.ts"]
+}

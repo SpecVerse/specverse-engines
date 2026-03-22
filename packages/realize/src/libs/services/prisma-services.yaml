@@ -1,0 +1,71 @@
+name: PrismaServices
+version: "1.0.0"
+category: service
+description: "Business logic services using Prisma client for data access"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [services, business-logic, prisma, controllers]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "service.controller"  # Model-specific business logic (controllers)
+    - "service.business"    # Abstract business logic (services)
+    - "service.crud"        # CRUD operations
+  requires:
+    - "orm.client"          # Needs Prisma client for data access
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  orm: "prisma"
+
+dependencies:
+  runtime:
+    - name: "@prisma/client"
+      version: "^5.5.0"
+
+  dev:
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  controllers:
+    engine: typescript
+    generator: "libs/instance-factories/services/templates/prisma/controller-generator.ts"
+    outputPattern: "{backendDir}/src/controllers/{model}Controller.ts"
+
+  services:
+    engine: typescript
+    generator: "libs/instance-factories/services/templates/prisma/service-generator.ts"
+    outputPattern: "{backendDir}/src/services/{service}.ts"
+
+configuration:
+  outputStructure: "monorepo"
+  backendDir: "backend"
+
+  validation: true
+  eventPublishing: true
+  errorHandling: "throw"
+
+# Requirements for generic scaffolding (runtime-agnostic structure)
+requirements:
+  # Package dependencies (Node.js/npm-specific)
+  dependencies:
+    npm:
+      dependencies:
+        "@prisma/client": "^5.5.0"
+      # Services don't add extra scripts, they use the ones from Prisma
+
+  # No environment variables needed
+  environment: []
+
+  # No special configuration needed
+  configuration: {}

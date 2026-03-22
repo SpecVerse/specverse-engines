@@ -1,0 +1,56 @@
+name: ZodValidation
+version: "1.0.0"
+category: service
+description: "Zod schema generator for runtime validation with type inference"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [zod, validation, typescript, schema]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "validation.runtime"
+    - "validation.zod"
+    - "validation.jsonschema"
+  requires: []  # Fixed: removed incorrect api.rest dependency
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "zod"
+  validation: "zod"
+
+dependencies:
+  runtime:
+    - name: "zod"
+      version: "^3.22.0"
+  dev:
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  validation:
+    engine: typescript
+    generator: "libs/instance-factories/validation/templates/zod/validation-generator.ts"
+    outputPattern: "src/validation/{model}.validation.ts"
+
+configuration:
+  framework: "zod"
+  generateJsonSchema: true
+  stripUnknown: true
+  abortEarly: false
+
+# NOTE: This implementation type wraps the existing generate-validation.js script
+# TODO: Future enhancement - Convert generate-validation.js to native TypeScript template generator
+#       The current script generates Zod schemas, JSON schemas, and validation functions.
+#       Converting to native templates would require breaking it into multiple template files:
+#       - zod-schema-generator.ts (Zod schema definitions)
+#       - json-schema-generator.ts (JSON Schema for Fastify)
+#       - validation-function-generator.ts (validation helper functions)

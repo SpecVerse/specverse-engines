@@ -1,0 +1,59 @@
+name: TypeScriptSDK
+version: "1.0.0"
+category: view
+description: "TypeScript SDK generator for consuming REST APIs with full type safety"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [typescript, sdk, client, rest-api]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "sdk.typescript"
+    - "client.rest"
+  requires:
+    - "api.rest"
+    - "api.rest.crud"
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "native"
+  httpClient: "fetch"
+
+dependencies:
+  runtime: []
+  dev:
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  sdk:
+    engine: typescript
+    generator: "libs/instance-factories/sdks/templates/typescript/sdk-generator.ts"
+    outputPattern: "sdk-typescript/"
+
+configuration:
+  packageName: "@specverse/sdk"
+  packageVersion: "1.0.0"
+  includeAuth: true
+  includeRetry: true
+  timeout: 30000
+  retries: 3
+
+# NOTE: This implementation type wraps the existing generate-sdk-typescript.js script
+# TODO: Future enhancement - Convert generate-sdk-typescript.js to native TypeScript template generator
+#       The current script is 900+ lines and generates a complete SDK package structure.
+#       Converting to native templates would require breaking it into multiple template files:
+#       - client-generator.ts (main client class)
+#       - resource-generator.ts (per-controller resource classes)
+#       - types-generator.ts (TypeScript interfaces)
+#       - errors-generator.ts (error classes)
+#       - package-generator.ts (package.json, tsconfig.json)

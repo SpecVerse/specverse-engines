@@ -1,0 +1,52 @@
+name: GenericApp
+version: "1.0.0"
+category: application
+description: "Generic application entry point that adapts to framework choice"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [application, entry-point, generic]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "app.entrypoint"
+    - "app.main"
+  requires:
+    - "api.rest"  # Needs HTTP framework
+
+technology:
+  runtime: "node"
+  language: "typescript"
+
+codeTemplates:
+  main:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/generic/main-generator.ts"
+    outputPattern: "{backendDir}/src/main.ts"
+
+  backendPackageJson:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/generic/backend-package-json-generator.ts"
+    outputPattern: "{backendDir}/package.json"
+
+  backendTsconfig:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/generic/backend-tsconfig-generator.ts"
+    outputPattern: "{backendDir}/tsconfig.json"
+
+  backendEnv:
+    engine: typescript
+    generator: "libs/instance-factories/applications/templates/generic/backend-env-generator.ts"
+    outputPattern: "{backendDir}/.env"
+
+configuration:
+  outputStructure: "monorepo"
+  backendDir: "backend"
+
+  defaultPort: 3000
+  defaultHost: "0.0.0.0"

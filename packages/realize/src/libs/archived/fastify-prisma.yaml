@@ -1,0 +1,104 @@
+name: FastifyPrismaAPI
+version: "1.0.0"
+category: controller
+description: "Fastify server with Prisma ORM, Zod validation, and JWT authentication"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [fastify, prisma, typescript, rest-api]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "api.rest"
+    - "api.rest.crud"
+    - "api.websocket"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "fastify"
+  orm: "prisma"
+  validation: "zod"
+  authentication: "jwt"
+
+dependencies:
+  runtime:
+    - name: "fastify"
+      version: "^4.24.0"
+    - name: "@fastify/cors"
+      version: "^8.4.0"
+    - name: "@fastify/jwt"
+      version: "^7.2.0"
+    - name: "@fastify/helmet"
+      version: "^11.1.0"
+    - name: "@fastify/rate-limit"
+      version: "^9.0.0"
+    - name: "@prisma/client"
+      version: "^5.5.0"
+    - name: "zod"
+      version: "^3.22.0"
+
+  dev:
+    - name: "prisma"
+      version: "^5.5.0"
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+    - name: "tsx"
+      version: "^4.0.0"
+
+codeTemplates:
+  routes:
+    engine: typescript
+    generator: "libs/instance-factories/backend/templates/fastify/routes-generator.ts"
+    outputPattern: "routes/{controller}.ts"
+
+  services:
+    engine: typescript
+    generator: "libs/instance-factories/backend/templates/prisma/services-generator.ts"
+    outputPattern: "services/{model}.service.ts"
+
+  schema:
+    engine: typescript
+    generator: "libs/instance-factories/backend/templates/prisma/schema-generator.ts"
+    outputPattern: "prisma/schema.prisma"
+
+configuration:
+  server:
+    port: 3000
+    host: "0.0.0.0"
+    trustProxy: true
+    requestIdLogLabel: "reqId"
+    logger:
+      level: "info"
+      prettyPrint: true
+
+  orm:
+    provider: "postgresql"
+    relationMode: "foreignKeys"
+    log: ["query", "error", "warn"]
+
+  middleware:
+    cors:
+      origin: true
+      credentials: true
+    helmet:
+      enabled: true
+    rateLimit:
+      max: 100
+      timeWindow: "1 minute"
+    jwt:
+      secret: "${JWT_SECRET}"
+      sign:
+        expiresIn: "7d"
+
+  validation:
+    stripUnknown: true
+    abortEarly: false

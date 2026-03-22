@@ -1,0 +1,75 @@
+name: PostgreSQL15
+version: "1.0.0"
+category: storage
+description: "PostgreSQL 15 database with optimized configuration for production"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [postgresql, database, sql, relational]
+
+compatibility:
+  specverse: "^3.3.0"
+  postgresql: ">=15.0"
+
+capabilities:
+  provides:
+    - "storage.database"
+    - "storage.database.relational"
+    - "storage.database.sql"
+    - "database.postgresql"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  database: "postgresql"
+  version: "15.x"
+
+dependencies:
+  runtime: []  # Database runs separately
+
+  dev:
+    - name: "pg"
+      version: "^8.11.0"
+      description: "PostgreSQL client for Node.js"
+
+codeTemplates:
+  config:
+    engine: typescript
+    generator: "libs/instance-factories/storage/templates/postgresql/config-generator.ts"
+    outputPattern: "config/database.{instance}.ts"
+
+  docker:
+    engine: typescript
+    generator: "libs/instance-factories/storage/templates/postgresql/docker-generator.ts"
+    outputPattern: "docker/postgres.{instance}.yml"
+
+configuration:
+  # Database connection
+  host: "${DB_HOST:-localhost}"
+  port: 5432
+  database: "${DB_NAME}"
+  username: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+
+  # Connection pool
+  pool:
+    min: 2
+    max: 10
+    idleTimeoutMillis: 30000
+    connectionTimeoutMillis: 2000
+
+  # Performance
+  settings:
+    max_connections: 100
+    shared_buffers: "256MB"
+    effective_cache_size: "1GB"
+    work_mem: "16MB"
+    maintenance_work_mem: "128MB"
+
+  # Backup
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2am
+    retention: 7  # days

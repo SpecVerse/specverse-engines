@@ -1,0 +1,55 @@
+name: CommanderJS
+version: "1.0.0"
+category: cli
+description: "Node.js CLI generation using Commander.js"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [cli, commander, node, typescript]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "cli.commands"
+    - "cli.parser"
+    - "cli.help"
+  requires:
+    - "service.controller"
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "commander"
+  version: "^12.0.0"
+
+dependencies:
+  runtime:
+    - name: "commander"
+      version: "^12.0.0"
+
+  dev:
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+    - name: "tsx"
+      version: "^4.0.0"
+
+codeTemplates:
+  cli-entry:
+    engine: typescript
+    generator: "libs/instance-factories/cli/templates/commander/cli-entry-generator.ts"
+    outputPattern: "{backendDir}/src/cli/index.ts"
+
+  cli-commands:
+    engine: typescript
+    generator: "libs/instance-factories/cli/templates/commander/command-generator.ts"
+    outputPattern: "{backendDir}/src/cli/commands/{command}.ts"
+
+configuration:
+  outputStructure: "monorepo"
+  backendDir: "backend"

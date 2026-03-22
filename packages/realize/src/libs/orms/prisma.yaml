@@ -1,0 +1,89 @@
+name: PrismaORM
+version: "1.0.0"
+category: service
+description: "Prisma ORM for type-safe database access with auto-generated client"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [prisma, orm, database, typescript]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "orm.prisma"
+    - "orm.schema"
+    - "orm.client"
+    - "database.migrations"
+  requires:
+    - "storage.database"  # Needs actual database instance
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  orm: "prisma"
+  version: "^5.5.0"
+
+dependencies:
+  runtime:
+    - name: "@prisma/client"
+      version: "^5.5.0"
+
+  dev:
+    - name: "prisma"
+      version: "^5.5.0"
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  schema:
+    engine: typescript
+    generator: "libs/instance-factories/orms/templates/prisma/schema-generator.ts"
+    outputPattern: "{backendDir}/prisma/schema.prisma"
+
+configuration:
+  outputStructure: "monorepo"
+  backendDir: "backend"
+
+  provider: "postgresql"  # Default, can be overridden
+  relationMode: "foreignKeys"
+  log: ["query", "error", "warn"]
+  previewFeatures: []
+
+# Requirements for generic scaffolding (runtime-agnostic structure)
+requirements:
+  # Package dependencies (Node.js/npm-specific)
+  dependencies:
+    npm:
+      dependencies:
+        "@prisma/client": "^5.5.0"
+      devDependencies:
+        "prisma": "^5.5.0"
+      scripts:
+        "db:generate": "prisma generate"
+        "db:migrate": "prisma migrate dev"
+        "db:push": "prisma db push"
+        "db:studio": "prisma studio"
+
+  # Environment variables (universal structure)
+  environment:
+    - name: "DATABASE_URL"
+      description: "Database connection string"
+      example: "postgresql://user:password@localhost:5432/dbname"
+      required: true
+      category: "Database"
+
+  # Build/runtime configuration (TypeScript-specific)
+  configuration: {}
+
+  # Generated files
+  files:
+    - path: ".env"
+      description: "Environment variables"
+    - path: "prisma/schema.prisma"
+      description: "Prisma schema definition"

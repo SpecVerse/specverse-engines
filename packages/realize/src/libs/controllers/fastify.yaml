@@ -1,0 +1,127 @@
+name: FastifyAPI
+version: "1.0.0"
+category: controller
+description: "Fastify REST API server with WebSocket support"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [fastify, rest-api, websocket, controller]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "api.rest"
+    - "api.rest.crud"
+    - "api.websocket"
+  requires:
+    - "storage.database"  # Needs a database for data persistence
+    - "validation.runtime"  # Needs validation schemas
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "fastify"
+  version: "^4.24.0"
+
+dependencies:
+  runtime:
+    - name: "fastify"
+      version: "^4.24.0"
+    - name: "@fastify/cors"
+      version: "^8.4.0"
+    - name: "@fastify/helmet"
+      version: "^11.1.0"
+    - name: "@fastify/rate-limit"
+      version: "^9.0.0"
+
+  dev:
+    - name: "@types/node"
+      version: "^20.8.0"
+    - name: "typescript"
+      version: "^5.2.0"
+    - name: "tsx"
+      version: "^4.0.0"
+
+codeTemplates:
+  routes:
+    engine: typescript
+    generator: "libs/instance-factories/controllers/templates/fastify/routes-generator.ts"
+    outputPattern: "{backendDir}/src/routes/{controller}.ts"
+
+  meta:
+    engine: typescript
+    generator: "libs/instance-factories/controllers/templates/fastify/meta-routes-generator.ts"
+    outputPattern: "{backendDir}/src/routes/MetaRoutes.ts"
+
+  server:
+    engine: typescript
+    generator: "libs/instance-factories/controllers/templates/fastify/server-generator.ts"
+    outputPattern: "{backendDir}/src/server.ts"
+
+configuration:
+  outputStructure: "monorepo"
+  backendDir: "backend"
+
+  server:
+    port: 3000
+    host: "0.0.0.0"
+    trustProxy: true
+    requestIdLogLabel: "reqId"
+    logger:
+      level: "info"
+      prettyPrint: true
+
+  middleware:
+    cors:
+      origin: true
+      credentials: true
+    helmet:
+      enabled: true
+    rateLimit:
+      max: 100
+      timeWindow: "1 minute"
+
+# Requirements for generic scaffolding (runtime-agnostic structure)
+requirements:
+  # Package dependencies (Node.js/npm-specific)
+  dependencies:
+    npm:
+      dependencies:
+        "fastify": "^4.24.0"
+        "@fastify/cors": "^8.4.0"
+        "yaml": "^2.3.0"
+      devDependencies:
+        "tsx": "^4.0.0"
+      scripts:
+        "dev": "tsx watch src/main.ts"
+        "start": "node dist/main.js"
+
+  # Environment variables (universal structure)
+  environment:
+    - name: "PORT"
+      description: "Server port"
+      example: "3000"
+      required: false
+      category: "Server"
+    - name: "HOST"
+      description: "Server host"
+      example: "0.0.0.0"
+      required: false
+      category: "Server"
+    - name: "LOG_LEVEL"
+      description: "Logging level (trace, debug, info, warn, error, fatal)"
+      example: "info"
+      required: false
+      category: "Server"
+
+  # Build/runtime configuration (TypeScript-specific)
+  configuration:
+    tsconfig:
+      compilerOptions:
+        target: "ES2022"
+        module: "ESNext"
+        moduleResolution: "node"

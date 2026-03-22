@@ -1,0 +1,129 @@
+name: ReactComponents
+version: "1.0.0"
+category: view
+description: "React components for UI layer with TypeScript and modern hooks"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [react, components, ui, view, typescript, hooks]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "ui.components"
+    - "ui.views"
+    - "ui.forms"
+  requires:
+    - "api.rest"  # Needs API endpoints for data fetching
+
+technology:
+  runtime: "browser"
+  language: "typescript"
+  framework: "react"
+  version: "^18.2.0"
+
+dependencies:
+  runtime:
+    - name: "react"
+      version: "^18.2.0"
+    - name: "react-dom"
+      version: "^18.2.0"
+    - name: "react-router-dom"
+      version: "^6.18.0"
+    - name: "@tanstack/react-query"
+      version: "^5.0.0"
+    - name: "react-hook-form"
+      version: "^7.48.0"
+    - name: "zod"
+      version: "^3.22.0"
+    - name: "@hookform/resolvers"
+      version: "^3.3.0"
+
+  dev:
+    - name: "@types/react"
+      version: "^18.2.0"
+    - name: "@types/react-dom"
+      version: "^18.2.0"
+    - name: "typescript"
+      version: "^5.2.0"
+    - name: "vite"
+      version: "^5.0.0"
+    - name: "@vitejs/plugin-react"
+      version: "^4.2.0"
+
+codeTemplates:
+  # Component templates
+  components:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/components-generator.ts"
+    outputPattern: "{frontendDir}/src/components/{view.name}.tsx"
+
+  forms:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/forms-generator.ts"
+    outputPattern: "{frontendDir}/src/components/forms/{model}Form.tsx"
+
+  hooks:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/hooks-generator.ts"
+    outputPattern: "{frontendDir}/src/hooks/use{model}.ts"
+
+  types:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/types-generator.ts"
+    outputPattern: "{frontendDir}/src/types/{model}.ts"
+
+  # Infrastructure templates (NEW)
+  indexHtml:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/index-html-generator.ts"
+    outputPattern: "{frontendDir}/index.html"
+
+  app:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/app-generator.ts"
+    outputPattern: "{frontendDir}/src/App.tsx"
+
+  mainTsx:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/main-tsx-generator.ts"
+    outputPattern: "{frontendDir}/src/main.tsx"
+
+  viteConfig:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/vite-config-generator.ts"
+    outputPattern: "{frontendDir}/vite.config.ts"
+
+  router:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/router-generator.ts"
+    outputPattern: "{frontendDir}/src/router.tsx"
+
+  indexCss:
+    engine: typescript
+    generator: "libs/instance-factories/views/templates/react/index-css-generator.ts"
+    outputPattern: "{frontendDir}/src/index.css"
+
+configuration:
+  outputStructure: "monorepo"
+  frontendDir: "frontend"
+
+  styling:
+    framework: "tailwindcss"
+    classNaming: "bem"
+
+  state:
+    management: "react-query"
+    caching: true
+
+  forms:
+    validation: "zod"
+    errorHandling: "inline"
+
+  routing:
+    library: "react-router"
+    version: "^6.18.0"

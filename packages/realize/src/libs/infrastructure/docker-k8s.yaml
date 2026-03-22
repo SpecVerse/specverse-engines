@@ -1,0 +1,61 @@
+name: DockerKubernetes
+version: "1.0.0"
+category: infrastructure
+description: "Docker and Kubernetes infrastructure generator with CI/CD pipelines"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [docker, kubernetes, infrastructure, ci-cd, devops]
+
+compatibility:
+  specverse: "^3.3.0"
+
+capabilities:
+  provides:
+    - "infrastructure.docker"
+    - "infrastructure.kubernetes"
+    - "infrastructure.cicd"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  containerization: "docker"
+  orchestration: "kubernetes"
+  cicd: "github-actions"
+
+codeTemplates:
+  infrastructure:
+    engine: typescript
+    generator: "libs/instance-factories/infrastructure/templates/docker-k8s/infrastructure-generator.ts"
+    outputPattern: "infrastructure/"
+
+configuration:
+  docker:
+    multiStage: true
+    nodeVersion: "20-alpine"
+  kubernetes:
+    namespace: "default"
+    replicas: 3
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+  cicd:
+    provider: "github-actions"
+    buildOnPush: true
+    deployOnTag: true
+
+# NOTE: This implementation type wraps the existing generate-infrastructure.js script
+# TODO: Future enhancement - Convert generate-infrastructure.js to native TypeScript template generator
+#       The current script is 650+ lines and generates complete infrastructure as code.
+#       Converting to native templates would require breaking it into multiple template files:
+#       - dockerfile-generator.ts (multi-stage Dockerfiles)
+#       - docker-compose-generator.ts (development and production compositions)
+#       - kubernetes-generator.ts (K8s manifests - deployments, services, ingress)
+#       - cicd-generator.ts (GitHub Actions / GitLab CI pipelines)
+#       - env-generator.ts (environment configuration templates)

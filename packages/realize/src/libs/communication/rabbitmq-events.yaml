@@ -1,0 +1,87 @@
+name: RabbitMQEvents
+version: "1.0.0"
+category: communication
+description: "RabbitMQ event bus for pub/sub messaging and event-driven architecture"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [rabbitmq, events, messaging, pubsub, amqp]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "messaging.pubsub"
+    - "messaging.events"
+    - "messaging.queue"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "amqplib"
+  version: "^0.10.3"
+
+dependencies:
+  runtime:
+    - name: "amqplib"
+      version: "^0.10.3"
+    - name: "uuid"
+      version: "^9.0.0"
+
+  dev:
+    - name: "@types/amqplib"
+      version: "^0.10.4"
+    - name: "@types/uuid"
+      version: "^9.0.0"
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  publisher:
+    engine: typescript
+    generator: "libs/instance-factories/communication/templates/rabbitmq/publisher-generator.ts"
+    outputPattern: "src/events/publishers/{event}Publisher.ts"
+
+  subscriber:
+    engine: typescript
+    generator: "libs/instance-factories/communication/templates/rabbitmq/subscriber-generator.ts"
+    outputPattern: "src/events/subscribers/{event}Subscriber.ts"
+
+  connection:
+    engine: typescript
+    generator: "libs/instance-factories/communication/templates/rabbitmq/connection-generator.ts"
+    outputPattern: "src/events/connection.ts"
+
+configuration:
+  connection:
+    protocol: "amqp"
+    hostname: "localhost"
+    port: 5672
+    username: "guest"
+    password: "guest"
+    vhost: "/"
+    heartbeat: 60
+
+  exchange:
+    type: "topic"
+    durable: true
+    autoDelete: false
+
+  queue:
+    durable: true
+    exclusive: false
+    autoDelete: false
+
+  publishing:
+    persistent: true
+    mandatory: true
+    confirmSelect: true
+
+  consuming:
+    prefetch: 10
+    noAck: false
+    exclusive: false

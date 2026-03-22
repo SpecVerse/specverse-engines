@@ -1,0 +1,56 @@
+name: EventEmitter
+version: "1.0.0"
+category: communication
+description: "In-memory event bus using Node.js EventEmitter for development and testing"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [events, in-memory, pubsub, eventemitter, development]
+
+compatibility:
+  specverse: "^3.3.0"
+  node: ">=18.0.0"
+
+capabilities:
+  provides:
+    - "messaging.pubsub"
+    - "messaging.events"
+    - "messaging.inmemory"
+  requires: []
+
+technology:
+  runtime: "node"
+  language: "typescript"
+  framework: "eventemitter3"
+  version: "^5.0.0"
+
+dependencies:
+  runtime:
+    - name: "eventemitter3"
+      version: "^5.0.0"
+
+  dev:
+    - name: "typescript"
+      version: "^5.2.0"
+
+codeTemplates:
+  bus:
+    engine: typescript
+    generator: "libs/instance-factories/communication/templates/eventemitter/bus-generator.ts"
+    outputPattern: "src/events/eventBus.ts"
+
+  publisher:
+    engine: typescript
+    generator: "libs/instance-factories/communication/templates/eventemitter/publisher-generator.ts"
+    outputPattern: "src/events/publishers/{event}Publisher.ts"
+
+  subscriber:
+    engine: typescript
+    generator: "libs/instance-factories/communication/templates/eventemitter/subscriber-generator.ts"
+    outputPattern: "src/events/subscribers/{event}Subscriber.ts"
+
+configuration:
+  maxListeners: 100
+  captureRejections: true
+  errorHandling: "log"
