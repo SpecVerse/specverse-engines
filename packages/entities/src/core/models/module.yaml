@@ -1,0 +1,65 @@
+# Models Entity Module Manifest
+#
+# The foundational entity type in SpecVerse. Models define data structures
+# with attributes, relationships, lifecycles, behaviors, metadata, and profiles.
+#
+# This manifest declares all implemented facets and their locations,
+# enabling the build system to discover, compile, and register the module.
+
+name: models
+type: core
+version: 3.5.1
+depends_on: []
+
+# ============================================================================
+# Facets
+# ============================================================================
+
+facets:
+  # JSON Schema for validating model definitions in .specly files
+  schema: schema/models.schema.json
+
+  # Convention processor: expands shorthand into full model definitions
+  conventions:
+    structural: conventions/model-processor.ts
+    behavioural: behaviour/conventions/grammar.yaml
+
+  # Inference rules: model → controller/service generation
+  inference:
+    entry: inference/index.ts
+    rules:
+      - inference/v3.1-controller-rules.json
+      - inference/v3.1-service-rules.json
+
+  # Behavioural specification (Quint)
+  behaviour:
+    rules: behaviour/rules.qnt
+    invariants: behaviour/invariants.qnt
+
+  # Code generators (instance factory references)
+  generators: generators/index.ts
+
+  # Documentation references
+  docs: docs/index.ts
+
+  # Test references
+  tests: tests/index.ts
+
+# ============================================================================
+# Diagram Plugins
+# ============================================================================
+
+diagrams:
+  - type: er
+  - type: class
+
+# ============================================================================
+# Delivery Connections
+# ============================================================================
+# How this entity connects to the existing subsystem infrastructure.
+
+delivery:
+  parser: true          # Models appear in parsed .specly files
+  inference: true       # Models trigger inference (→ controllers, services)
+  realize: true         # Models can be realized to code (Prisma, DDL, etc.)
+  cli: true             # Models support CLI commands (validate, inspect)

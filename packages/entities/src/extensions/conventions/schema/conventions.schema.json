@@ -1,0 +1,47 @@
+{
+  "$id": "specverse://entities/conventions",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Convention definition schema — meta-circular grammar definitions for the SpecVerse convention system",
+  "$defs": {
+    "ConventionsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "baseType": { "type": "string" },
+            "description": { "type": "string" },
+            "implies": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "when_modified_by": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "adds": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "sets": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "validates": { "type": "string" }
+                }
+              }
+            },
+            "appliesTo": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "required": ["baseType"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

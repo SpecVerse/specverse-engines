@@ -1,0 +1,56 @@
+# Conventions — Behavioural Convention Grammar (Meta-Circular)
+# Convention grammars for the convention entity itself.
+# This defines how to write behavioural conventions about conventions.
+
+domain: quint
+entity: conventions
+
+conventions:
+
+  expansion_is_deterministic:
+    pattern: "{process} expansion is deterministic"
+    expands_to: "quint:invariant"
+    description: "The same input always produces the same output"
+    template:
+      name: "{process}IsDeterministic"
+      body: "conventions.forall(c => forall(input1, input2 => (input1 == input2) implies (c.expand(input1) == c.expand(input2))))"
+
+  no_conflicting_conventions:
+    pattern: "no conflicting conventions"
+    expands_to: "quint:invariant"
+    description: "No two conventions in the same domain produce contradictory outputs"
+    template:
+      name: "noConflictingConventions"
+      body: "conventions.forall(c1 => conventions.forall(c2 => (c1 != c2 and c1.domain == c2.domain) implies (c1.name != c2.name)))"
+
+  domains_must_be_valid:
+    pattern: "domains must be valid"
+    expands_to: "quint:invariant"
+    description: "Every convention must target a recognized domain"
+    template:
+      name: "conventionDomainsValid"
+      body: "conventions.forall(c => Set(\"specly\", \"quint\").contains(c.domain))"
+
+  patterns_must_be_non_empty:
+    pattern: "patterns must be non-empty"
+    expands_to: "quint:invariant"
+    description: "Every convention must have a non-empty pattern"
+    template:
+      name: "patternsNonEmpty"
+      body: "conventions.forall(c => c.pattern != \"\")"
+
+  no_inheritance_cycles:
+    pattern: "no inheritance cycles"
+    expands_to: "quint:invariant"
+    description: "Convention inheritance must not create cycles"
+    template:
+      name: "noInheritanceCycles"
+      body: "conventions.forall(c1 => conventions.forall(c2 => (c1.baseType == c2.name and c2.baseType != \"\") implies (c2.baseType != c1.name)))"
+
+  base_type_must_exist:
+    pattern: "base type must exist"
+    expands_to: "quint:invariant"
+    description: "Conventions with baseType must reference an existing convention"
+    template:
+      name: "baseTypeExists"
+      body: "conventions.forall(c => (c.baseType != \"\") implies conventions.exists(base => base.name == c.baseType))"

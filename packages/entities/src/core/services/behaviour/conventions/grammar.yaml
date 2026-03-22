@@ -1,0 +1,46 @@
+# Services — Behavioural Convention Grammar
+
+domain: quint
+entity: services
+
+conventions:
+
+  must_have_unified_validate:
+    pattern: "{entities} must have unified validate"
+    expands_to: "quint:invariant"
+    description: "Every service has exactly one validate(data, {operation}) method"
+    template:
+      name: "unifiedValidateMethod"
+      body: "services.forall(s => s.operations.filter(op => op.name == \"validate\").size() == 1)"
+
+  mutations_must_call_validate:
+    pattern: "mutations must call validate"
+    expands_to: "quint:invariant"
+    description: "Create, update, evolve operations must internally call validate"
+    template:
+      name: "mutationsCallValidate"
+      body: "services.forall(s => s.operations.forall(op => Set(\"create\", \"update\", \"evolve\").contains(op.name) implies op.callsValidateInternally))"
+
+  lifecycle_service_requires_complex_lifecycle:
+    pattern: "lifecycle service requires complex lifecycle"
+    expands_to: "quint:invariant"
+    description: "LifecycleService only generated when model has >2 transitions"
+    template:
+      name: "lifecycleServiceCondition"
+      body: "services.forall(s => (s.pattern == \"LifecycleService\") implies models.exists(m => m.name == s.model and m.hasLifecycle and m.lifecycle.transitions.size() > 2))"
+
+  deprecated_patterns_never_generated:
+    pattern: "deprecated patterns never generated"
+    expands_to: "quint:invariant"
+    description: "ProcessingService and ValidationService must never appear"
+    template:
+      name: "noDeprecatedServices"
+      body: "services.forall(s => s.pattern != \"ProcessingService\" and s.pattern != \"ValidationService\")"
+
+  patterns_unique_per_model:
+    pattern: "service patterns unique per model"
+    expands_to: "quint:invariant"
+    description: "No two services for the same model have the same pattern"
+    template:
+      name: "servicePatternUniqueness"
+      body: "services.forall(s1 => services.forall(s2 => (s1 != s2 and s1.model == s2.model) implies (s1.pattern != s2.pattern)))"

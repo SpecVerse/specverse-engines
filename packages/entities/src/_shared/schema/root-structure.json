@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specverse.org/schemas/v3.5.0.json",
+  "title": "SpecVerse Unified Schema v3.5.0",
+  "description": "Unified schema for SpecVerse specifications, manifests, and instance factories. Supports components (WHAT), deployments (WHERE), and manifests (HOW) with instance-based technology mapping.",
+  "version": "3.5.0",
+  "oneOf": [
+    {
+      "$comment": "Specification file (.specly) - contains components and/or deployments",
+      "type": "object",
+      "properties": {
+        "components": {
+          "$ref": "#/$defs/ComponentsContainer"
+        },
+        "deployments": {
+          "$ref": "#/$defs/DeploymentsContainer"
+        },
+        "manifests": {
+          "$ref": "#/$defs/ManifestsContainer"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "components"
+          ]
+        },
+        {
+          "required": [
+            "deployments"
+          ]
+        },
+        {
+          "required": [
+            "components",
+            "deployments"
+          ]
+        },
+        {
+          "required": [
+            "manifests"
+          ]
+        },
+        {
+          "required": [
+            "manifests",
+            "components"
+          ]
+        },
+        {
+          "required": [
+            "manifests",
+            "deployments"
+          ]
+        },
+        {
+          "required": [
+            "manifests",
+            "components",
+            "deployments"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    {
+      "$comment": "Standalone manifest file (manifest.yaml) - maps deployment instances to instance factories",
+      "$ref": "#/$defs/ManifestDefinition"
+    },
+    {
+      "$comment": "Instance factory definition (e.g., fastify-prisma.yaml) - reusable technology specification",
+      "$ref": "#/$defs/InstanceFactoryDefinition"
+    }
+  ]
+}

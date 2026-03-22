@@ -1,0 +1,46 @@
+# Commands — Behavioural Convention Grammar
+
+domain: quint
+entity: commands
+
+conventions:
+
+  must_have_description:
+    pattern: "{entities} must have description"
+    expands_to: "quint:invariant"
+    description: "Every command must have a non-empty description"
+    template:
+      name: "commandsHaveDescriptions"
+      body: "commands.forall(c => c.description != \"\")"
+
+  group_or_leaf:
+    pattern: "command is group or leaf"
+    expands_to: "quint:invariant"
+    description: "A command either has subcommands (group) or has a direct action (leaf), not both"
+    template:
+      name: "groupOrLeaf"
+      body: "commands.forall(c => (c.subcommands.size() > 0) implies not(c.hasDirectAction))"
+
+  max_nesting_depth:
+    pattern: "nesting depth max 3"
+    expands_to: "quint:invariant"
+    description: "Subcommand nesting must not exceed 3 levels for usability"
+    template:
+      name: "maxNestingDepth"
+      body: "commands.forall(c => c.depth <= 3)"
+
+  default_implies_optional:
+    pattern: "default implies optional"
+    expands_to: "quint:invariant"
+    description: "Options with default values are implicitly optional"
+    template:
+      name: "defaultImpliesOptional"
+      body: "commands.forall(c => c.options.forall(o => o.hasDefault implies not(o.required)))"
+
+  service_refs_must_exist:
+    pattern: "service refs must exist"
+    expands_to: "quint:invariant"
+    description: "Commands that reference a service must reference one that exists"
+    template:
+      name: "commandServiceWiring"
+      body: "commands.forall(c => (c.serviceRef != \"\") implies services.exists(s => s.name == c.serviceRef))"

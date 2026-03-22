@@ -1,0 +1,10 @@
+import type { EntityDocReference } from '../../../_shared/types.js';
+
+export const commandDocs: EntityDocReference[] = [
+  {
+    title: 'Commands Entity Design',
+    category: 'architecture',
+    path: 'ENTITY-MODULE-PROGRESS.md',
+    description: 'Entity module restructuring progress log and architecture decisions',
+  },
+];

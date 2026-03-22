@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specverse.org/schemas/shared/primitives.json",
+  "title": "SpecVerse Shared Schema Primitives",
+  "description": "Shared type definitions used across multiple entity types.",
+  "$defs": {
+    "NamespaceString": {
+      "type": "string",
+      "pattern": "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[a-z0-9][a-z0-9-]*[a-z0-9]|[A-Za-z][A-Za-z0-9_-]*)$",
+      "description": "Namespace: @org/package, @org/domain/module, unscoped package (kebab-case), or component name (PascalCase)"
+    },
+    "SemanticVersion": {
+      "type": "string",
+      "pattern": "^(\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)?(?:\\+[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)?)$",
+      "description": "Semantic version: 1.0.0, 1.0.0-alpha.1, 1.0.0+build.1"
+    },
+    "TypeReference": {
+      "type": "string",
+      "pattern": "^((@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[a-z0-9][a-z0-9-]*[a-z0-9])\\.)?[A-Z][A-Za-z0-9_]*$",
+      "description": "Type reference: Type or namespace.Type"
+    },
+    "AttributesSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^(?:Array<[A-Z][A-Za-z0-9_]*>|[A-Z][A-Za-z0-9_]*(?:\\[\\])?)(?:\\s+(?:required|optional|unique|auto=\\w+|min=\\d+(?:\\.\\d+)?|max=\\d+(?:\\.\\d+)?|default=(?:[\\w.]+|\"[^\"]*\")|verified|searchable|values=\\[[^\\]]+\\]))*$",
+              "description": "Convention format: Type, Type[], or Array<Type> with modifiers (required, optional, unique, etc.)"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "unique": {
+                  "type": "boolean"
+                },
+                "isArray": {
+                  "type": "boolean"
+                },
+                "auto": {
+                  "type": "string"
+                },
+                "min": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                },
+                "default": {
+                  "type": "string"
+                },
+                "verified": {
+                  "type": "boolean"
+                },
+                "searchable": {
+                  "type": "boolean"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExecutableProperties": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/AttributesSection"
+        },
+        "returns": {
+          "type": "string"
+        },
+        "requires": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "ensures": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "publishes": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sequential steps describing the execution process"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SubscriptionsPattern": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Z][A-Za-z0-9_]*$": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "CapabilityList": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "description": "Capability patterns: '*', 'behaviors.*', 'User.*', or explicit list"
+    }
+  }
+}

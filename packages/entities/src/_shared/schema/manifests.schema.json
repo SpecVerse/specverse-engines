@@ -1,0 +1,743 @@
+{
+  "$id": "specverse://schema/manifests",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Manifest definitions: ManifestsContainer, ManifestDefinition, and related sections",
+  "$defs": {
+    "ManifestsContainer": {
+      "type": "object",
+      "description": "Container for implementation manifests",
+      "patternProperties": {
+        "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[A-Za-z][A-Za-z0-9_-]*)$": {
+          "$ref": "#/$defs/ManifestDefinition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ManifestDefinition": {
+      "type": "object",
+      "description": "Implementation manifest - maps deployment instances to instance factories",
+      "required": [
+        "specVersion",
+        "name",
+        "version",
+        "deployment"
+      ],
+      "properties": {
+        "specVersion": {
+          "type": "string",
+          "description": "SpecVerse specification version",
+          "enum": [
+            "3.5.0"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Manifest name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Manifest description"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Manifest version (semver)"
+        },
+        "deployment": {
+          "type": "object",
+          "description": "Reference to deployment specification",
+          "required": [
+            "deploymentSource",
+            "deploymentName"
+          ],
+          "properties": {
+            "deploymentSource": {
+              "type": "string",
+              "description": "Path to .specly file containing deployment"
+            },
+            "deploymentName": {
+              "type": "string",
+              "description": "Name of deployment in the spec"
+            },
+            "deploymentVersion": {
+              "type": "string",
+              "description": "Version constraint for deployment"
+            }
+          }
+        },
+        "defaultMappings": {
+          "type": "object",
+          "description": "Default instance factory by category (lowest priority)",
+          "properties": {
+            "controller": {
+              "type": "string",
+              "description": "Default for controller instances"
+            },
+            "service": {
+              "type": "string",
+              "description": "Default for service instances"
+            },
+            "view": {
+              "type": "string",
+              "description": "Default for view instances"
+            },
+            "storage": {
+              "type": "string",
+              "description": "Default for storage instances"
+            },
+            "security": {
+              "type": "string",
+              "description": "Default for security instances"
+            },
+            "infrastructure": {
+              "type": "string",
+              "description": "Default for infrastructure instances"
+            },
+            "monitoring": {
+              "type": "string",
+              "description": "Default for monitoring instances"
+            },
+            "communication": {
+              "type": "string",
+              "description": "Default for communication instances"
+            }
+          },
+          "additionalProperties": false
+        },
+        "capabilityMappings": {
+          "type": "array",
+          "description": "Map capabilities to instance factories with pattern matching (medium priority)",
+          "items": {
+            "type": "object",
+            "required": [
+              "capability",
+              "instanceFactory"
+            ],
+            "properties": {
+              "capability": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z*][a-z0-9*]*)*$",
+                "description": "Capability pattern (supports wildcards: api.rest.*)"
+              },
+              "instanceFactory": {
+                "type": "string",
+                "description": "Instance factory name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version constraint for instance factory"
+              },
+              "configuration": {
+                "type": "object",
+                "description": "Configuration overrides",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "instanceMappings": {
+          "type": "array",
+          "description": "Explicit instance-to-factory mappings (highest priority)",
+          "items": {
+            "type": "object",
+            "required": [
+              "instanceName",
+              "instanceFactory"
+            ],
+            "properties": {
+              "instanceName": {
+                "type": "string",
+                "description": "Specific instance name from deployment"
+              },
+              "instanceFactory": {
+                "type": "string",
+                "description": "Instance factory name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version constraint for instance factory"
+              },
+              "configuration": {
+                "type": "object",
+                "description": "Configuration overrides",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "manifestTemplates": {
+          "type": "array",
+          "description": "Import common technology combinations",
+          "items": {
+            "type": "object",
+            "required": [
+              "template"
+            ],
+            "properties": {
+              "template": {
+                "type": "string",
+                "description": "Template from library (e.g., '@specverse/manifest-templates/jamstack')"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version constraint"
+              }
+            }
+          }
+        },
+        "configuration": {
+          "type": "object",
+          "description": "Global configuration settings",
+          "additionalProperties": true
+        },
+        "conditionalMappings": {
+          "type": "array",
+          "description": "Environment-based capability mappings",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition": {
+                "type": "object",
+                "properties": {
+                  "environment": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ],
+                    "description": "Target environment(s)"
+                  },
+                  "region": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "featureFlags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Required feature flags (prefix ! for negation)"
+                  },
+                  "scale": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "integer"
+                      },
+                      "max": {
+                        "type": "integer"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "capabilityMappings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "capability": {
+                      "type": "string"
+                    },
+                    "instanceFactory": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "configuration": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "fallback": {
+                      "type": "array",
+                      "description": "Fallback instance factories",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceFactory": {
+                            "type": "string"
+                          },
+                          "degradedMode": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "warnings": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "errors": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "requiredAcknowledgment": {
+                            "type": "boolean",
+                            "default": false
+                          }
+                        },
+                        "required": [
+                          "instanceFactory"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "capability",
+                    "instanceFactory"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "condition",
+              "capabilityMappings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "description": "Technology conflict declarations",
+          "items": {
+            "type": "object",
+            "properties": {
+              "instanceFactories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "description": "Conflicting instance factory names"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Explanation of conflict"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warning"
+                ],
+                "default": "error"
+              }
+            },
+            "required": [
+              "instanceFactories",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "instanceFactories": {
+          "type": "array",
+          "description": "List of instance factories used by this manifest.",
+          "items": {
+            "$ref": "#/$defs/InstanceFactoryRef"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ManifestImportSection": {
+      "type": "array",
+      "description": "Import standard definition libraries for implementation types",
+      "items": {
+        "type": "object",
+        "description": "Import standard definition library",
+        "required": [
+          "library"
+        ],
+        "properties": {
+          "library": {
+            "type": "string",
+            "description": "Library path (e.g., '@specverse/standards/nextjs')"
+          },
+          "version": {
+            "type": "string",
+            "description": "Version constraint (e.g., '^1.0.0')"
+          },
+          "select": {
+            "type": "array",
+            "description": "Select specific definitions from library",
+            "items": {
+              "type": "string"
+            }
+          },
+          "alias": {
+            "type": "string",
+            "description": "Optional alias for the imported library"
+          }
+        }
+      }
+    },
+    "ManifestComponentReference": {
+      "type": "object",
+      "description": "Information about the v3.1.0 Component specification",
+      "required": [
+        "componentSource",
+        "componentVersion"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "componentSource": {
+          "type": "string",
+          "description": "Source of the component"
+        },
+        "componentVersion": {
+          "type": "string",
+          "description": "Version constraint for the component (should be ^3.1.0)",
+          "pattern": "^(\\^|>=|~)?3\\.[1-9]\\.[0-9]+"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the component"
+        }
+      }
+    },
+    "ManifestDeploymentReference": {
+      "type": "object",
+      "description": "Information about the v3.1.0 Deployment specification",
+      "required": [
+        "deploymentSource",
+        "deploymentVersion"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "deploymentSource": {
+          "type": "string",
+          "description": "Source of the deployment specification"
+        },
+        "deploymentVersion": {
+          "type": "string",
+          "description": "Version constraint for the deployment (should be ^3.1.0)",
+          "pattern": "^(\\^|>=|~)?3\\.[1-9]\\.[0-9]+"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the deployment"
+        }
+      }
+    },
+    "ImplementationTypesSection": {
+      "type": "object",
+      "description": "Reusable implementation type definitions",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "type": "object",
+          "oneOf": [
+            {
+              "description": "Extend from imported standard definition",
+              "required": [
+                "extends"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "extends": {
+                  "type": "string",
+                  "description": "Reference to imported standard definition"
+                },
+                "overrides": {
+                  "type": "object",
+                  "description": "Override any standard definition properties"
+                },
+                "localExtensions": {
+                  "type": "object",
+                  "description": "Technology-specific local extensions"
+                }
+              }
+            },
+            {
+              "description": "Custom local definition",
+              "required": [
+                "type",
+                "technology"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "controller",
+                    "service",
+                    "view",
+                    "database",
+                    "authentication",
+                    "messaging",
+                    "cache",
+                    "storage",
+                    "api"
+                  ],
+                  "description": "Category of implementation"
+                },
+                "technology": {
+                  "type": "string",
+                  "description": "Core technology (e.g., 'NextJS', 'PostgreSQL')"
+                },
+                "framework": {
+                  "type": "string"
+                },
+                "adapter": {
+                  "type": "string"
+                },
+                "provider": {
+                  "type": "string"
+                },
+                "libraries": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "environmentVariables": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "defaultPath": {
+                  "type": "string"
+                },
+                "configuration": {
+                  "type": "object"
+                },
+                "capabilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BehaviorMappingsSection": {
+      "type": "array",
+      "description": "Model behavior implementation mappings",
+      "items": {
+        "type": "object",
+        "required": [
+          "modelName",
+          "behaviorName",
+          "implementationMethod"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "modelName": {
+            "type": "string"
+          },
+          "behaviorName": {
+            "type": "string"
+          },
+          "implementationMethod": {
+            "type": "string"
+          },
+          "implementationPath": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CapabilityMappingsSection": {
+      "type": "array",
+      "description": "v3.1.0 capability mappings using implementation types",
+      "items": {
+        "type": "object",
+        "required": [
+          "capability",
+          "implementationType"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "type": "string",
+            "description": "Capability pattern (e.g., '*', 'models.*')"
+          },
+          "implementationType": {
+            "type": "string",
+            "description": "Reference to implementationType"
+          },
+          "capabilityType": {
+            "type": "string",
+            "enum": [
+              "advertises",
+              "uses",
+              "bidirectional"
+            ]
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "channelBinding": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CommunicationChannelsSection": {
+      "type": "array",
+      "description": "v3.1.0 communication channel mappings",
+      "items": {
+        "type": "object",
+        "required": [
+          "channelName",
+          "implementationType"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "channelName": {
+            "type": "string"
+          },
+          "implementationType": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "LogicalDeploymentSection": {
+      "type": "object",
+      "description": "v3.1.0 logical deployment configuration",
+      "additionalProperties": false,
+      "properties": {
+        "deploymentName": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "object",
+          "properties": {
+            "controllers": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            },
+            "services": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            },
+            "views": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            },
+            "communications": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            }
+          }
+        }
+      }
+    },
+    "LogicalInstanceMapping": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Reference to implementationType"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "implementationType": {
+                  "type": "string"
+                },
+                "overrides": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "implementationType"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "NamespaceConfigurationSection": {
+      "type": "object",
+      "description": "v3.1.0 namespace scoping configuration",
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "single",
+            "domain-based",
+            "environment-based",
+            "tenant-based"
+          ]
+        },
+        "namespaces": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "isolation": {
+                  "type": "string",
+                  "enum": [
+                    "strict",
+                    "permissive"
+                  ]
+                },
+                "resourceLimits": {
+                  "type": "object"
+                },
+                "securityPolicy": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "crossNamespacePolicy": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "allow",
+            "explicit"
+          ]
+        }
+      }
+    }
+  }
+}

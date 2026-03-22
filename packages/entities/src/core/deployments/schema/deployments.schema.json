@@ -1,0 +1,568 @@
+{
+  "$id": "specverse://entities/deployments",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Deployment-specific schema definitions",
+  "$defs": {
+    "DeploymentsContainer": {
+      "type": "object",
+      "patternProperties": {
+        "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[A-Za-z][A-Za-z0-9_-]*)$": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "$ref": "#/$defs/SemanticVersion"
+            },
+            "description": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string"
+            },
+            "instances": {
+              "$ref": "#/$defs/InstancesSection"
+            }
+          },
+          "required": [
+            "version"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "InstancesSection": {
+      "type": "object",
+      "properties": {
+        "controllers": {
+          "$ref": "#/$defs/ControllerInstances"
+        },
+        "services": {
+          "$ref": "#/$defs/ServiceInstances"
+        },
+        "views": {
+          "$ref": "#/$defs/ViewInstances"
+        },
+        "communications": {
+          "$ref": "#/$defs/CommunicationInstances"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageInstances"
+        },
+        "security": {
+          "$ref": "#/$defs/SecurityInstances"
+        },
+        "infrastructure": {
+          "$ref": "#/$defs/InfrastructureInstances"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/MonitoringInstances"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ControllerInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            },
+            "rateLimit": {
+              "$ref": "#/$defs/RateLimitPolicy"
+            },
+            "timeout": {
+              "type": "object",
+              "description": "Request timeout configuration",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "requestMs": {
+                  "type": "integer",
+                  "minimum": 100,
+                  "description": "Request timeout in milliseconds"
+                },
+                "keepAliveMs": {
+                  "type": "integer",
+                  "description": "Keep-alive timeout"
+                }
+              },
+              "additionalProperties": false
+            },
+            "operations": {
+              "type": "object",
+              "description": "Per-operation deployment policies",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/OperationPolicies"
+                }
+              },
+              "additionalProperties": false
+            },
+            "resources": {
+              "$ref": "#/$defs/ResourceConfiguration"
+            },
+            "autoscaling": {
+              "$ref": "#/$defs/AutoscalingConfiguration"
+            }
+          },
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ServiceInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            },
+            "operations": {
+              "type": "object",
+              "description": "Per-operation deployment policies",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/OperationPolicies"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ViewInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "CommunicationInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "namespace": {
+              "type": "string"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Capabilities available on this communication channel"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "pubsub",
+                "streaming",
+                "rpc",
+                "queue"
+              ],
+              "default": "pubsub"
+            },
+            "config": {
+              "type": "object"
+            },
+            "consumer": {
+              "type": "object",
+              "description": "Consumer configuration",
+              "properties": {
+                "concurrency": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Number of concurrent consumers"
+                },
+                "prefetch": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Messages to prefetch per consumer"
+                },
+                "autoAck": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Automatically acknowledge messages"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "StorageInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "relational",
+                "document",
+                "keyvalue",
+                "cache",
+                "file",
+                "blob",
+                "queue",
+                "search"
+              ],
+              "description": "Type of storage system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "persistence": {
+              "type": "string",
+              "enum": [
+                "durable",
+                "session",
+                "cache",
+                "temporary"
+              ],
+              "description": "Data persistence policy (logical requirement)"
+            },
+            "consistency": {
+              "type": "string",
+              "enum": [
+                "strong",
+                "eventual",
+                "weak"
+              ],
+              "description": "Data consistency policy (logical requirement)"
+            },
+            "encryption": {
+              "type": "boolean",
+              "description": "Whether encryption is required (logical requirement)"
+            },
+            "backup": {
+              "type": "boolean",
+              "description": "Whether backups are required (logical requirement)"
+            },
+            "replication": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum number of data replicas required (logical requirement)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecurityInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "authentication",
+                "authorization",
+                "encryption",
+                "audit",
+                "firewall",
+                "scanning",
+                "secrets",
+                "identity"
+              ],
+              "description": "Type of security system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "global",
+                "component",
+                "operation"
+              ],
+              "description": "Security scope policy (logical requirement)"
+            },
+            "policies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Security policy names to enforce (logical requirement)"
+            },
+            "encryption": {
+              "type": "string",
+              "enum": [
+                "strong",
+                "basic",
+                "none"
+              ],
+              "description": "Encryption strength requirement (logical requirement)"
+            },
+            "auditLevel": {
+              "type": "string",
+              "enum": [
+                "comprehensive",
+                "detailed",
+                "basic",
+                "minimal"
+              ],
+              "description": "Audit logging level requirement (logical requirement)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "InfrastructureInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "gateway",
+                "loadbalancer",
+                "proxy",
+                "cdn",
+                "dns",
+                "registry",
+                "mesh",
+                "ingress"
+              ],
+              "description": "Type of infrastructure system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "healthCheck": {
+              "type": "boolean",
+              "description": "Whether health checking is required (logical requirement)"
+            },
+            "loadBalancing": {
+              "type": "boolean",
+              "description": "Whether load balancing is required (logical requirement)"
+            },
+            "redundancy": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ],
+              "description": "Redundancy level requirement (logical requirement)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "MonitoringInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "metrics",
+                "logging",
+                "tracing",
+                "alerting",
+                "analytics",
+                "profiling",
+                "uptime",
+                "synthetic"
+              ],
+              "description": "Type of monitoring system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            },
+            "scope": {
+              "type": "string",
+              "enum": ["global", "regional", "local"],
+              "description": "Monitoring scope"
+            },
+            "retention": {
+              "type": "string",
+              "description": "Data retention period (e.g., '30d', '1y')"
+            },
+            "alerting": {
+              "type": "boolean",
+              "description": "Enable alerting capabilities"
+            },
+            "sampling": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Sampling rate (0.0 to 1.0)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,46 @@
+# Measures — Behavioural Convention Grammar
+
+domain: quint
+entity: measures
+
+conventions:
+
+  must_reference_valid_model:
+    pattern: "{entities} must reference valid model"
+    expands_to: "quint:invariant"
+    description: "Every measure must reference a source model that exists"
+    template:
+      name: "measuresReferenceValidModel"
+      body: "measures.forall(m => models.exists(model => model.name == m.sourceModel))"
+
+  must_have_metrics:
+    pattern: "{entities} must have metrics"
+    expands_to: "quint:invariant"
+    description: "Every measure must have at least one metric"
+    template:
+      name: "measuresHaveMetrics"
+      body: "measures.forall(m => m.metrics.size() > 0)"
+
+  aggregation_functions_valid:
+    pattern: "aggregation functions valid"
+    expands_to: "quint:invariant"
+    description: "Aggregation functions must be from the recognized set"
+    template:
+      name: "validAggregationFunctions"
+      body: "measures.forall(m => m.metrics.forall(metric => Set(\"sum\", \"count\", \"avg\", \"min\", \"max\", \"count_distinct\", \"percentile\", \"median\", \"stddev\", \"variance\").contains(metric.aggregation)))"
+
+  aggregated_fields_exist:
+    pattern: "aggregated fields exist on model"
+    expands_to: "quint:invariant"
+    description: "Aggregated fields must exist on the source model (except count)"
+    template:
+      name: "aggregatedFieldsExist"
+      body: "measures.forall(m => m.metrics.forall(metric => metric.aggregation == \"count\" or models.filter(model => model.name == m.sourceModel).forall(model => model.attributes.keys().contains(metric.field))))"
+
+  lifecycle_filter_requires_lifecycle:
+    pattern: "lifecycle filter requires lifecycle"
+    expands_to: "quint:invariant"
+    description: "Measures with lifecycle filters require the source model to have a lifecycle"
+    template:
+      name: "lifecycleFilterRequiresLifecycle"
+      body: "measures.forall(m => m.filters.exists(f => f.isLifecycleFilter) implies models.filter(model => model.name == m.sourceModel).forall(model => model.hasLifecycle))"

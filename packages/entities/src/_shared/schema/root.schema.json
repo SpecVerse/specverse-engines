@@ -1,0 +1,179 @@
+{
+  "$id": "specverse://schema/root",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Root container definitions: ComponentsContainer, ImportSection, ExportSection",
+  "$defs": {
+    "ComponentsContainer": {
+      "type": "object",
+      "patternProperties": {
+        "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[A-Za-z][A-Za-z0-9_-]*)$": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "$ref": "#/$defs/SemanticVersion"
+            },
+            "description": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "import": {
+              "$ref": "#/$defs/ImportSection"
+            },
+            "export": {
+              "$ref": "#/$defs/ExportSection"
+            },
+            "primitives": {
+              "$ref": "#/$defs/PrimitivesSection"
+            },
+            "models": {
+              "$ref": "#/$defs/ModelsSection"
+            },
+            "controllers": {
+              "$ref": "#/$defs/ControllersSection"
+            },
+            "services": {
+              "$ref": "#/$defs/ServicesSection"
+            },
+            "views": {
+              "$ref": "#/$defs/ViewsSection"
+            },
+            "events": {
+              "$ref": "#/$defs/EventsSection"
+            },
+            "commands": {
+              "$ref": "#/$defs/CommandsSection"
+            },
+            "constraints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Behavioural conventions that expand into Quint invariants. Example: 'models must have attributes'"
+            }
+          },
+          "required": [
+            "version"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImportSection": {
+      "type": "array",
+      "description": "Import from other components/packages",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "$ref": "#/$defs/NamespaceString"
+          },
+          "file": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "select": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Types to import"
+          },
+          "as": {
+            "type": "object",
+            "patternProperties": {
+              "^[A-Z][A-Za-z0-9_]*$": {
+                "type": "string"
+              }
+            },
+            "description": "Type aliases: { ImportedType: LocalAlias }"
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "from",
+              "select"
+            ]
+          },
+          {
+            "required": [
+              "file",
+              "select"
+            ]
+          },
+          {
+            "required": [
+              "package",
+              "version",
+              "select"
+            ]
+          },
+          {
+            "required": [
+              "namespace",
+              "from"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ExportSection": {
+      "type": "object",
+      "description": "What this component exports for others to import",
+      "properties": {
+        "primitives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "controllers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

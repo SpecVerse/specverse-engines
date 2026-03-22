@@ -1,0 +1,27 @@
+name: services
+type: core
+version: 3.5.1
+depends_on: [models]
+
+facets:
+  schema: schema/services.schema.json
+  conventions:
+    structural: conventions/service-processor.ts
+    behavioural: behaviour/conventions/grammar.yaml
+  behaviour:
+    rules: behaviour/rules.qnt
+    invariants: behaviour/invariants.qnt
+  inference:
+    entry: inference/index.ts
+  generators: generators/index.ts
+  docs: docs/index.ts
+  tests: tests/index.ts
+
+diagrams:
+  - type: architecture
+
+delivery:
+  parser: true
+  inference: false
+  realize: true
+  cli: true

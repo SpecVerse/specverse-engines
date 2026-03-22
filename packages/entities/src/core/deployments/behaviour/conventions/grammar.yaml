@@ -1,0 +1,54 @@
+# Deployments — Behavioural Convention Grammar
+
+domain: quint
+entity: deployments
+
+conventions:
+
+  must_have_valid_environment:
+    pattern: "{entities} must have valid environment"
+    expands_to: "quint:invariant"
+    description: "Every deployment must target a recognized environment"
+    template:
+      name: "deploymentsHaveEnvironment"
+      body: "deployments.forall(d => Set(\"development\", \"staging\", \"production\", \"test\").contains(d.environment))"
+
+  instance_names_unique:
+    pattern: "instance names unique per deployment"
+    expands_to: "quint:invariant"
+    description: "Instance names must be unique within a deployment"
+    template:
+      name: "instanceNamesUniquePerDeployment"
+      body: "deployments.forall(d => d.instances.forall(i1 => d.instances.forall(i2 => (i1 != i2) implies (i1.name != i2.name))))"
+
+  scale_must_be_positive:
+    pattern: "scale must be positive"
+    expands_to: "quint:invariant"
+    description: "Every instance must have a positive scale factor"
+    template:
+      name: "scalePositive"
+      body: "deployments.forall(d => d.instances.forall(inst => inst.scale > 0))"
+
+  main_bus_must_exist:
+    pattern: "main bus must exist"
+    expands_to: "quint:invariant"
+    description: "Every deployment must have a main communication bus"
+    template:
+      name: "mainBusExists"
+      body: "deployments.forall(d => d.channels.exists(ch => ch.name == \"mainBus\"))"
+
+  channel_types_valid:
+    pattern: "channel types valid"
+    expands_to: "quint:invariant"
+    description: "Every channel must have a recognized type"
+    template:
+      name: "channelTypesValid"
+      body: "deployments.forall(d => d.channels.forall(ch => Set(\"pubsub\", \"request-reply\", \"stream\").contains(ch.channelType)))"
+
+  controller_instance_coverage:
+    pattern: "every controller gets a deployment instance"
+    expands_to: "quint:invariant"
+    description: "Every controller in the component has a deployment instance"
+    template:
+      name: "controllerInstanceCoverage"
+      body: "deployments.forall(d => components.forall(comp => comp.controllers.forall(c => d.instances.exists(inst => inst.name == c.name and inst.category == \"controller\"))))"

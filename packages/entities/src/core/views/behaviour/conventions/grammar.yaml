@@ -1,0 +1,46 @@
+# Views — Behavioural Convention Grammar
+
+domain: quint
+entity: views
+
+conventions:
+
+  must_reference_valid_models:
+    pattern: "{entities} must reference valid models"
+    expands_to: "quint:invariant"
+    description: "Every view must reference at least one model that exists"
+    template:
+      name: "viewsReferenceValidModels"
+      body: "views.forall(v => v.models.size() > 0 and v.models.forall(modelName => models.exists(m => m.name == modelName)))"
+
+  must_have_valid_type:
+    pattern: "{entities} must have valid type"
+    expands_to: "quint:invariant"
+    description: "Every view must have a recognized view type"
+    template:
+      name: "viewTypesValid"
+      body: "views.forall(v => Set(\"list\", \"detail\", \"form\", \"dashboard\", \"master_detail\").contains(v.viewType))"
+
+  disabled_patterns_absent:
+    pattern: "disabled patterns absent"
+    expands_to: "quint:invariant"
+    description: "Disabled view patterns are never generated"
+    template:
+      name: "disabledPatternsAbsent"
+      body: "views.forall(v => v.pattern != \"EnhancedListView\" and v.pattern != \"MasterDetailView\" and v.pattern != \"AnalyticsView\" and v.pattern != \"WorkflowView\")"
+
+  profile_models_get_profile_form:
+    pattern: "profile models get profile form"
+    expands_to: "quint:invariant"
+    description: "Models with profiles get a profile-aware form view"
+    template:
+      name: "profileModelsGetProfileForm"
+      body: "models.forall(m => (m.profiles.size() > 0) implies views.exists(v => v.primaryModel == m.name and v.viewType == \"form\" and v.hasProfileSupport))"
+
+  subscriptions_reference_valid_events:
+    pattern: "subscriptions reference valid events"
+    expands_to: "quint:invariant"
+    description: "Views only subscribe to events that exist"
+    template:
+      name: "viewsSubscribeToValidEvents"
+      body: "views.forall(v => v.subscribes.forall(eventName => events.exists(e => e.name == eventName)))"

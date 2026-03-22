@@ -1,0 +1,66 @@
+{
+  "$id": "specverse://entities/controllers",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Controller-specific schema definitions for the SpecVerse entity module system",
+  "$defs": {
+    "ControllersSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "$ref": "#/$defs/TypeReference"
+            },
+            "description": {
+              "type": "string"
+            },
+            "subscribes_to": {
+              "$ref": "#/$defs/SubscriptionsPattern"
+            },
+            "cured": {
+              "$ref": "#/$defs/CuredOperations"
+            },
+            "actions": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/ExecutableProperties"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "CuredOperations": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "retrieve": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "retrieve_many": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "update": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "evolve": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "delete": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "validate": {
+          "$ref": "#/$defs/ExecutableProperties"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

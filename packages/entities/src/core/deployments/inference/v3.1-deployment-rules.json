@@ -1,0 +1,143 @@
+{
+  "version": "v3.1",
+  "ruleFileType": "deployment",
+  "deployment_inference": {
+    "instances": [
+      {
+        "name": "controller_instances",
+        "pattern": "ControllerToInstance",
+        "condition": "component.controllers && Object.keys(component.controllers).length > 0",
+        "priority": 100,
+        "description": "Generate controller instances from component controllers",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "{{#each component.controllers}}{{@key}}:",
+            "  component: \"{{../component.name}}\"",
+            "  namespace: \"{{#if model}}{{model}}{{else}}{{@key}}{{/if}}\"",
+            "  advertises: \"*\"",
+            "  uses: [{{#if model}}\"{{model}}.*\"{{/if}}{{#each ../component.services}}, \"{{@key}}.*\"{{/each}}]",
+            "  scale: {{calculateControllerScale this}}",
+            "{{/each}}"
+          ]
+        }
+      },
+      {
+        "name": "service_instances",
+        "pattern": "ServiceToInstance",
+        "condition": "component.services && Object.keys(component.services).length > 0",
+        "priority": 90,
+        "description": "Generate service instances from component services",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "{{#each component.services}}{{@key}}:",
+            "  component: \"{{../component.name}}\"",
+            "  namespace: \"{{lowerCase @key}}\"",
+            "  advertises: [\"operations.*\"]",
+            "  uses: [{{#each operations}}\"{{@key}}.*\"{{#unless @last}}, {{/unless}}{{/each}}]",
+            "  scale: {{calculateServiceScale this}}",
+            "{{/each}}"
+          ]
+        }
+      },
+      {
+        "name": "view_instances",
+        "pattern": "ViewToInstance",
+        "condition": "component.views && Object.keys(component.views).length > 0",
+        "priority": 80,
+        "description": "Generate view instances grouped by interface type",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "{{#each (groupViewsByInterface component.views)}}{{@key}}Interface:",
+            "  component: \"{{../component.name}}\"",
+            "  namespace: \"{{@key}}\"",
+            "  uses: [\"models.*\"{{#each this}}, \"{{model}}.*\"{{/each}}]",
+            "  scale: {{calculateViewScale @key this}}",
+            "{{/each}}"
+          ]
+        }
+      }
+    ],
+    "channels": [
+      {
+        "name": "main_communication_bus",
+        "pattern": "GlobalBus",
+        "condition": "true",
+        "priority": 100,
+        "description": "Generate main communication bus for all component capabilities",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "mainBus:",
+            "  namespace: \"global\"",
+            "  capabilities: [",
+            "{{#each component.models}}    {{#each (generateModelCapabilities this)}}\"{{this}}\"{{#unless @last}},{{/unless}}",
+            "{{/each}}{{#unless @last}},{{/unless}}",
+            "{{/each}}",
+            "  ]",
+            "  type: \"pubsub\""
+          ]
+        }
+      },
+      {
+        "name": "domain_communication_buses",
+        "pattern": "DomainBuses",
+        "condition": "component.models && Object.keys(component.models).length > 2",
+        "priority": 90,
+        "description": "Generate domain-specific communication buses for complex components",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "{{#each (groupModelsByDomain component.models)}}{{@key}}Bus:",
+            "  namespace: \"{{@key}}\"",
+            "  capabilities: [{{#each this}}\"{{name}}.*\"{{#unless @last}}, {{/unless}}{{/each}}]",
+            "  type: \"{{chooseBusType @key}}\"",
+            "{{/each}}"
+          ]
+        }
+      }
+    ],
+    "deployments": [
+      {
+        "name": "minimal_deployment",
+        "pattern": "MinimalDeployment",
+        "condition": "true",
+        "priority": 100,
+        "description": "Generate minimal deployment configuration for component",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "{{lowerCase component.name}}Deployment:",
+            "  description: \"Auto-generated minimal deployment for {{component.name}}\"",
+            "  version: \"3.1.0\"",
+            "  environment: \"{{getTargetEnvironment}}\"",
+            "  ",
+            "  instances:",
+            "    controllers:",
+            "{{#each generatedInstances.controllers}}      {{@key}}:",
+            "        {{#each this}}{{@key}}: {{this}}",
+            "        {{/each}}",
+            "{{/each}}",
+            "    {{#if generatedInstances.services}}services:",
+            "{{#each generatedInstances.services}}      {{@key}}:",
+            "        {{#each this}}{{@key}}: {{this}}",
+            "        {{/each}}",
+            "{{/each}}{{/if}}",
+            "    {{#if generatedInstances.views}}views:",
+            "{{#each generatedInstances.views}}      {{@key}}:",
+            "        {{#each this}}{{@key}}: {{this}}",
+            "        {{/each}}",
+            "{{/each}}{{/if}}",
+            "    communications:",
+            "{{#each generatedChannels}}      {{@key}}:",
+            "        {{#each this}}{{@key}}: {{this}}",
+            "        {{/each}}",
+            "{{/each}}"
+          ]
+        }
+      }
+    ]
+  }
+}

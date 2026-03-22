@@ -1,0 +1,72 @@
+# Models — Behavioural Convention Grammar
+# Human-readable conventions that expand into Quint invariants and rules.
+# "models must not be orphaned" → formal Quint invariant
+
+domain: quint
+entity: models
+
+conventions:
+
+  must_not_be_orphaned:
+    pattern: "{entities} must not be orphaned"
+    expands_to: "quint:invariant"
+    description: "Every entity must be reachable from a component"
+    template:
+      name: "noOrphan{Entities}"
+      body: "{entities}.forall(e => components.exists(c => c.{entities}.contains(e)))"
+
+  must_have_attributes:
+    pattern: "{entities} must have attributes"
+    expands_to: "quint:invariant"
+    description: "Every entity must have at least one attribute"
+    template:
+      name: "{entities}HaveAttributes"
+      body: "{entities}.forall(m => m.attributes.keys().size() > 0)"
+
+  must_have_id:
+    pattern: "{entities} must have id"
+    expands_to: "quint:invariant"
+    description: "Every entity must have an id attribute"
+    template:
+      name: "{entities}HaveId"
+      body: "{entities}.forall(m => m.attributes.keys().contains(\"id\"))"
+
+  names_must_be_unique:
+    pattern: "{entity} names must be unique"
+    expands_to: "quint:invariant"
+    description: "Entity names must be unique within the component"
+    template:
+      name: "{entity}NamesUnique"
+      body: "{entities}.forall(m1 => {entities}.forall(m2 => (m1 != m2) implies (m1.name != m2.name)))"
+
+  relationship_targets_must_exist:
+    pattern: "{entity} relationship targets must exist"
+    expands_to: "quint:invariant"
+    description: "Relationship targets must reference existing models"
+    template:
+      name: "relationshipTargetsExist"
+      body: "{entities}.forall(m => m.relationships.keys().forall(k => {entities}.exists(t => t.name == m.relationships.get(k).targetModel)))"
+
+  transitions_form_dag:
+    pattern: "{entity} transitions form a DAG"
+    expands_to: "quint:invariant"
+    description: "Lifecycle transitions must not create unreachable states"
+    template:
+      name: "{entity}TransitionsValid"
+      body: "{entities}.forall(m => m.hasLifecycle implies m.lifecycle.transitions.forall(t => m.lifecycle.states.exists(s => s.name == t.from) and m.lifecycle.states.exists(s => s.name == t.to)))"
+
+  lifecycle_must_have_initial_state:
+    pattern: "{entity} lifecycle must have initial state"
+    expands_to: "quint:invariant"
+    description: "Every lifecycle must have at least one initial state"
+    template:
+      name: "{entity}LifecycleHasInitialState"
+      body: "{entities}.forall(m => m.hasLifecycle implies m.lifecycle.states.exists(s => s.isInitial))"
+
+  every_model_gets_controller:
+    pattern: "every {entity} gets a controller"
+    expands_to: "quint:invariant"
+    description: "Inference must produce a controller for every model"
+    template:
+      name: "everyModelGetsController"
+      body: "{entities}.forall(m => inferredControllers.exists(c => c.model == m.name))"

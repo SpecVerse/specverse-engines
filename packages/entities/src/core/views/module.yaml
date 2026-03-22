@@ -1,0 +1,66 @@
+# Views Entity Module Manifest
+#
+# The UI layer entity type in SpecVerse. Views define user interface
+# specifications with types, models, subscriptions, UI components,
+# layouts, and properties.
+#
+# This manifest declares all implemented facets and their locations,
+# enabling the build system to discover, compile, and register the module.
+
+name: views
+type: core
+version: 3.5.1
+depends_on: [models, controllers]
+
+# ============================================================================
+# Facets
+# ============================================================================
+
+facets:
+  # JSON Schema for validating view definitions in .specly files
+  schema: schema/views.schema.json
+
+  # Convention processor: expands shorthand into full view definitions
+  conventions:
+    structural: conventions/view-processor.ts
+    behavioural: behaviour/conventions/grammar.yaml
+
+  # Inference rules: model → view generation, specialist view expansion
+  inference:
+    entry: inference/index.ts
+    rules:
+      - inference/v3.1-view-rules.json
+      - inference/v3.4-specialist-view-rules.json
+      - inference/v3.4-specialist-views.json
+      - inference/v3.4-view-component-inference.json
+
+  # Behavioural specification (Quint)
+  behaviour:
+    rules: behaviour/rules.qnt
+    invariants: behaviour/invariants.qnt
+
+  # Code generators (instance factory references)
+  generators: generators/index.ts
+
+  # Documentation references
+  docs: docs/index.ts
+
+  # Test references
+  tests: tests/index.ts
+
+# ============================================================================
+# Diagram Plugins
+# ============================================================================
+
+diagrams: []
+
+# ============================================================================
+# Delivery Connections
+# ============================================================================
+# How this entity connects to the existing subsystem infrastructure.
+
+delivery:
+  parser: true          # Views appear in parsed .specly files
+  inference: true       # Views are generated from models during inference
+  realize: true         # Views can be realized to code (React components, etc.)
+  cli: true             # Views support CLI commands (validate, inspect, gen views)

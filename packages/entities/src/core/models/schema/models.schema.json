@@ -1,0 +1,546 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specverse.org/schemas/entities/models.json",
+  "title": "SpecVerse Models Entity Schema",
+  "description": "Schema definitions for the models entity type: models, attributes, relationships, lifecycles, behaviors, profiles, metadata, and primitives.",
+  "$defs": {
+    "ModelsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "extends": {
+              "$ref": "#/$defs/TypeReference"
+            },
+            "profiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/TypeReference"
+              },
+              "description": "Profiles currently attached to this model (runtime state)"
+            },
+            "metadata": {
+              "$ref": "#/$defs/ModelMetadataSpec"
+            },
+            "attributes": {
+              "$ref": "#/$defs/AttributesSection"
+            },
+            "relationships": {
+              "$ref": "#/$defs/RelationshipsSection"
+            },
+            "lifecycles": {
+              "$ref": "#/$defs/LifecyclesSection"
+            },
+            "behaviors": {
+              "$ref": "#/$defs/BehaviorsSection"
+            },
+            "profile-attachment": {
+              "$ref": "#/$defs/ProfileAttachmentSection"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelationshipsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^(hasMany|hasOne|belongsTo|manyToMany)\\s+[A-Z][A-Za-z0-9_]*(?:\\s+(?:cascade|dependent|eager|lazy|optional|through=[A-Z][A-Za-z0-9_]*))*$"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "hasMany",
+                    "hasOne",
+                    "belongsTo",
+                    "manyToMany"
+                  ]
+                },
+                "target": {
+                  "$ref": "#/$defs/TypeReference"
+                },
+                "cascade": {
+                  "type": "boolean"
+                },
+                "dependent": {
+                  "type": "boolean"
+                },
+                "eager": {
+                  "type": "boolean"
+                },
+                "lazy": {
+                  "type": "boolean"
+                },
+                "through": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "target"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "LifecyclesSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "flow": {
+                  "type": "string",
+                  "pattern": "^\\w+(?:\\s*->\\s*\\w+)*$"
+                }
+              },
+              "required": [
+                "flow"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "states": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "transitions": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-z][a-zA-Z0-9_]*$": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "states",
+                "transitions"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "states": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "states",
+                "actions"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "BehaviorsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "$ref": "#/$defs/ExecutableProperties"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProfileAttachmentSection": {
+      "type": "object",
+      "description": "Configuration for profile attachment - defines which models this profile can attach to",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TypeReference"
+          },
+          "description": "List of model types this profile can attach to"
+        },
+        "conditions": {
+          "type": "object",
+          "description": "Optional conditions for when this profile should attach",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Attachment priority when multiple profiles compete",
+          "default": 0
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "additionalProperties": false
+    },
+    "ModelMetadataSpec": {
+      "type": "object",
+      "description": "Metadata configuration for models - generates common synthetic attributes (id, audit, softDelete, labels, status, version)",
+      "properties": {
+        "id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "auto",
+                "manual",
+                "composite",
+                "uuid",
+                "integer"
+              ],
+              "description": "ID generation strategy (simple form)"
+            },
+            {
+              "type": "object",
+              "description": "ID generation configuration (advanced form)",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "manual",
+                    "composite",
+                    "uuid",
+                    "integer"
+                  ],
+                  "description": "ID generation type"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Custom name for ID field (default: 'id')"
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Fields for composite ID"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          ],
+          "description": "ID field generation strategy"
+        },
+        "label": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Single field to use as display label"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Multiple fields to combine for display label"
+            }
+          ],
+          "description": "Field(s) to use as display label in UIs"
+        },
+        "audit": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "Enable audit fields with defaults (createdAt, updatedAt)"
+            },
+            {
+              "type": "object",
+              "description": "Advanced audit configuration",
+              "properties": {
+                "timestamps": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable timestamp tracking (createdAt, updatedAt)"
+                },
+                "users": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Enable user tracking (createdBy, updatedBy)"
+                },
+                "timestampNames": {
+                  "type": "object",
+                  "description": "Custom names for timestamp fields",
+                  "properties": {
+                    "created": {
+                      "type": "string",
+                      "default": "createdAt",
+                      "description": "Name for creation timestamp"
+                    },
+                    "updated": {
+                      "type": "string",
+                      "default": "updatedAt",
+                      "description": "Name for update timestamp"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "userNames": {
+                  "type": "object",
+                  "description": "Custom names for user tracking fields",
+                  "properties": {
+                    "created": {
+                      "type": "string",
+                      "default": "createdBy",
+                      "description": "Name for creation user field"
+                    },
+                    "updated": {
+                      "type": "string",
+                      "default": "updatedBy",
+                      "description": "Name for update user field"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Enable audit fields (timestamps + optional user tracking)"
+        },
+        "softDelete": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "Enable soft delete with defaults (deletedAt, isDeleted)"
+            },
+            {
+              "type": "object",
+              "description": "Advanced soft delete configuration",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable soft delete"
+                },
+                "fieldNames": {
+                  "type": "object",
+                  "description": "Custom names for soft delete fields",
+                  "properties": {
+                    "deletedAt": {
+                      "type": "string",
+                      "default": "deletedAt",
+                      "description": "Name for deletion timestamp"
+                    },
+                    "isDeleted": {
+                      "type": "string",
+                      "default": "isDeleted",
+                      "description": "Name for deleted flag"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Enable soft delete (mark as deleted instead of hard delete)"
+        },
+        "status": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Lifecycle name to derive status field from"
+            },
+            {
+              "type": "object",
+              "description": "Advanced status configuration",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "default": "status",
+                  "description": "Name for status field"
+                },
+                "lifecycle": {
+                  "type": "string",
+                  "description": "Lifecycle to derive states from"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Explicit status values (if no lifecycle)"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Status field configuration (from lifecycle or explicit values)"
+        },
+        "version": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "Enable versioning with defaults (integer version field)"
+            },
+            {
+              "type": "object",
+              "description": "Advanced versioning configuration",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable versioning"
+                },
+                "field": {
+                  "type": "string",
+                  "default": "version",
+                  "description": "Name for version field"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "integer",
+                    "timestamp"
+                  ],
+                  "default": "integer",
+                  "description": "Type of version field"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Enable versioning for optimistic locking"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PrimitivesSection": {
+      "type": "object",
+      "description": "Custom primitive definitions with validation rules",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Convention syntax: 'String pattern=regex values=[a,b] min=0 max=100'"
+            },
+            {
+              "$ref": "#/$defs/PrimitiveDefinition"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "PrimitiveDefinition": {
+      "type": "object",
+      "description": "Full primitive definition with validation rules",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "baseType": {
+          "type": "string",
+          "enum": [
+            "String",
+            "Integer",
+            "Number",
+            "Boolean"
+          ],
+          "description": "Base primitive type"
+        },
+        "description": {
+          "type": "string"
+        },
+        "typeAlias": {
+          "type": "boolean",
+          "default": true
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "unique": {
+          "type": "boolean"
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "description": "Regular expression pattern"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Enum values"
+            },
+            "min": {
+              "type": "number",
+              "description": "Minimum value"
+            },
+            "max": {
+              "type": "number",
+              "description": "Maximum value"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "Email",
+                "URL",
+                "UUID",
+                "Date",
+                "DateTime"
+              ],
+              "description": "Standard format validation"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "baseType"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

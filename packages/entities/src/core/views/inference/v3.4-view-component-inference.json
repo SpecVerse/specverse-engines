@@ -1,0 +1,151 @@
+{
+  "version": "v3.4.0",
+  "description": "View inference rules for automatic CRUD view generation with 49 atomic component types",
+  "logical_inference": {
+    "component_type_mapping": {
+      "description": "Maps model attribute types to the 49 atomic UI component types",
+      "attribute_rules": [
+        {
+          "attributeType": "String",
+          "constraints": { "has": "values" },
+          "componentType": "select",
+          "description": "String with enum values → select dropdown"
+        },
+        {
+          "attributeType": "String",
+          "constraints": { "minLength": ">100" },
+          "componentType": "textarea",
+          "description": "Long string → textarea"
+        },
+        {
+          "attributeType": "String",
+          "default": true,
+          "componentType": "input",
+          "description": "Default string → text input"
+        },
+        {
+          "attributeType": "Text",
+          "componentType": "textarea",
+          "description": "Text type → textarea"
+        },
+        {
+          "attributeType": "Integer",
+          "componentType": "input",
+          "properties": { "type": "number" },
+          "description": "Integer → number input"
+        },
+        {
+          "attributeType": "Float",
+          "componentType": "input",
+          "properties": { "type": "number", "step": "0.01" },
+          "description": "Float → decimal number input"
+        },
+        {
+          "attributeType": "Boolean",
+          "componentType": "switch",
+          "description": "Boolean → toggle switch"
+        },
+        {
+          "attributeType": "DateTime",
+          "componentType": "datepicker",
+          "properties": { "showTime": true },
+          "description": "DateTime → datepicker with time"
+        },
+        {
+          "attributeType": "Date",
+          "componentType": "datepicker",
+          "description": "Date → datepicker"
+        },
+        {
+          "attributeType": "Time",
+          "componentType": "timepicker",
+          "description": "Time → timepicker"
+        },
+        {
+          "attributeType": "Money",
+          "componentType": "input",
+          "properties": { "type": "number", "prefix": "$", "step": "0.01" },
+          "description": "Money → currency input"
+        },
+        {
+          "attributeType": "Email",
+          "componentType": "input",
+          "properties": { "type": "email" },
+          "description": "Email → email input"
+        },
+        {
+          "attributeType": "URL",
+          "componentType": "input",
+          "properties": { "type": "url" },
+          "description": "URL → url input"
+        },
+        {
+          "attributeType": "Phone",
+          "componentType": "input",
+          "properties": { "type": "tel" },
+          "description": "Phone → tel input"
+        },
+        {
+          "attributeType": "JSON",
+          "componentType": "textarea",
+          "properties": { "syntax": "json" },
+          "description": "JSON → code textarea"
+        }
+      ],
+      "relationship_mapping": [
+        {
+          "relationshipType": "belongsTo",
+          "componentType": "autocomplete",
+          "description": "belongsTo relationship → autocomplete selector"
+        },
+        {
+          "relationshipType": "hasMany",
+          "componentType": "list",
+          "description": "hasMany relationship → list view"
+        },
+        {
+          "relationshipType": "hasOne",
+          "componentType": "card",
+          "description": "hasOne relationship → detail card"
+        },
+        {
+          "relationshipType": "manyToMany",
+          "componentType": "autocomplete",
+          "properties": { "multiple": true },
+          "description": "manyToMany relationship → multi-select autocomplete"
+        }
+      ]
+    },
+    "automatic_crud_views": {
+      "description": "Level 1: Automatic CRUD view generation from models",
+      "list_view": {
+        "pattern": "{{modelName}}ListView",
+        "priority": 100,
+        "components": {
+          "searchBar": { "type": "input", "placeholder": "Search {{pluralize modelName}}..." },
+          "filterPanel": { "type": "filterPanel", "model": "{{modelName}}" },
+          "table": { "type": "table", "model": "{{modelName}}" },
+          "pagination": { "type": "pagination" }
+        }
+      },
+      "detail_view": {
+        "pattern": "{{modelName}}DetailView",
+        "priority": 100,
+        "components": {
+          "header": { "type": "header", "title": "{{modelName}} Details" },
+          "card": { "type": "card", "model": "{{modelName}}" },
+          "actions": { "type": "button-group" }
+        }
+      },
+      "form_view": {
+        "pattern": "{{modelName}}FormView",
+        "priority": 100,
+        "components": {
+          "header": { "type": "header", "title": "{{modelName}} Form" },
+          "form": { "type": "form", "model": "{{modelName}}" },
+          "actions": { "type": "button-group" }
+        }
+      }
+    }
+  }
+}

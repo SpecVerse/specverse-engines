@@ -1,0 +1,55 @@
+# Controllers — Behavioural Convention Grammar
+# Human-readable conventions that expand into Quint invariants.
+
+domain: quint
+entity: controllers
+
+conventions:
+
+  must_have_cured_operations:
+    pattern: "{entities} must have CURED operations"
+    expands_to: "quint:invariant"
+    description: "Every controller must have the core CURED operation set"
+    template:
+      name: "controllerHasCuredOps"
+      body: "controllers.forall(c => Set(\"create\", \"update\", \"retrieve\", \"retrieve_many\", \"delete\").subseteq(c.operations))"
+
+  must_have_validate:
+    pattern: "{entities} must have validate"
+    expands_to: "quint:invariant"
+    description: "Every controller must have a unified validate endpoint (v3.3)"
+    template:
+      name: "validateAlwaysPresent"
+      body: "controllers.forall(c => c.operations.contains(\"validate\"))"
+
+  must_reference_valid_model:
+    pattern: "{entities} must reference valid model"
+    expands_to: "quint:invariant"
+    description: "Every controller must reference a model that exists"
+    template:
+      name: "controllersReferenceValidModel"
+      body: "controllers.forall(c => models.exists(m => m.name == c.model))"
+
+  association_ops_require_many_to_many:
+    pattern: "association ops require many-to-many"
+    expands_to: "quint:invariant"
+    description: "Association operations only exist for models with manyToMany relationships"
+    template:
+      name: "associationOpsRequireManyToMany"
+      body: "controllers.forall(c => c.hasAssociationOps implies models.exists(m => m.name == c.model and m.relationships.keys().exists(k => m.relationships.get(k).relType == \"manyToMany\")))"
+
+  profile_ops_are_complete:
+    pattern: "profile ops are complete"
+    expands_to: "quint:invariant"
+    description: "Profile operations come as a complete set (all 4 or none)"
+    template:
+      name: "profileOpsComplete"
+      body: "controllers.forall(c => c.operations.contains(\"attach_profile\") implies Set(\"attach_profile\", \"detach_profile\", \"update_profile\", \"list_profiles\").subseteq(c.operations))"
+
+  http_methods_are_consistent:
+    pattern: "HTTP methods are consistent"
+    expands_to: "quint:invariant"
+    description: "CURED operations map to correct HTTP methods"
+    template:
+      name: "httpMethodMapping"
+      body: "controllers.forall(c => c.endpoints.forall(e => (e.operation == \"create\" implies e.method == \"POST\") and (e.operation == \"retrieve\" implies e.method == \"GET\") and (e.operation == \"update\" implies e.method == \"PUT\") and (e.operation == \"delete\" implies e.method == \"DELETE\")))"

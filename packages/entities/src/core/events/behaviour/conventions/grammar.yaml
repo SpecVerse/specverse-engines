@@ -1,0 +1,54 @@
+# Events — Behavioural Convention Grammar
+
+domain: quint
+entity: events
+
+conventions:
+
+  every_model_gets_crud_events:
+    pattern: "every model gets CRUD events"
+    expands_to: "quint:invariant"
+    description: "Standard CRUD events are generated unconditionally for every model"
+    template:
+      name: "everyModelGetsCrudEvents"
+      body: "models.forall(m => events.exists(e => e.model == m.name and e.pattern == \"StandardEvents\"))"
+
+  relationship_models_get_relationship_events:
+    pattern: "relationship models get relationship events"
+    expands_to: "quint:invariant"
+    description: "Models with relationships get relationship-specific events"
+    template:
+      name: "relationshipModelsGetRelEvents"
+      body: "models.forall(m => (m.relationships.keys().size() > 0) implies events.exists(e => e.model == m.name and e.pattern == \"RelationshipEvents\"))"
+
+  lifecycle_models_get_lifecycle_events:
+    pattern: "lifecycle models get lifecycle events"
+    expands_to: "quint:invariant"
+    description: "Models with lifecycle transitions get lifecycle events"
+    template:
+      name: "lifecycleModelsGetLifecycleEvents"
+      body: "models.forall(m => (m.hasLifecycle and m.lifecycle.transitions.size() > 0) implies events.exists(e => e.model == m.name and e.pattern == \"LifecycleEvents\"))"
+
+  lifecycle_events_have_state_attributes:
+    pattern: "lifecycle events have state attributes"
+    expands_to: "quint:invariant"
+    description: "Lifecycle events include fromState and toState"
+    template:
+      name: "lifecycleEventsHaveStateAttrs"
+      body: "events.forall(e => (e.pattern == \"LifecycleEvents\") implies (e.attributes.keys().contains(\"fromState\") and e.attributes.keys().contains(\"toState\")))"
+
+  events_must_have_timestamp:
+    pattern: "events must have timestamp"
+    expands_to: "quint:invariant"
+    description: "Every event must include a timestamp attribute"
+    template:
+      name: "eventsHaveTimestamp"
+      body: "events.forall(e => e.attributes.keys().contains(\"timestamp\"))"
+
+  profile_models_get_profile_events:
+    pattern: "profile models get profile events"
+    expands_to: "quint:invariant"
+    description: "Models with profiles get profile attachment events"
+    template:
+      name: "profileModelsGetProfileEvents"
+      body: "models.forall(m => (m.profiles.size() > 0) implies events.exists(e => e.model == m.name and e.pattern == \"ProfileEvents\"))"

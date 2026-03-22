@@ -1,0 +1,26 @@
+name: conventions
+type: extension
+version: 0.1.0
+depends_on: [models]
+
+facets:
+  schema: schema/conventions.schema.json
+  conventions:
+    structural: conventions/convention-definition-processor.ts
+    behavioural: behaviour/conventions/grammar.yaml
+  behaviour:
+    rules: behaviour/rules.qnt
+    invariants: behaviour/invariants.qnt
+  inference:
+    entry: inference/index.ts
+  generators: generators/index.ts
+  docs: docs/index.ts
+  tests: tests/index.ts
+
+diagrams: []
+
+delivery:
+  parser: true
+  inference: false
+  realize: false
+  cli: true

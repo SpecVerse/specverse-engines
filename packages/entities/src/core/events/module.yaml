@@ -1,0 +1,30 @@
+name: events
+type: core
+version: 3.5.1
+depends_on: [models, services]
+
+facets:
+  schema: schema/events.schema.json
+  conventions:
+    structural: conventions/event-processor.ts
+    behavioural: behaviour/conventions/grammar.yaml
+  behaviour:
+    rules: behaviour/rules.qnt
+    invariants: behaviour/invariants.qnt
+  inference:
+    entry: inference/index.ts
+    rules:
+      - inference/v3.1-event-rules.json
+  generators: generators/index.ts
+  docs: docs/index.ts
+  tests: tests/index.ts
+
+diagrams:
+  - type: event-flow
+    variants: [layered, sequence, swimlane]
+
+delivery:
+  parser: true
+  inference: true
+  realize: true
+  cli: true

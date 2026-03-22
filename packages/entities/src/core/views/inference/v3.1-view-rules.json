@@ -1,0 +1,62 @@
+{
+  "version": "v3.1",
+  "logical_inference": {
+    "views": [
+      {
+        "name": "enhanced_list_view",
+        "pattern": "EnhancedListView",
+        "condition": "false",
+        "priority": 90,
+        "description": "DISABLED - Phase 2: Enhanced list view disabled to reduce view count",
+        "template": {
+          "type": "specly",
+          "content": "Enhanced list view for {{modelName}} with advanced filtering and search"
+        }
+      },
+      {
+        "name": "master_detail_view",
+        "pattern": "MasterDetailView",
+        "condition": "false",
+        "priority": 85,
+        "description": "DISABLED - Phase 2: master_detail view type not supported",
+        "template": {
+          "type": "specly",
+          "content": "{{modelName}}MasterDetailView:\n  type: master_detail\n  model: {{modelName}}\n  models: \n    - {{modelName}}\n    {{#each relationships.childRelationships}}\n    - {{targetModel}}\n    {{/each}}\n  description: \"Master-detail view showing {{modelName}} with related entities\"\n  subscribes:\n    - {{modelName}}Updated\n    {{#each relationships.childRelationships}}\n    - {{targetModel}}Created\n    - {{targetModel}}Updated\n    - {{targetModel}}Deleted\n    - {{targetModel}}AddedTo{{../modelName}}\n    - {{targetModel}}RemovedFrom{{../modelName}}\n    {{/each}}\n  uiComponents:\n    - type: MasterPane\n      properties:\n        name: masterPane\n        model: {{modelName}}\n        displayMode: detail\n        resizable: true\n        minWidth: 300\n        defaultWidth: 400\n        showActions: true\n        actions:\n          - name: edit\n            label: Edit {{modelName}}\n            icon: edit\n          - name: delete\n            label: Delete {{modelName}}\n            icon: trash\n            confirmationRequired: true\n          {{#if model.lifecycle}}\n          - name: changeState\n            label: Change State\n            icon: workflow\n          {{/if}}\n    \n    {{#each relationships.childRelationships}}\n    - type: DetailPane\n      properties:\n        name: {{targetModel.toLowerCase}}DetailPane\n        title: \"{{pluralize targetModel}}\"\n        model: {{targetModel}}\n        parentModel: {{../modelName}}\n        relationshipType: {{type}}\n        relationshipFilter: \"{{../modelName.toLowerCase}}Id = {{{../modelName}}.id}\"\n        allowCreate: true\n        allowEdit: true\n        allowDelete: {{#unless cascadeDelete}}true{{else}}false{{/unless}}\n        showRelationshipActions: true\n        pagination:\n          enabled: true\n          pageSize: 10\n        sorting:\n          enabled: true\n          defaultSort: \"createdAt desc\"\n        components:\n          - type: RelatedEntityList\n            properties:\n              displayMode: compact\n              showQuickActions: true\n              allowInlineEdit: true\n    {{/each}}"
+        }
+      },
+      {
+        "name": "analytics_view",
+        "pattern": "AnalyticsView",
+        "condition": "false",
+        "priority": 80,
+        "description": "DISABLED - Phase 2: Analytics view disabled to reduce view count",
+        "template": {
+          "type": "specly",
+          "content": "Analytics and reporting dashboard for {{modelName}}"
+        }
+      },
+      {
+        "name": "profile_aware_form_view",
+        "pattern": "ProfileAwareFormView",
+        "condition": "model.profiles && model.profiles.length > 0",
+        "priority": 75,
+        "description": "Form view with profile attachment support",
+        "template": {
+          "type": "specly",
+          "content": "{{modelName}}ProfileFormView:\n  type: form\n  model: {{modelName}}\n  description: \"Form view for {{modelName}} with profile attachment support\"\n  subscribes:\n    - {{modelName}}Created\n    - {{modelName}}Updated\n    - ProfileAttachedTo{{modelName}}\n    - ProfileDetachedFrom{{modelName}}\n    - ProfileUpdatedOn{{modelName}}\n  uiComponents:\n    - type: FormHeader\n      properties:\n        name: formHeader\n        model: {{modelName}}\n        showProgress: true\n        showValidation: true\n    \n    - type: TabContainer\n      properties:\n        name: formTabs\n        defaultTab: basic\n        tabs:\n          - name: basic\n            label: \"Basic Information\"\n            components:\n              - type: FormSection\n                properties:\n                  title: \"{{modelName}} Details\"\n                  fields:\n                    {{#each model.attributes}}\n                    {{#unless (eq name \"id\")}}\n                    - name: {{name}}\n                      type: {{getInputType type}}\n                      label: \"{{humanize name}}\"\n                      required: {{required}}\n                      {{#if constraints}}\n                      validation: {{constraints}}\n                      {{/if}}\n                    {{/unless}}\n                    {{/each}}\n              \n              {{#if relationships.parentRelationships}}\n              - type: FormSection\n                properties:\n                  title: \"Relationships\"\n                  fields:\n                    {{#each relationships.parentRelationships}}\n                    - name: {{name}}Id\n                      type: EntitySelector\n                      label: \"Select {{targetModel}}\"\n                      model: {{targetModel}}\n                      required: true\n                      searchable: true\n                      showClearButton: true\n                    {{/each}}\n              {{/if}}\n          \n          {{#each model.profiles}}\n          - name: {{name.toLowerCase}}Profile\n            label: \"{{humanize name}} Profile\"\n            components:\n              - type: ProfileAttachmentPanel\n                properties:\n                  profileType: {{name}}\n                  model: {{../modelName}}\n                  allowDetach: true\n                  showProfileHistory: true\n              \n              - type: FormSection\n                properties:\n                  title: \"{{humanize name}} Details\"\n                  fields:\n                    {{#each attributes}}\n                    - name: {{name}}\n                      type: {{getInputType type}}\n                      label: \"{{humanize name}}\"\n                      required: {{required}}\n                      profileField: true\n                    {{/each}}\n          {{/each}}\n    \n    - type: FormControls\n      properties:\n        name: formControls\n        submitLabel: \"Save {{modelName}}\"\n        cancelLabel: Cancel\n        showSaveAndContinue: true\n        showValidation: true\n        validationMode: realtime"
+        }
+      },
+      {
+        "name": "workflow_view",
+        "pattern": "WorkflowView",
+        "condition": "false",
+        "priority": 70,
+        "description": "DISABLED - Phase 2: Workflow view disabled to reduce view count",
+        "template": {
+          "type": "specly",
+          "content": "{{modelName}}WorkflowView:\n  type: detail\n  model: {{modelName}}\n  description: \"Workflow management view for {{modelName}} lifecycle\"\n  subscribes:\n    - {{modelName}}Updated\n    - {{modelName}}Evolved\n    {{#each model.lifecycle.transitions}}\n    - {{../modelName}}{{name}}\n    {{/each}}\n  uiComponents:\n    - type: WorkflowHeader\n      properties:\n        name: workflowHeader\n        model: {{modelName}}\n        showCurrentState: true\n        showProgressIndicator: true\n    \n    - type: WorkflowVisualization\n      properties:\n        name: workflowDiagram\n        model: {{modelName}}\n        lifecycle: {{model.lifecycle.name}}\n        states:\n          {{#each model.lifecycle.states}}\n          - name: {{this}}\n            label: \"{{humanize this}}\"\n          {{/each}}\n        transitions:\n          {{#each model.lifecycle.transitions}}\n          - name: {{name}}\n            from: {{from}}\n            to: {{to}}\n            label: \"{{humanize name}}\"\n          {{/each}}\n        highlightCurrentState: true\n        showTransitionConditions: true\n        interactive: true\n    \n    - type: AvailableTransitions\n      properties:\n        name: availableTransitions\n        title: \"Available Actions\"\n        model: {{modelName}}\n        lifecycle: {{model.lifecycle.name}}\n        showConditions: true\n        showPrerequisites: true\n        confirmationRequired: true\n    \n    - type: StateHistory\n      properties:\n        name: stateHistory\n        title: \"State Change History\"\n        model: {{modelName}}\n        showTimeline: true\n        showDetails: true\n        showDuration: true\n        pagination:\n          enabled: true\n          pageSize: 20\n    \n    - type: WorkflowMetrics\n      properties:\n        name: workflowMetrics\n        title: \"Workflow Metrics\"\n        model: {{modelName}}\n        metrics:\n          - name: averageTimeInState\n            label: \"Average Time per State\"\n            type: duration\n          - name: transitionSuccess\n            label: \"Transition Success Rate\"\n            type: percentage\n          - name: bottleneckStates\n            label: \"Bottleneck States\"\n            type: list"
+        }
+      }
+    ]
+  }
+}

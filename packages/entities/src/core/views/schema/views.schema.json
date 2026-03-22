@@ -1,0 +1,92 @@
+{
+  "$id": "specverse://entities/views",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "View-specific schema definitions",
+  "$defs": {
+    "ViewsSection": {
+      "type": "object",
+      "description": "View definitions for UI layer",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "description": "View definition for UI layer",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the view"
+            },
+            "type": {
+              "type": "string",
+              "description": "View type/category. Standard types: page, list, detail, form, dashboard, modal, dialog, drawer, wizard, split. Custom types allowed (camelCase)."
+            },
+            "model": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/TypeReference"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/TypeReference"
+                  }
+                }
+              ],
+              "description": "Primary model(s) for this view"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Tags for categorization"
+            },
+            "export": {
+              "type": "boolean",
+              "description": "Whether this view is exported for reuse"
+            },
+            "layout": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/StandardLayout"
+                },
+                {
+                  "type": "object",
+                  "description": "Custom layout configuration"
+                }
+              ],
+              "description": "View layout definition"
+            },
+            "subscribes_to": {
+              "$ref": "#/$defs/SubscriptionsPattern",
+              "description": "Events this view subscribes to"
+            },
+            "uiComponents": {
+              "type": "object",
+              "description": "UI components within this view (visual elements like tables, forms, buttons)",
+              "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_ ]*$": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/ViewComponent"
+                    },
+                    {
+                      "type": "string",
+                      "description": "Reference to component type (e.g., 'UI.FormView')"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "properties": {
+              "$ref": "#/$defs/ViewProperties",
+              "description": "View-level feature flags and configuration"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
