@@ -1,0 +1,20 @@
+{
+  "name": "@specverse/types",
+  "version": "3.5.2",
+  "description": "Shared type definitions for SpecVerse engines — AST, specs, engine interfaces",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "files": ["dist"],
+  "license": "MIT"
+}
