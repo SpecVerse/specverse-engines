@@ -423,8 +423,8 @@ export async function createDefaultLibrary(projectRoot?: string): Promise<Instan
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  // From dist/realize/library/library.js, go up to the package root
-  const packageRoot = path.resolve(__dirname, '../../..');
+  // From dist/library/library.js, go up to the package root
+  const packageRoot = path.resolve(__dirname, '../..');
   const globalLibPath = path.join(packageRoot, 'libs/instance-factories');
 
   sources.push({

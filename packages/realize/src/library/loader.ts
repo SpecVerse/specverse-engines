@@ -27,7 +27,7 @@ async function loadSchema(): Promise<any> {
   if (!instanceFactorySchema) {
     // Schema was consolidated into SPECVERSE-SCHEMA.json in Phase 2
     // Extract InstanceFactoryDefinition from the consolidated schema
-    const schemaPath = path.join(__dirname, '../../../schema/SPECVERSE-SCHEMA.json');
+    const schemaPath = path.join(__dirname, '../../schema/SPECVERSE-SCHEMA.json');
     const schemaContent = await readFile(schemaPath, 'utf-8');
     const fullSchema = JSON.parse(schemaContent);
 
