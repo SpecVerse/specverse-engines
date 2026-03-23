@@ -46,14 +46,61 @@ class SpecVerseInferenceEngine implements InferenceEngine {
   async infer(ast: any, options?: InferenceOptions): Promise<InferenceResult> {
     if (!this._engine) throw new Error('Inference engine not initialized.');
     await this._engine.loadRules();
-    const models = ast.components?.flatMap((c: any) => c.models) || [];
+
+    // Convert AST ModelSpec[] to inference ModelDefinition[]
+    const astModels = ast.components?.flatMap((c: any) => c.models) || [];
+    const models = astModels.map((model: any) => ({
+      name: model.name,
+      attributes: (model.attributes || []).map((attr: any) => ({
+        name: attr.name,
+        type: attr.type || 'String',
+        required: attr.required || false,
+        unique: attr.unique || false,
+        default: attr.default,
+        auto: attr.auto,
+      })),
+      relationships: (model.relationships || []).map((rel: any) => ({
+        name: rel.name,
+        type: rel.type,
+        targetModel: rel.target,
+        cascadeDelete: rel.cascade || false,
+      })),
+      lifecycle: model.lifecycles?.[0] ? {
+        name: model.lifecycles[0].name,
+        states: model.lifecycles[0].states || [],
+        transitions: Object.entries(model.lifecycles[0].transitions || {}).map(([name, trans]: [string, any]) => ({
+          name, from: trans.from, to: trans.to, conditions: trans.condition ? [trans.condition] : [],
+        })),
+      } : undefined,
+      behaviors: model.behaviors ? Object.entries(model.behaviors).map(([name, b]: [string, any]) => ({
+        name, description: b.description, parameters: b.parameters, returns: b.returns,
+        requires: b.requires, ensures: b.ensures, publishes: b.publishes,
+      })) : [],
+      profiles: [],
+      metadata: model.metadata || {},
+    }));
+
     const result = await this._engine.inferCompleteSpecification(
       models, ast.components?.[0]?.name, options?.targetEnvironment || 'development'
     );
+    // Serialize to YAML format
+    const yaml = await import('js-yaml');
+    const specOutput: any = { components: {} };
+    const componentName = ast.components?.[0]?.name || 'Generated';
+    specOutput.components[componentName] = {
+      version: ast.components?.[0]?.version || '3.5.2',
+      description: ast.components?.[0]?.description,
+      ...result.component,
+    };
+    if (result.deployments && Object.keys(result.deployments).length > 0) {
+      specOutput.deployments = result.deployments;
+    }
+    const yamlOutput = yaml.dump(specOutput, { lineWidth: -1, noRefs: true });
+
     return {
       component: result.component,
       deployments: result.deployments,
-      yaml: '',
+      yaml: yamlOutput,
       validation: result.validation,
       statistics: {
         ...result.statistics,
