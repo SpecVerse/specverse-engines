@@ -62,6 +62,8 @@ export class EngineRegistry {
         '@specverse/engine-parser',
         '@specverse/engine-inference',
         '@specverse/engine-realize',
+        '@specverse/engine-generators',
+        '@specverse/engine-ai',
       ];
       packagesToTry.push(...knownEnginePackages);
     }
