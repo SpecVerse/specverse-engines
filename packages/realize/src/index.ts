@@ -113,13 +113,27 @@ class SpecVerseRealizeEngine implements RealizeEngine {
       } catch (e: any) { errors.push(`ORM: ${e.message}`); }
     }
 
-    // 2. Controllers (per model)
+    // 2. Controllers (per model) — use spec controllers if available, else generate from model
     const ctrlResolved = tryResolve('service.controller');
     if (ctrlResolved?.instanceFactory?.codeTemplates?.controllers) {
+      // Build controller lookup from spec
+      const specControllers = Array.isArray(spec.controllers)
+        ? spec.controllers
+        : Object.values(spec.controllers || {});
+      const controllerLookup: Record<string, any> = {};
+      for (const c of specControllers) controllerLookup[(c as any).name] = c;
+
       for (const model of allModels) {
         try {
-          const controller = {
-            name: `${model.name}Controller`,
+          const ctrlName = `${model.name}Controller`;
+          const specCtrl = controllerLookup[ctrlName];
+          const controller = specCtrl ? {
+            ...specCtrl,
+            model: specCtrl.modelReference || specCtrl.model || model.name,
+            modelReference: specCtrl.modelReference || specCtrl.model || model.name,
+            cured: specCtrl.cured || { create: {}, retrieve: {}, update: {}, validate: {}, evolve: {}, delete: {} },
+          } : {
+            name: ctrlName,
             model: model.name,
             modelReference: model.name,
             cured: { create: {}, retrieve: {}, update: {}, validate: {}, evolve: {}, delete: {} },
@@ -148,12 +162,25 @@ class SpecVerseRealizeEngine implements RealizeEngine {
       console.log(`   ✅ Services: ${servicesList.length} service(s)`);
     }
 
-    // 4. Routes (per model)
+    // 4. Routes (per model) — use spec controllers for endpoint data
     const routeResolved = tryResolve('api.rest');
     if (routeResolved?.instanceFactory?.codeTemplates?.routes) {
+      const specControllers2 = Array.isArray(spec.controllers)
+        ? spec.controllers
+        : Object.values(spec.controllers || {});
+      const ctrlLookup2: Record<string, any> = {};
+      for (const c of specControllers2) ctrlLookup2[(c as any).name] = c;
+
       for (const model of allModels) {
         try {
-          const controller = { name: `${model.name}Controller`, model: model.name };
+          const ctrlName = `${model.name}Controller`;
+          const specCtrl = ctrlLookup2[ctrlName];
+          const controller = specCtrl || {
+            name: ctrlName,
+            model: model.name,
+            modelReference: model.name,
+            cured: { create: {}, retrieve: {}, update: {}, validate: {}, evolve: {}, delete: {} },
+          };
           const output = await this.codeGenerator.generateFromTemplate(
             routeResolved, 'routes', { spec, model, controller, models: allModels }, { outputDir }
           );
