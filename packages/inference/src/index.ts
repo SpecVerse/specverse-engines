@@ -55,7 +55,10 @@ class SpecVerseInferenceEngine implements InferenceEngine {
       deployments: result.deployments,
       yaml: '',
       validation: result.validation,
-      statistics: result.statistics,
+      statistics: {
+        ...result.statistics,
+        rulesApplied: result.statistics.totalRulesApplied,
+      },
     };
   }
 }

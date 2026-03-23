@@ -398,7 +398,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
     const hasMetrics = model.attributes?.some(attr =>
       ['integer', 'number', 'money', 'decimal', 'float'].includes(attr.type.toLowerCase())
     );
-    const hasRelationships = model.relationships && model.relationships.length > 0;
+    const hasRelationships = model.relationships && model.relationships!.length > 0;
 
     if (hasMetrics || hasRelationships) {
       // Generate dashboard view
@@ -467,7 +467,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
       if (this.specialistExpander.isSpecialistView('board') && model.lifecycle) {
         try {
           // Use lifecycle states as board columns
-          const states = model.lifecycle.states || [];
+          const states = model.lifecycle?.states || [];
           if (states.length > 0) {
             // Handle both string[] and object[] state formats
             const stateNames = states.map(s => typeof s === 'string' ? s : (s as any).name);
@@ -561,7 +561,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
 
       // Generate workflow view for models with complex lifecycles (3+ states)
       if (this.specialistExpander.isSpecialistView('workflow') && model.lifecycle) {
-        const states = model.lifecycle.states || [];
+        const states = model.lifecycle?.states || [];
         if (states.length >= 3) {
           try {
             const workflowComponents = this.specialistExpander.expandSpecialistView({

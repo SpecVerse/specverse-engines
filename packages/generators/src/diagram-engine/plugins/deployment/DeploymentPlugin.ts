@@ -272,7 +272,7 @@ export class DeploymentPlugin extends BaseDiagramPlugin {
             const uses = Array.isArray(instance.uses) ? instance.uses : [];
 
             // Track what this instance provides
-            advertises.forEach(cap => {
+            advertises.forEach((cap: string) => {
               if (!capabilityProviders.has(cap)) {
                 capabilityProviders.set(cap, []);
               }
@@ -280,7 +280,7 @@ export class DeploymentPlugin extends BaseDiagramPlugin {
             });
 
             // Track what this instance consumes
-            uses.forEach(cap => {
+            uses.forEach((cap: string) => {
               if (!capabilityConsumers.has(cap)) {
                 capabilityConsumers.set(cap, []);
               }
@@ -298,7 +298,7 @@ export class DeploymentPlugin extends BaseDiagramPlugin {
           const uses = Array.isArray(instance.uses) ? instance.uses : [];
 
           // Track what this instance consumes
-          uses.forEach(cap => {
+          uses.forEach((cap: string) => {
             if (!capabilityConsumers.has(cap)) {
               capabilityConsumers.set(cap, []);
             }

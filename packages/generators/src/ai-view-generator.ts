@@ -300,7 +300,7 @@ export class AIViewGenerator {
 
     // Find instance specification if provided
     const instanceSpec = deploymentSpec && instance
-      ? deploymentSpec.instances?.[instance]
+      ? (deploymentSpec.instances as any)?.[instance]
       : null;
 
     // Extract manifest configuration if provided

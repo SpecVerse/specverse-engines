@@ -118,14 +118,14 @@ export async function loadInstanceFactory(
       const validateFn = ajv.compile(schema);
 
       if (!validateFn(parsed)) {
-        const errors = validateFn.errors?.map(err => {
+        const errors = validateFn.errors?.map((err: any) => {
           const path = err.instancePath || '/';
           return `${path}: ${err.message}`;
         }) || ['Unknown validation error'];
 
         throw new Error(
           `Instance factory validation failed for ${filePath}:\n` +
-          errors.map(e => `  - ${e}`).join('\n')
+          errors.map((e: any) => `  - ${e}`).join('\n')
         );
       }
     }

@@ -108,7 +108,7 @@ export function loadAIOptimizedSpec(yamlFile: string, options: LoadOptions = {})
 
     // 3. Generate AIOptimizedSpec (runs inference, expands CURED, etc.)
     const generator = new AIViewGenerator();
-    const optimized = generator.generate(result.ast, options);
+    const optimized = generator.generate(result.ast!, options);
 
     return optimized as AIOptimizedSpec;
 

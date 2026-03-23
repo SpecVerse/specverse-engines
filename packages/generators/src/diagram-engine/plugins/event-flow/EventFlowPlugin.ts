@@ -785,7 +785,7 @@ export class EventFlowPlugin extends BaseDiagramPlugin {
                 }
               } else {
                 const controller = component as ControllerSpec;
-                if (controller.cured?.[operation]?.publishes?.includes(eventName)) {
+                if ((controller.cured as any)?.[operation]?.publishes?.includes(eventName)) {
                   publishes = true;
                 }
                 if (controller.actions?.[operation]?.publishes?.includes(eventName)) {

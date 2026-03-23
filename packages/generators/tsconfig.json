@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "strict": false
+    "strict": true
   },
   "include": ["src"],
   "exclude": ["src/__tests__", "src/**/__tests__"]
