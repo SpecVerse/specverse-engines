@@ -6,10 +6,15 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const projectRoot = resolve(__dirname, '../../');
+const packageRoot = resolve(__dirname, '../../');
+const workspaceRoot = resolve(__dirname, '../../../../');
 
 function loadSchema(path: string): any {
-  return JSON.parse(readFileSync(resolve(projectRoot, path), 'utf8'));
+  // Entity fragment schemas are relative to package root, composed schema is at workspace root
+  const fullPath = path.startsWith('schema/')
+    ? resolve(workspaceRoot, path)
+    : resolve(packageRoot, path);
+  return JSON.parse(readFileSync(fullPath, 'utf8'));
 }
 
 describe('Entity Schema Extraction', () => {
