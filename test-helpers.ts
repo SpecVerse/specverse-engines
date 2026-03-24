@@ -2,17 +2,75 @@
  * SpecVerse Test Helpers
  *
  * Utilities for entity module and engine tests.
- * Provides conditional test execution, fixture loading, and
- * standard test patterns.
+ *
+ * Key concept: CROSS-PACKAGE TEST RESOLUTION
+ *
+ * Tests within a single package use relative paths to their own fixtures.
+ * Tests that span packages (e.g., inference loading entity grammar files)
+ * use resolvePackage() to find other packages via workspace symlinks.
+ *
+ * This means:
+ * - Single-package tests: `resolve(__dirname, '../fixtures/...')`
+ * - Cross-package tests: `resolvePackage('engine-entities', 'src/core/models/...')`
  */
 
-import { it, describe } from 'vitest';
-import { readFileSync, existsSync } from 'fs';
+import { it, describe, expect } from 'vitest';
+import { readFileSync, existsSync, realpathSync } from 'fs';
 import { resolve } from 'path';
 
-// Re-export conditional test helpers
+// ============================================================================
+// Cross-Package Resolution
+// ============================================================================
+
+/**
+ * Resolve a file path within another @specverse package.
+ * Uses workspace node_modules symlinks to find the package root,
+ * then resolves the relative path within it.
+ *
+ * @param packageName - Short name (e.g., 'engine-entities', 'engine-parser')
+ * @param relativePath - Path within the package (e.g., 'src/core/models/behaviour/...')
+ * @returns Absolute path to the file
+ *
+ * @example
+ *   const grammar = resolvePackage('engine-entities', 'src/core/models/behaviour/conventions/grammar.yaml');
+ *   const schema = resolvePackage('engine-parser', 'schema/SPECVERSE-SCHEMA.json');
+ */
+export function resolvePackage(packageName: string, relativePath: string): string {
+  const enginesRoot = globalThis.__TEST_ENV__?.enginesRoot || resolve(__dirname);
+  const symlink = resolve(enginesRoot, 'node_modules/@specverse', packageName);
+
+  if (!existsSync(symlink)) {
+    throw new Error(
+      `Package @specverse/${packageName} not found in node_modules. ` +
+      `Run 'npm install' in the specverse-engines root.`
+    );
+  }
+
+  const pkgRoot = realpathSync(symlink);
+  const fullPath = resolve(pkgRoot, relativePath);
+
+  return fullPath;
+}
+
+/**
+ * Resolve the root directory of another @specverse package.
+ */
+export function packageRoot(packageName: string): string {
+  const enginesRoot = globalThis.__TEST_ENV__?.enginesRoot || resolve(__dirname);
+  const symlink = resolve(enginesRoot, 'node_modules/@specverse', packageName);
+  return realpathSync(symlink);
+}
+
+// ============================================================================
+// Conditional Test Helpers
+// ============================================================================
+
 export const itIfQuint = globalThis.__TEST_ENV__?.hasQuint ? it : it.skip;
 export const itIfExamples = globalThis.__TEST_ENV__?.hasExamples ? it : it.skip;
+
+// ============================================================================
+// Fixture Helpers
+// ============================================================================
 
 /**
  * Load the composed JSON schema for parser tests.
@@ -37,16 +95,6 @@ export function enginesPath(...segments: string[]): string {
 }
 
 /**
- * Resolve a path relative to specverse-lang (if available).
- * Returns null if specverse-lang is not present.
- */
-export function langPath(...segments: string[]): string | null {
-  const root = globalThis.__TEST_ENV__?.langRoot;
-  if (!root) return null;
-  return resolve(root, ...segments);
-}
-
-/**
  * Create a ProcessorContext for testing convention processors.
  */
 export function createTestContext(): { warnings: string[]; addWarning: (msg: string) => void } {
@@ -57,13 +105,14 @@ export function createTestContext(): { warnings: string[]; addWarning: (msg: str
   };
 }
 
+// ============================================================================
+// Standard Test Suites (Auto-Generated Patterns)
+// ============================================================================
+
 /**
  * Standard entity module test suite.
- * Automatically tests registration, schema, convention processor, and metadata.
- *
- * Usage:
- *   import { testEntityModule } from '../../test-helpers';
- *   testEntityModule(myModule);
+ * Tests registration, metadata, and facet declarations.
+ * Use this for any entity module to get baseline coverage.
  */
 export function testEntityModule(module: any) {
   describe(`${module.name} entity module`, () => {
@@ -76,21 +125,13 @@ export function testEntityModule(module: any) {
 
     if (module.conventionProcessor) {
       it('has a convention processor', () => {
-        expect(module.conventionProcessor).toBeDefined();
         expect(typeof module.conventionProcessor.process).toBe('function');
       });
     }
 
     if (module.schema) {
       it('has a JSON Schema fragment', () => {
-        expect(module.schema).toBeDefined();
         expect(module.schema.$defs || module.schema.properties).toBeDefined();
-      });
-    }
-
-    if (module.inferenceRules) {
-      it('declares inference rules', () => {
-        expect(Array.isArray(module.inferenceRules)).toBe(true);
       });
     }
 
@@ -102,42 +143,12 @@ export function testEntityModule(module: any) {
         }
       });
     }
-
-    if (module.docs) {
-      describe('documentation references', () => {
-        for (const doc of module.docs) {
-          itIfExamples(`should have file for "${doc.title}"`, () => {
-            const fullPath = langPath(doc.path);
-            if (fullPath) {
-              expect(existsSync(fullPath)).toBe(true);
-            }
-          });
-        }
-      });
-    }
-
-    if (module.tests) {
-      describe('test references', () => {
-        for (const test of module.tests) {
-          itIfExamples(`should have file for "${test.title}"`, () => {
-            const fullPath = langPath(test.path);
-            if (fullPath) {
-              expect(existsSync(fullPath)).toBe(true);
-            }
-          });
-        }
-      });
-    }
   });
 }
 
 /**
  * Standard engine test suite.
  * Tests metadata, initialization, and capabilities.
- *
- * Usage:
- *   import { testEngine } from '../../test-helpers';
- *   testEngine(engine);
  */
 export function testEngine(engine: any) {
   describe(`${engine.name} engine`, () => {

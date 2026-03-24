@@ -4,6 +4,7 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { ExpansionTemplateRuleFile } from '../../../core/rule-file-types.js';
+import { resolvePackage } from '../../../../../../test-helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,8 +16,8 @@ describe('SpecialistViewExpander', () => {
   beforeEach(() => {
     expander = new SpecialistViewExpander();
 
-    // Load the domain-specific v3.4 specialist view rules
-    const rulesPath = join(__dirname, '../../../../../entities/src/core/views/inference/v3.4-specialist-views.json');
+    // Load rules from entities package via cross-package resolution
+    const rulesPath = resolvePackage('engine-entities', 'src/core/views/inference/v3.4-specialist-views.json');
     const rulesContent = readFileSync(rulesPath, 'utf8');
     rules = JSON.parse(rulesContent) as ExpansionTemplateRuleFile;
 

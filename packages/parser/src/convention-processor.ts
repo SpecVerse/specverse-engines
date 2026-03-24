@@ -20,6 +20,7 @@ import { ProcessorContext } from '@specverse/types';
 import type { EntityConventionProcessor } from '@specverse/types';
 import { bootstrapEntityModules, getEntityRegistry, BehaviouralConventionProcessor } from '@specverse/engine-entities';
 import { resolve, dirname } from 'path';
+import { existsSync, realpathSync } from 'fs';
 
 export class ConventionProcessor implements ProcessorContext {
   public warnings: string[] = [];
@@ -44,7 +45,7 @@ export class ConventionProcessor implements ProcessorContext {
     // Load behavioural convention grammars from entity modules
     this.behaviouralProcessor = new BehaviouralConventionProcessor();
     try {
-      // Resolve entities dir relative to this file — works in both ESM and CJS
+      // Try multiple paths to find entities (works in both monorepo layouts)
       let thisDir: string;
       if (typeof __dirname !== 'undefined') {
         thisDir = __dirname;
@@ -52,7 +53,17 @@ export class ConventionProcessor implements ProcessorContext {
         thisDir = dirname(new Function('return import.meta.url')());
         if (thisDir.startsWith('file://')) thisDir = thisDir.slice(7);
       }
-      const entitiesDir = resolve(thisDir, '..', 'entities');
+
+      // Path 1: specverse-lang layout (src/parser/../entities)
+      let entitiesDir = resolve(thisDir, '..', 'entities');
+      if (!existsSync(entitiesDir)) {
+        // Path 2: specverse-engines layout (via @specverse/engine-entities package)
+        const symlinkPath = resolve(thisDir, '..', '..', '..', 'node_modules', '@specverse', 'engine-entities');
+        if (existsSync(symlinkPath)) {
+          entitiesDir = resolve(realpathSync(symlinkPath), 'src');
+        }
+      }
+
       this.behaviouralProcessor.loadGrammarsFromEntities(entitiesDir);
     } catch {
       // Grammars may not be available in all contexts (e.g., packaged builds)
