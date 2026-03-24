@@ -39,7 +39,7 @@ export class ConventionProcessor implements ProcessorContext {
     // Filter to types that have completed schema integration (in root.schema.json
     // ComponentsContainer and in ComponentSpec AST type). Top-level types (deployments)
     // and extension types not yet in the component schema (conventions, measures) are excluded.
-    const COMPONENT_ENTITY_TYPES = new Set(['models', 'controllers', 'services', 'views', 'events', 'commands']);
+    const COMPONENT_ENTITY_TYPES = new Set(['models', 'controllers', 'services', 'views', 'events', 'commands', 'promotions']);
     this.componentEntityTypes = Array.from(this.entityProcessors.keys())
       .filter(name => COMPONENT_ENTITY_TYPES.has(name));
 

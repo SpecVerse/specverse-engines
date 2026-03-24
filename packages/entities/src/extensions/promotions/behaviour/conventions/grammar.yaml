@@ -1,0 +1,35 @@
+# Promotion Behavioural Convention Grammar
+#
+# Defines natural-language constraint patterns that can appear in
+# a component's `constraints:` section and expand to Quint specifications.
+
+patterns:
+  - pattern: "promotions must have valid date ranges"
+    expands_to: |
+      forall (p: Promotion) {
+        (p.validFrom != "" and p.validUntil != "") implies p.validFrom < p.validUntil
+      }
+    category: "promotion-validation"
+
+  - pattern: "percentage discounts must be between 0 and 100"
+    expands_to: |
+      forall (p: Promotion) {
+        p.type == "percentage" implies (p.discount >= 0 and p.discount <= 100)
+      }
+    category: "promotion-validation"
+
+  - pattern: "promotion codes must be unique"
+    expands_to: |
+      forall (p1: Promotion, p2: Promotion) {
+        (p1.code != "" and p2.code != "" and p1.name != p2.name) implies p1.code != p2.code
+      }
+    category: "promotion-validation"
+
+  - pattern: "promotions must reference existing models"
+    expands_to: |
+      forall (p: Promotion) {
+        forall (modelName: p.appliesTo) {
+          exists (m: Model) { m.name == modelName }
+        }
+      }
+    category: "promotion-validation"

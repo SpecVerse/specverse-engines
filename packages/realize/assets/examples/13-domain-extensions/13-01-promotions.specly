@@ -1,0 +1,128 @@
+# SpecVerse Domain Extension Example: Promotions
+#
+# This example demonstrates a custom entity type (promotions) that extends
+# the SpecVerse specification language with domain-specific promotional
+# offers, discounts, and campaigns.
+#
+# The promotions entity type:
+# - Has its own JSON Schema (validates the promotions: section)
+# - Has convention processing (shorthand and object syntax)
+# - Has inference rules (generates PromotionService and events)
+# - Has Quint invariants (formal verification of discount rules)
+# - Has behavioural convention grammar (natural-language constraints)
+#
+# This is the pattern for extending SpecVerse with any domain-specific concept.
+
+components:
+  OnlineStore:
+    version: "1.0.0"
+    description: "E-commerce store with promotional campaigns"
+
+    models:
+      Product:
+        description: "A product available for purchase"
+        attributes:
+          id: UUID required unique
+          name: String required
+          description: Text
+          price: Decimal required
+          sku: String required unique
+          category: String
+          inStock: Boolean default=true
+        relationships:
+          orders: hasMany OrderItem
+
+      Customer:
+        description: "A registered customer"
+        attributes:
+          id: UUID required unique
+          email: Email required unique
+          name: String required
+          memberSince: DateTime
+          tier: String values=[standard, silver, gold, platinum] default=standard
+
+      Order:
+        description: "A customer order"
+        attributes:
+          id: UUID required unique
+          orderNumber: String required unique
+          totalAmount: Decimal required
+          discountAmount: Decimal default=0
+          status: String required default=pending
+        relationships:
+          customer: belongsTo Customer
+          items: hasMany OrderItem
+        lifecycles:
+          orderStatus:
+            flow: pending -> confirmed -> processing -> shipped -> delivered
+
+      OrderItem:
+        description: "A line item in an order"
+        attributes:
+          id: UUID required unique
+          quantity: Integer required
+          unitPrice: Decimal required
+          lineTotal: Decimal required
+        relationships:
+          order: belongsTo Order
+          product: belongsTo Product
+
+      Subscription:
+        description: "A recurring subscription plan"
+        attributes:
+          id: UUID required unique
+          planName: String required
+          monthlyPrice: Decimal required
+          billingCycle: String values=[monthly, quarterly, annual] default=monthly
+          status: String required default=active
+        relationships:
+          customer: belongsTo Customer
+        lifecycles:
+          subscriptionStatus:
+            flow: trial -> active -> paused -> cancelled -> expired
+
+    # ─────────────────────────────────────────────────────────
+    # Promotions — the domain extension entity type
+    # ─────────────────────────────────────────────────────────
+
+    promotions:
+
+      # Shorthand syntax — concise, convention-based
+      earlyBird: percentage=15 appliesTo=[Subscription] validUntil=2026-12-31 requires="signup within 7 days"
+      welcome10: fixed=10.00 code="WELCOME10" maxUses=1000 appliesTo=[Order]
+      bulkDiscount: percentage=20 appliesTo=[Product] requires="quantity >= 10"
+
+      # Object syntax — full control
+      summerSale:
+        description: "Summer 2026 storewide sale"
+        type: percentage
+        discount: 25
+        appliesTo: [Product, Subscription]
+        validFrom: "2026-06-01"
+        validUntil: "2026-08-31"
+        stackable: true
+
+      loyaltyReward:
+        description: "Loyalty discount for gold and platinum members"
+        type: percentage
+        discount: 10
+        appliesTo: [Order]
+        requires:
+          - "customer tier is gold or platinum"
+          - "order total > 100"
+        stackable: true
+
+      bundleDeal:
+        description: "Buy 3 products, get cheapest free"
+        type: buy-x-get-y
+        discount: "buy=3-get=1"
+        appliesTo: [Product]
+        code: "BUNDLE3"
+
+    constraints:
+      - "promotions must have valid date ranges"
+      - "percentage discounts must be between 0 and 100"
+      - "promotion codes must be unique"
+      - "promotions must reference existing models"
+
+deployments: {}

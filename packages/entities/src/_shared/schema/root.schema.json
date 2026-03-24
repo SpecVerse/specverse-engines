@@ -48,6 +48,9 @@
             "commands": {
               "$ref": "#/$defs/CommandsSection"
             },
+            "promotions": {
+              "$ref": "#/$defs/PromotionsSection"
+            },
             "constraints": {
               "type": "array",
               "items": {

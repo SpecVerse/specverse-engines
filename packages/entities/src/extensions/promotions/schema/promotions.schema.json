@@ -1,0 +1,78 @@
+{
+  "$defs": {
+    "PromotionsSection": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Promotional offers (pre-processing: name → definition map)",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string", "description": "Shorthand: percentage=15 appliesTo=[Product] validUntil=2026-12-31" },
+              { "$ref": "#/$defs/PromotionDefinition" }
+            ]
+          }
+        },
+        {
+          "type": "array",
+          "description": "Promotional offers (post-processing: array of expanded definitions)",
+          "items": { "type": "object" }
+        }
+      ]
+    },
+    "PromotionDefinition": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the promotion"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["percentage", "fixed", "buy-x-get-y", "bundle", "tiered"],
+          "description": "Discount type"
+        },
+        "discount": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" }
+          ],
+          "description": "Discount value — percentage=15, fixed=10.00, buy=2-get=1"
+        },
+        "appliesTo": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Model names this promotion applies to"
+        },
+        "validFrom": {
+          "type": "string",
+          "description": "Start date (ISO 8601)"
+        },
+        "validUntil": {
+          "type": "string",
+          "description": "End date (ISO 8601)"
+        },
+        "requires": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ],
+          "description": "Conditions that must be met for the promotion to apply"
+        },
+        "stackable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this promotion can combine with others"
+        },
+        "maxUses": {
+          "type": "integer",
+          "description": "Maximum number of times this promotion can be used"
+        },
+        "code": {
+          "type": "string",
+          "description": "Promo code that activates this promotion"
+        }
+      },
+      "required": ["type", "discount"]
+    }
+  }
+}

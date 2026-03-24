@@ -26,6 +26,7 @@ import { deploymentsModule } from './core/deployments/index.js';
 import { commandsModule } from './extensions/commands/index.js';
 import { measuresModule } from './extensions/measures/index.js';
 import { conventionsModule } from './extensions/conventions/index.js';
+import { promotionsModule } from './extensions/promotions/index.js';
 
 /**
  * All core entity modules in dependency order.
@@ -48,6 +49,7 @@ const EXTENSION_MODULES = [
   commandsModule,
   measuresModule,
   conventionsModule,
+  promotionsModule,
 ];
 
 /**
