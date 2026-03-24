@@ -87,8 +87,16 @@ export default function generateCommand(context: TemplateContext): string {
     ? `import { ${serviceRef} } from '../services/${serviceRef}.js';`
     : '';
 
-  // Engine-specific imports for known commands
-  const engineImports = ENGINE_HANDLERS[name]?.imports || '';
+  // Collect engine imports — deduplicate across parent and subcommand handlers
+  const allImportSets: string[] = [];
+  if (ENGINE_HANDLERS[name]?.imports) allImportSets.push(ENGINE_HANDLERS[name].imports);
+  if (hasSubcommands) {
+    for (const subName of Object.keys(subcommands)) {
+      const key = `${name}.${subName}`;
+      if (ENGINE_HANDLERS[key]?.imports) allImportSets.push(ENGINE_HANDLERS[key].imports);
+    }
+  }
+  const engineImports = deduplicateImports(allImportSets);
 
   return `/**
  * ${name} command
@@ -236,6 +244,331 @@ import { resolve } from 'path';`,
         const nameArg = name || 'my-project';
         execSync('specverse init ' + nameArg + ' ' + templateFlag, { stdio: 'inherit' });`
   },
+  // === gen subcommands ===
+  'gen.diagrams': {
+    imports: `import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { resolve, dirname, basename, join } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const parseResult = parser.parseContent(content, file);
+        if (parseResult.errors.length > 0) {
+          console.error('Invalid spec:');
+          parseResult.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+
+        const gen = registry.getEngineForCapability('generate-diagrams') as any;
+        if (!gen) { console.error('No generators engine found.'); process.exit(1); }
+        await gen.initialize();
+
+        const diagrams = await gen.generateDiagrams(parseResult.ast!, { type: options.type || 'all' });
+        const outputDir = options.output || basename(file, '.specly') + '-diagrams';
+        if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
+        for (const [diagramType, diagramContent] of diagrams.entries()) {
+          writeFileSync(join(outputDir, diagramType + '.mmd'), diagramContent);
+          console.log('  ' + diagramType);
+        }
+        console.log('Generated ' + diagrams.size + ' diagrams in: ' + outputDir);`
+  },
+  'gen.docs': {
+    imports: `import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve, dirname, basename } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const parseResult = parser.parseContent(content, file);
+        if (parseResult.errors.length > 0) {
+          console.error('Invalid spec:');
+          parseResult.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+
+        const gen = registry.getEngineForCapability('generate-docs') as any;
+        if (!gen) { console.error('No generators engine found.'); process.exit(1); }
+        await gen.initialize();
+
+        const docs = await gen.generateDocs(parseResult.ast!, { format: options.format || 'markdown' });
+        const ext = options.format === 'html' ? '.html' : '.md';
+        const outputFile = options.output || basename(file, '.specly') + '-docs' + ext;
+        writeFileSync(outputFile, docs);
+        console.log('Documentation generated: ' + outputFile);`
+  },
+  'gen.uml': {
+    imports: `import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve, dirname, basename } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const parseResult = parser.parseContent(content, file);
+        if (parseResult.errors.length > 0) {
+          console.error('Invalid spec:');
+          parseResult.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+
+        const gen = registry.getEngineForCapability('generate-uml') as any;
+        if (!gen) { console.error('No generators engine found.'); process.exit(1); }
+        await gen.initialize();
+
+        const uml = await gen.generateUML(parseResult.ast!, { type: options.type || 'all' });
+        const outputFile = basename(file, '.specly') + '-uml.puml';
+        writeFileSync(outputFile, uml);
+        console.log('UML generated: ' + outputFile);`
+  },
+  // === dev subcommands ===
+  'dev.format': {
+    imports: `import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const result = parser.parseContent(content, file);
+        if (result.errors.length > 0) {
+          console.error('Cannot format invalid spec:');
+          result.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+        const yaml = await import('js-yaml');
+        const formatted = yaml.dump(yaml.load(content), { lineWidth: 120, noRefs: true });
+        if (options.write) {
+          writeFileSync(file, formatted);
+          console.log('Formatted and saved: ' + file);
+        } else {
+          console.log(formatted);
+        }`
+  },
+  'dev.watch': {
+    imports: `import { readFileSync, existsSync, watch } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        console.log('Watching ' + file + ' for changes...');
+        const doValidate = () => {
+          try {
+            const c = readFileSync(file, 'utf8');
+            const r = parser.parseContent(c, file);
+            if (r.errors.length > 0) {
+              console.log('[' + new Date().toLocaleTimeString() + '] FAILED');
+              r.errors.forEach((e: string) => console.error(' ', e));
+            } else {
+              console.log('[' + new Date().toLocaleTimeString() + '] Valid');
+            }
+          } catch (e: any) { console.error('Watch error:', e.message); }
+        };
+        doValidate();
+        watch(file, doValidate);
+        await new Promise(() => {});`
+  },
+  'dev.quick': {
+    imports: `import { readFileSync, existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const result = parser.parseContent(content, file);
+        if (result.errors.length > 0) {
+          console.error('Quick check: FAILED');
+          result.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+        console.log('Quick check: OK');`
+  },
+  // === cache command (leaf, not subcommand) ===
+  cache: {
+    imports: `import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        await parser.initialize();
+
+        // Access ImportResolver cache via parser
+        const resolverModule = await import('@specverse/engine-parser');
+        const resolver = new resolverModule.ImportResolver({ basePath: process.cwd() });
+
+        const cacheDir = (resolver as any).getCacheDir ? (resolver as any).getCacheDir() : null;
+        if (options.stats) {
+          console.log('Cache directory:', cacheDir || 'default');
+        } else if (options.list) {
+          if (cacheDir) {
+            const fs = await import('fs');
+            if (fs.existsSync(cacheDir)) {
+              const items = fs.readdirSync(cacheDir);
+              if (items.length === 0) { console.log('Cache is empty'); }
+              else { items.forEach((item: string) => console.log(' ', item)); }
+            } else { console.log('Cache directory does not exist'); }
+          } else { console.log('No cache directory configured'); }
+        } else if (options.clear) {
+          if (resolver.clearCache) { resolver.clearCache(); }
+          console.log('Cache cleared');
+        } else {
+          console.log('Use --stats, --list, or --clear');
+        }`
+  },
+  // === ai subcommands ===
+  'ai.docs': {
+    imports: `import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve, dirname, basename } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const parseResult = parser.parseContent(content, file);
+        if (parseResult.errors.length > 0) {
+          console.error('Invalid spec:');
+          parseResult.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+
+        const aiEngine = registry.getEngineForCapability('ai-prompts') as any;
+        if (!aiEngine) {
+          console.error('AI engine not available. Install @specverse/engine-ai.');
+          process.exit(1);
+        }
+        await aiEngine.initialize({ provider: options.provider });
+        const prompt = await aiEngine.generatePrompt(parseResult.ast!, { type: 'docs' });
+        const outputFile = options.output || basename(file, '.specly') + '-ai-docs.md';
+        writeFileSync(outputFile, prompt);
+        console.log('AI documentation prompt generated: ' + outputFile);`
+  },
+  'ai.suggest': {
+    imports: `import { readFileSync, existsSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { EngineRegistry } from '@specverse/engine-entities';
+import type { ParserEngine } from '@specverse/types';`,
+    handler: `const __fn = fileURLToPath(import.meta.url);
+        const __dn = dirname(__fn);
+        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
+
+        const registry = new EngineRegistry();
+        await registry.discover();
+        const parser = registry.getEngineForCapability('parse') as ParserEngine;
+        if (!parser) { console.error('No parser engine found.'); process.exit(1); }
+        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
+        await parser.initialize({ schema });
+
+        const content = readFileSync(file, 'utf8');
+        const parseResult = parser.parseContent(content, file);
+        if (parseResult.errors.length > 0) {
+          console.error('Invalid spec:');
+          parseResult.errors.forEach((e: string) => console.error(' ', e));
+          process.exit(1);
+        }
+
+        const aiEngine = registry.getEngineForCapability('ai-suggestions') as any;
+        if (!aiEngine) {
+          console.error('AI engine not available. Install @specverse/engine-ai.');
+          process.exit(1);
+        }
+        await aiEngine.initialize();
+        const suggestions = await aiEngine.suggest(parseResult.ast!);
+        suggestions.forEach((s: any) => console.log(' -', s.description || s));`
+  },
+  'ai.template': {
+    imports: `import { writeFileSync } from 'fs';
+import { EngineRegistry } from '@specverse/engine-entities';`,
+    handler: `const registry = new EngineRegistry();
+        await registry.discover();
+        const aiEngine = registry.getEngineForCapability('ai-templates') as any;
+        if (!aiEngine) {
+          console.error('AI engine not available. Install @specverse/engine-ai.');
+          process.exit(1);
+        }
+        await aiEngine.initialize();
+        const template = await aiEngine.template(operation, { config: options.config });
+        if (options.output) {
+          writeFileSync(options.output, template);
+          console.log('Template written to: ' + options.output);
+        } else {
+          console.log(template);
+        }`
+  },
 };
 
 function generateLeafCommand(
@@ -298,15 +631,30 @@ function generateCommandWithSubcommands(
       return `    .option('${alias}${flagName}${valuePart}', '${flag.description || flagName}'${defaultVal})`;
     });
 
+    // Look up engine handler for this subcommand
+    const handlerKey = `${name}.${subName}`;
+    const engineHandler = ENGINE_HANDLERS[handlerKey];
+
+    // Build action parameters from subcommand args
+    const subArgTypes = Object.entries(subArgs)
+      .filter(([_, a]: [string, any]) => a.positional)
+      .map(([n, a]: [string, any]) => `${n}: ${mapArgTypeToTS(a.type)}`);
+    const subActionParams = subArgTypes.length > 0
+      ? subArgTypes.join(', ') + ', options: any'
+      : 'options: any';
+
+    const handler = engineHandler
+      ? engineHandler.handler
+      : `console.log('${name} ${subName}: not yet implemented via engine');`;
+
     return `
   cmd
     .command('${subCmdStr}')
     .description('${subDesc}')
 ${subOptionDefs.join('\n')}
-    .action(async (...args: any[]) => {
+    .action(async (${subActionParams}) => {
       try {
-        console.log('Executing ${name} ${subName}...');
-        // TODO: Wire to service
+        ${handler}
       } catch (error: any) {
         console.error('Error:', error.message);
         process.exit(1);
@@ -346,4 +694,55 @@ function mapArgTypeToTS(type: string): string {
 
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Deduplicate import statements across multiple handler import blocks.
+ * Merges named imports from the same module and removes exact duplicates.
+ */
+function deduplicateImports(importBlocks: string[]): string {
+  const seen = new Map<string, Set<string>>(); // module -> set of named imports
+  const typeImports = new Map<string, Set<string>>(); // module -> set of type imports
+  const rawLines = new Set<string>(); // non-mergeable lines
+
+  for (const block of importBlocks) {
+    for (const line of block.split('\n').map(l => l.trim()).filter(l => l)) {
+      // Match: import { X, Y } from 'module';
+      const namedMatch = line.match(/^import\s+\{\s*(.+?)\s*\}\s+from\s+'(.+?)';?$/);
+      if (namedMatch) {
+        const names = namedMatch[1].split(',').map(n => n.trim());
+        const mod = namedMatch[2];
+        if (!seen.has(mod)) seen.set(mod, new Set());
+        names.forEach(n => seen.get(mod)!.add(n));
+        continue;
+      }
+      // Match: import type { X } from 'module';
+      const typeMatch = line.match(/^import\s+type\s+\{\s*(.+?)\s*\}\s+from\s+'(.+?)';?$/);
+      if (typeMatch) {
+        const names = typeMatch[1].split(',').map(n => n.trim());
+        const mod = typeMatch[2];
+        if (!typeImports.has(mod)) typeImports.set(mod, new Set());
+        names.forEach(n => typeImports.get(mod)!.add(n));
+        continue;
+      }
+      rawLines.add(line);
+    }
+  }
+
+  const result: string[] = [];
+  for (const [mod, names] of seen.entries()) {
+    result.push(`import { ${[...names].join(', ')} } from '${mod}';`);
+  }
+  for (const [mod, names] of typeImports.entries()) {
+    // Remove type imports that are already in regular imports
+    const regularNames = seen.get(mod) || new Set();
+    const typeOnly = [...names].filter(n => !regularNames.has(n));
+    if (typeOnly.length > 0) {
+      result.push(`import type { ${typeOnly.join(', ')} } from '${mod}';`);
+    }
+  }
+  for (const line of rawLines) {
+    result.push(line);
+  }
+  return result.join('\n');
 }

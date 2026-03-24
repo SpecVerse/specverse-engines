@@ -532,5 +532,3 @@ function isVersionField(name: string): boolean {
   return versionFields.includes(name);
 }
 
-// Imported from @specverse/types — shared across engines
-import { pluralize } from '@specverse/types';
