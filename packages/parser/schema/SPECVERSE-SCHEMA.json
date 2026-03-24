@@ -1,0 +1,4274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specverse.org/schemas/v3.5.0.json",
+  "title": "SpecVerse Unified Schema v3.5.0",
+  "description": "Unified schema for SpecVerse specifications, manifests, and instance factories. Supports components (WHAT), deployments (WHERE), and manifests (HOW) with instance-based technology mapping.",
+  "version": "3.5.0",
+  "oneOf": [
+    {
+      "$comment": "Specification file (.specly) - contains components and/or deployments",
+      "type": "object",
+      "properties": {
+        "components": {
+          "$ref": "#/$defs/ComponentsContainer"
+        },
+        "deployments": {
+          "$ref": "#/$defs/DeploymentsContainer"
+        },
+        "manifests": {
+          "$ref": "#/$defs/ManifestsContainer"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "components"
+          ]
+        },
+        {
+          "required": [
+            "deployments"
+          ]
+        },
+        {
+          "required": [
+            "components",
+            "deployments"
+          ]
+        },
+        {
+          "required": [
+            "manifests"
+          ]
+        },
+        {
+          "required": [
+            "manifests",
+            "components"
+          ]
+        },
+        {
+          "required": [
+            "manifests",
+            "deployments"
+          ]
+        },
+        {
+          "required": [
+            "manifests",
+            "components",
+            "deployments"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    {
+      "$comment": "Standalone manifest file (manifest.yaml) - maps deployment instances to instance factories",
+      "$ref": "#/$defs/ManifestDefinition"
+    },
+    {
+      "$comment": "Instance factory definition (e.g., fastify-prisma.yaml) - reusable technology specification",
+      "$ref": "#/$defs/InstanceFactoryDefinition"
+    }
+  ],
+  "$defs": {
+    "NamespaceString": {
+      "type": "string",
+      "pattern": "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[a-z0-9][a-z0-9-]*[a-z0-9]|[A-Za-z][A-Za-z0-9_-]*)$",
+      "description": "Namespace: @org/package, @org/domain/module, unscoped package (kebab-case), or component name (PascalCase)"
+    },
+    "SemanticVersion": {
+      "type": "string",
+      "pattern": "^(\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)?(?:\\+[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)?)$",
+      "description": "Semantic version: 1.0.0, 1.0.0-alpha.1, 1.0.0+build.1"
+    },
+    "TypeReference": {
+      "type": "string",
+      "pattern": "^((@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[a-z0-9][a-z0-9-]*[a-z0-9])\\.)?[A-Z][A-Za-z0-9_]*$",
+      "description": "Type reference: Type or namespace.Type"
+    },
+    "AttributesSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^(?:Array<[A-Z][A-Za-z0-9_]*>|[A-Z][A-Za-z0-9_]*(?:\\[\\])?)(?:\\s+(?:required|optional|unique|auto=\\w+|min=\\d+(?:\\.\\d+)?|max=\\d+(?:\\.\\d+)?|default=(?:[\\w.]+|\"[^\"]*\")|verified|searchable|values=\\[[^\\]]+\\]))*$",
+              "description": "Convention format: Type, Type[], or Array<Type> with modifiers (required, optional, unique, etc.)"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "unique": {
+                  "type": "boolean"
+                },
+                "isArray": {
+                  "type": "boolean"
+                },
+                "auto": {
+                  "type": "string"
+                },
+                "min": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                },
+                "default": {
+                  "type": "string"
+                },
+                "verified": {
+                  "type": "boolean"
+                },
+                "searchable": {
+                  "type": "boolean"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExecutableProperties": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/AttributesSection"
+        },
+        "returns": {
+          "type": "string"
+        },
+        "requires": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "ensures": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "publishes": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sequential steps describing the execution process"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SubscriptionsPattern": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "object",
+          "patternProperties": {
+            "^[A-Z][A-Za-z0-9_]*$": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "CapabilityList": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "description": "Capability patterns: '*', 'behaviors.*', 'User.*', or explicit list"
+    },
+    "ComponentsContainer": {
+      "type": "object",
+      "patternProperties": {
+        "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[A-Za-z][A-Za-z0-9_-]*)$": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "$ref": "#/$defs/SemanticVersion"
+            },
+            "description": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "import": {
+              "$ref": "#/$defs/ImportSection"
+            },
+            "export": {
+              "$ref": "#/$defs/ExportSection"
+            },
+            "primitives": {
+              "$ref": "#/$defs/PrimitivesSection"
+            },
+            "models": {
+              "$ref": "#/$defs/ModelsSection"
+            },
+            "controllers": {
+              "$ref": "#/$defs/ControllersSection"
+            },
+            "services": {
+              "$ref": "#/$defs/ServicesSection"
+            },
+            "views": {
+              "$ref": "#/$defs/ViewsSection"
+            },
+            "events": {
+              "$ref": "#/$defs/EventsSection"
+            },
+            "commands": {
+              "$ref": "#/$defs/CommandsSection"
+            },
+            "constraints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Behavioural conventions that expand into Quint invariants. Example: 'models must have attributes'"
+            }
+          },
+          "required": [
+            "version"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImportSection": {
+      "type": "array",
+      "description": "Import from other components/packages",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "$ref": "#/$defs/NamespaceString"
+          },
+          "file": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "select": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Types to import"
+          },
+          "as": {
+            "type": "object",
+            "patternProperties": {
+              "^[A-Z][A-Za-z0-9_]*$": {
+                "type": "string"
+              }
+            },
+            "description": "Type aliases: { ImportedType: LocalAlias }"
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "from",
+              "select"
+            ]
+          },
+          {
+            "required": [
+              "file",
+              "select"
+            ]
+          },
+          {
+            "required": [
+              "package",
+              "version",
+              "select"
+            ]
+          },
+          {
+            "required": [
+              "namespace",
+              "from"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ExportSection": {
+      "type": "object",
+      "description": "What this component exports for others to import",
+      "properties": {
+        "primitives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "controllers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ModelsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "extends": {
+              "$ref": "#/$defs/TypeReference"
+            },
+            "profiles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/TypeReference"
+              },
+              "description": "Profiles currently attached to this model (runtime state)"
+            },
+            "metadata": {
+              "$ref": "#/$defs/ModelMetadataSpec"
+            },
+            "attributes": {
+              "$ref": "#/$defs/AttributesSection"
+            },
+            "relationships": {
+              "$ref": "#/$defs/RelationshipsSection"
+            },
+            "lifecycles": {
+              "$ref": "#/$defs/LifecyclesSection"
+            },
+            "behaviors": {
+              "$ref": "#/$defs/BehaviorsSection"
+            },
+            "profile-attachment": {
+              "$ref": "#/$defs/ProfileAttachmentSection"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelationshipsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^(hasMany|hasOne|belongsTo|manyToMany)\\s+[A-Z][A-Za-z0-9_]*(?:\\s+(?:cascade|dependent|eager|lazy|optional|through=[A-Z][A-Za-z0-9_]*))*$"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "hasMany",
+                    "hasOne",
+                    "belongsTo",
+                    "manyToMany"
+                  ]
+                },
+                "target": {
+                  "$ref": "#/$defs/TypeReference"
+                },
+                "cascade": {
+                  "type": "boolean"
+                },
+                "dependent": {
+                  "type": "boolean"
+                },
+                "eager": {
+                  "type": "boolean"
+                },
+                "lazy": {
+                  "type": "boolean"
+                },
+                "through": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "target"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "LifecyclesSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "flow": {
+                  "type": "string",
+                  "pattern": "^\\w+(?:\\s*->\\s*\\w+)*$"
+                }
+              },
+              "required": [
+                "flow"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "states": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "transitions": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-z][a-zA-Z0-9_]*$": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "states",
+                "transitions"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "states": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "states",
+                "actions"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "BehaviorsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "$ref": "#/$defs/ExecutableProperties"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProfileAttachmentSection": {
+      "type": "object",
+      "description": "Configuration for profile attachment - defines which models this profile can attach to",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TypeReference"
+          },
+          "description": "List of model types this profile can attach to"
+        },
+        "conditions": {
+          "type": "object",
+          "description": "Optional conditions for when this profile should attach",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Attachment priority when multiple profiles compete",
+          "default": 0
+        }
+      },
+      "required": [
+        "profiles"
+      ],
+      "additionalProperties": false
+    },
+    "ModelMetadataSpec": {
+      "type": "object",
+      "description": "Metadata configuration for models - generates common synthetic attributes (id, audit, softDelete, labels, status, version)",
+      "properties": {
+        "id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "auto",
+                "manual",
+                "composite",
+                "uuid",
+                "integer"
+              ],
+              "description": "ID generation strategy (simple form)"
+            },
+            {
+              "type": "object",
+              "description": "ID generation configuration (advanced form)",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "manual",
+                    "composite",
+                    "uuid",
+                    "integer"
+                  ],
+                  "description": "ID generation type"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Custom name for ID field (default: 'id')"
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Fields for composite ID"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          ],
+          "description": "ID field generation strategy"
+        },
+        "label": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Single field to use as display label"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Multiple fields to combine for display label"
+            }
+          ],
+          "description": "Field(s) to use as display label in UIs"
+        },
+        "audit": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "Enable audit fields with defaults (createdAt, updatedAt)"
+            },
+            {
+              "type": "object",
+              "description": "Advanced audit configuration",
+              "properties": {
+                "timestamps": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable timestamp tracking (createdAt, updatedAt)"
+                },
+                "users": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Enable user tracking (createdBy, updatedBy)"
+                },
+                "timestampNames": {
+                  "type": "object",
+                  "description": "Custom names for timestamp fields",
+                  "properties": {
+                    "created": {
+                      "type": "string",
+                      "default": "createdAt",
+                      "description": "Name for creation timestamp"
+                    },
+                    "updated": {
+                      "type": "string",
+                      "default": "updatedAt",
+                      "description": "Name for update timestamp"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "userNames": {
+                  "type": "object",
+                  "description": "Custom names for user tracking fields",
+                  "properties": {
+                    "created": {
+                      "type": "string",
+                      "default": "createdBy",
+                      "description": "Name for creation user field"
+                    },
+                    "updated": {
+                      "type": "string",
+                      "default": "updatedBy",
+                      "description": "Name for update user field"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Enable audit fields (timestamps + optional user tracking)"
+        },
+        "softDelete": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "Enable soft delete with defaults (deletedAt, isDeleted)"
+            },
+            {
+              "type": "object",
+              "description": "Advanced soft delete configuration",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable soft delete"
+                },
+                "fieldNames": {
+                  "type": "object",
+                  "description": "Custom names for soft delete fields",
+                  "properties": {
+                    "deletedAt": {
+                      "type": "string",
+                      "default": "deletedAt",
+                      "description": "Name for deletion timestamp"
+                    },
+                    "isDeleted": {
+                      "type": "string",
+                      "default": "isDeleted",
+                      "description": "Name for deleted flag"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Enable soft delete (mark as deleted instead of hard delete)"
+        },
+        "status": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Lifecycle name to derive status field from"
+            },
+            {
+              "type": "object",
+              "description": "Advanced status configuration",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "default": "status",
+                  "description": "Name for status field"
+                },
+                "lifecycle": {
+                  "type": "string",
+                  "description": "Lifecycle to derive states from"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Explicit status values (if no lifecycle)"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Status field configuration (from lifecycle or explicit values)"
+        },
+        "version": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "Enable versioning with defaults (integer version field)"
+            },
+            {
+              "type": "object",
+              "description": "Advanced versioning configuration",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Enable versioning"
+                },
+                "field": {
+                  "type": "string",
+                  "default": "version",
+                  "description": "Name for version field"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "integer",
+                    "timestamp"
+                  ],
+                  "default": "integer",
+                  "description": "Type of version field"
+                }
+              },
+              "additionalProperties": false
+            }
+          ],
+          "description": "Enable versioning for optimistic locking"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PrimitivesSection": {
+      "type": "object",
+      "description": "Custom primitive definitions with validation rules",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Convention syntax: 'String pattern=regex values=[a,b] min=0 max=100'"
+            },
+            {
+              "$ref": "#/$defs/PrimitiveDefinition"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "PrimitiveDefinition": {
+      "type": "object",
+      "description": "Full primitive definition with validation rules",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "baseType": {
+          "type": "string",
+          "enum": [
+            "String",
+            "Integer",
+            "Number",
+            "Boolean"
+          ],
+          "description": "Base primitive type"
+        },
+        "description": {
+          "type": "string"
+        },
+        "typeAlias": {
+          "type": "boolean",
+          "default": true
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "unique": {
+          "type": "boolean"
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "description": "Regular expression pattern"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Enum values"
+            },
+            "min": {
+              "type": "number",
+              "description": "Minimum value"
+            },
+            "max": {
+              "type": "number",
+              "description": "Maximum value"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "Email",
+                "URL",
+                "UUID",
+                "Date",
+                "DateTime"
+              ],
+              "description": "Standard format validation"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "baseType"
+      ],
+      "additionalProperties": false
+    },
+    "ControllersSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "$ref": "#/$defs/TypeReference"
+            },
+            "description": {
+              "type": "string"
+            },
+            "subscribes_to": {
+              "$ref": "#/$defs/SubscriptionsPattern"
+            },
+            "cured": {
+              "$ref": "#/$defs/CuredOperations"
+            },
+            "actions": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/ExecutableProperties"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "CuredOperations": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "retrieve": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "retrieve_many": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "update": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "evolve": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "delete": {
+          "$ref": "#/$defs/ExecutableProperties"
+        },
+        "validate": {
+          "$ref": "#/$defs/ExecutableProperties"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ServicesSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "subscribes_to": {
+              "$ref": "#/$defs/SubscriptionsPattern"
+            },
+            "operations": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/ExecutableProperties"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "attributes": {
+              "$ref": "#/$defs/AttributesSection"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "description": "Event schema version number"
+            },
+            "previousVersions": {
+              "type": "array",
+              "description": "Previous schema versions for compatibility tracking",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "compatibility": {
+                    "type": "string",
+                    "enum": [
+                      "backward",
+                      "forward",
+                      "full",
+                      "none"
+                    ],
+                    "default": "none",
+                    "description": "Compatibility mode with current version"
+                  },
+                  "deprecated": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "deprecationMessage": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "version"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ViewsSection": {
+      "type": "object",
+      "description": "View definitions for UI layer",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "description": "View definition for UI layer",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the view"
+            },
+            "type": {
+              "type": "string",
+              "description": "View type/category. Standard types: page, list, detail, form, dashboard, modal, dialog, drawer, wizard, split. Custom types allowed (camelCase)."
+            },
+            "model": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/TypeReference"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/TypeReference"
+                  }
+                }
+              ],
+              "description": "Primary model(s) for this view"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Tags for categorization"
+            },
+            "export": {
+              "type": "boolean",
+              "description": "Whether this view is exported for reuse"
+            },
+            "layout": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/StandardLayout"
+                },
+                {
+                  "type": "object",
+                  "description": "Custom layout configuration"
+                }
+              ],
+              "description": "View layout definition"
+            },
+            "subscribes_to": {
+              "$ref": "#/$defs/SubscriptionsPattern",
+              "description": "Events this view subscribes to"
+            },
+            "uiComponents": {
+              "type": "object",
+              "description": "UI components within this view (visual elements like tables, forms, buttons)",
+              "patternProperties": {
+                "^[a-zA-Z][a-zA-Z0-9_ ]*$": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/ViewComponent"
+                    },
+                    {
+                      "type": "string",
+                      "description": "Reference to component type (e.g., 'UI.FormView')"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "properties": {
+              "$ref": "#/$defs/ViewProperties",
+              "description": "View-level feature flags and configuration"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeploymentsContainer": {
+      "type": "object",
+      "patternProperties": {
+        "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[A-Za-z][A-Za-z0-9_-]*)$": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "$ref": "#/$defs/SemanticVersion"
+            },
+            "description": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string"
+            },
+            "instances": {
+              "$ref": "#/$defs/InstancesSection"
+            }
+          },
+          "required": [
+            "version"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "InstancesSection": {
+      "type": "object",
+      "properties": {
+        "controllers": {
+          "$ref": "#/$defs/ControllerInstances"
+        },
+        "services": {
+          "$ref": "#/$defs/ServiceInstances"
+        },
+        "views": {
+          "$ref": "#/$defs/ViewInstances"
+        },
+        "communications": {
+          "$ref": "#/$defs/CommunicationInstances"
+        },
+        "storage": {
+          "$ref": "#/$defs/StorageInstances"
+        },
+        "security": {
+          "$ref": "#/$defs/SecurityInstances"
+        },
+        "infrastructure": {
+          "$ref": "#/$defs/InfrastructureInstances"
+        },
+        "monitoring": {
+          "$ref": "#/$defs/MonitoringInstances"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ControllerInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            },
+            "rateLimit": {
+              "$ref": "#/$defs/RateLimitPolicy"
+            },
+            "timeout": {
+              "type": "object",
+              "description": "Request timeout configuration",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "requestMs": {
+                  "type": "integer",
+                  "minimum": 100,
+                  "description": "Request timeout in milliseconds"
+                },
+                "keepAliveMs": {
+                  "type": "integer",
+                  "description": "Keep-alive timeout"
+                }
+              },
+              "additionalProperties": false
+            },
+            "operations": {
+              "type": "object",
+              "description": "Per-operation deployment policies",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/OperationPolicies"
+                }
+              },
+              "additionalProperties": false
+            },
+            "resources": {
+              "$ref": "#/$defs/ResourceConfiguration"
+            },
+            "autoscaling": {
+              "$ref": "#/$defs/AutoscalingConfiguration"
+            }
+          },
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ServiceInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            },
+            "operations": {
+              "type": "object",
+              "description": "Per-operation deployment policies",
+              "patternProperties": {
+                "^[a-z][a-zA-Z0-9_]*$": {
+                  "$ref": "#/$defs/OperationPolicies"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ViewInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "component"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "CommunicationInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "namespace": {
+              "type": "string"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Capabilities available on this communication channel"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "pubsub",
+                "streaming",
+                "rpc",
+                "queue"
+              ],
+              "default": "pubsub"
+            },
+            "config": {
+              "type": "object"
+            },
+            "consumer": {
+              "type": "object",
+              "description": "Consumer configuration",
+              "properties": {
+                "concurrency": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Number of concurrent consumers"
+                },
+                "prefetch": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1,
+                  "description": "Messages to prefetch per consumer"
+                },
+                "autoAck": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Automatically acknowledge messages"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "StorageInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "relational",
+                "document",
+                "keyvalue",
+                "cache",
+                "file",
+                "blob",
+                "queue",
+                "search"
+              ],
+              "description": "Type of storage system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "persistence": {
+              "type": "string",
+              "enum": [
+                "durable",
+                "session",
+                "cache",
+                "temporary"
+              ],
+              "description": "Data persistence policy (logical requirement)"
+            },
+            "consistency": {
+              "type": "string",
+              "enum": [
+                "strong",
+                "eventual",
+                "weak"
+              ],
+              "description": "Data consistency policy (logical requirement)"
+            },
+            "encryption": {
+              "type": "boolean",
+              "description": "Whether encryption is required (logical requirement)"
+            },
+            "backup": {
+              "type": "boolean",
+              "description": "Whether backups are required (logical requirement)"
+            },
+            "replication": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum number of data replicas required (logical requirement)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "SecurityInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "authentication",
+                "authorization",
+                "encryption",
+                "audit",
+                "firewall",
+                "scanning",
+                "secrets",
+                "identity"
+              ],
+              "description": "Type of security system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "global",
+                "component",
+                "operation"
+              ],
+              "description": "Security scope policy (logical requirement)"
+            },
+            "policies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Security policy names to enforce (logical requirement)"
+            },
+            "encryption": {
+              "type": "string",
+              "enum": [
+                "strong",
+                "basic",
+                "none"
+              ],
+              "description": "Encryption strength requirement (logical requirement)"
+            },
+            "auditLevel": {
+              "type": "string",
+              "enum": [
+                "comprehensive",
+                "detailed",
+                "basic",
+                "minimal"
+              ],
+              "description": "Audit logging level requirement (logical requirement)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "InfrastructureInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "gateway",
+                "loadbalancer",
+                "proxy",
+                "cdn",
+                "dns",
+                "registry",
+                "mesh",
+                "ingress"
+              ],
+              "description": "Type of infrastructure system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "healthCheck": {
+              "type": "boolean",
+              "description": "Whether health checking is required (logical requirement)"
+            },
+            "loadBalancing": {
+              "type": "boolean",
+              "description": "Whether load balancing is required (logical requirement)"
+            },
+            "redundancy": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ],
+              "description": "Redundancy level requirement (logical requirement)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "MonitoringInstances": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "component": {
+              "$ref": "#/$defs/NamespaceString"
+            },
+            "namespace": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "metrics",
+                "logging",
+                "tracing",
+                "alerting",
+                "analytics",
+                "profiling",
+                "uptime",
+                "synthetic"
+              ],
+              "description": "Type of monitoring system"
+            },
+            "advertises": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "uses": {
+              "$ref": "#/$defs/CapabilityList"
+            },
+            "scale": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "config": {
+              "type": "object"
+            },
+            "scope": {
+              "type": "string",
+              "enum": [
+                "global",
+                "regional",
+                "local"
+              ],
+              "description": "Monitoring scope"
+            },
+            "retention": {
+              "type": "string",
+              "description": "Data retention period (e.g., '30d', '1y')"
+            },
+            "alerting": {
+              "type": "boolean",
+              "description": "Enable alerting capabilities"
+            },
+            "sampling": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Sampling rate (0.0 to 1.0)"
+            }
+          },
+          "required": [
+            "component",
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "CommandsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_-]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "arguments": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "positional": {
+                    "type": "boolean"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "default": {}
+                }
+              }
+            },
+            "flags": {
+              "type": "object",
+              "patternProperties": {
+                "^--[a-z][a-zA-Z0-9-]*$": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "default": {},
+                    "description": {
+                      "type": "string"
+                    },
+                    "alias": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "returns": {
+              "type": "string"
+            },
+            "exitCodes": {
+              "type": "object",
+              "patternProperties": {
+                "^[0-9]+$": {
+                  "type": "string"
+                }
+              }
+            },
+            "subcommands": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConventionsSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "baseType": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "implies": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "when_modified_by": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "adds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "sets": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "validates": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "appliesTo": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "baseType"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "MeasuresSection": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            },
+            "aggregation": {
+              "type": "string",
+              "enum": [
+                "sum",
+                "count",
+                "avg",
+                "min",
+                "max",
+                "custom"
+              ]
+            },
+            "field": {
+              "type": "string"
+            },
+            "computation": {
+              "type": "string"
+            },
+            "filter": {
+              "type": "string"
+            },
+            "dimensions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "format": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "aggregation"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ManifestsContainer": {
+      "type": "object",
+      "description": "Container for implementation manifests",
+      "patternProperties": {
+        "^(@[a-z0-9][a-z0-9-]*[a-z0-9]/[a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|[A-Za-z][A-Za-z0-9_-]*)$": {
+          "$ref": "#/$defs/ManifestDefinition"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ManifestDefinition": {
+      "type": "object",
+      "description": "Implementation manifest - maps deployment instances to instance factories",
+      "required": [
+        "specVersion",
+        "name",
+        "version",
+        "deployment"
+      ],
+      "properties": {
+        "specVersion": {
+          "type": "string",
+          "description": "SpecVerse specification version",
+          "enum": [
+            "3.5.0"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Manifest name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Manifest description"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Manifest version (semver)"
+        },
+        "deployment": {
+          "type": "object",
+          "description": "Reference to deployment specification",
+          "required": [
+            "deploymentSource",
+            "deploymentName"
+          ],
+          "properties": {
+            "deploymentSource": {
+              "type": "string",
+              "description": "Path to .specly file containing deployment"
+            },
+            "deploymentName": {
+              "type": "string",
+              "description": "Name of deployment in the spec"
+            },
+            "deploymentVersion": {
+              "type": "string",
+              "description": "Version constraint for deployment"
+            }
+          }
+        },
+        "defaultMappings": {
+          "type": "object",
+          "description": "Default instance factory by category (lowest priority)",
+          "properties": {
+            "controller": {
+              "type": "string",
+              "description": "Default for controller instances"
+            },
+            "service": {
+              "type": "string",
+              "description": "Default for service instances"
+            },
+            "view": {
+              "type": "string",
+              "description": "Default for view instances"
+            },
+            "storage": {
+              "type": "string",
+              "description": "Default for storage instances"
+            },
+            "security": {
+              "type": "string",
+              "description": "Default for security instances"
+            },
+            "infrastructure": {
+              "type": "string",
+              "description": "Default for infrastructure instances"
+            },
+            "monitoring": {
+              "type": "string",
+              "description": "Default for monitoring instances"
+            },
+            "communication": {
+              "type": "string",
+              "description": "Default for communication instances"
+            }
+          },
+          "additionalProperties": false
+        },
+        "capabilityMappings": {
+          "type": "array",
+          "description": "Map capabilities to instance factories with pattern matching (medium priority)",
+          "items": {
+            "type": "object",
+            "required": [
+              "capability",
+              "instanceFactory"
+            ],
+            "properties": {
+              "capability": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z*][a-z0-9*]*)*$",
+                "description": "Capability pattern (supports wildcards: api.rest.*)"
+              },
+              "instanceFactory": {
+                "type": "string",
+                "description": "Instance factory name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version constraint for instance factory"
+              },
+              "configuration": {
+                "type": "object",
+                "description": "Configuration overrides",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "instanceMappings": {
+          "type": "array",
+          "description": "Explicit instance-to-factory mappings (highest priority)",
+          "items": {
+            "type": "object",
+            "required": [
+              "instanceName",
+              "instanceFactory"
+            ],
+            "properties": {
+              "instanceName": {
+                "type": "string",
+                "description": "Specific instance name from deployment"
+              },
+              "instanceFactory": {
+                "type": "string",
+                "description": "Instance factory name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version constraint for instance factory"
+              },
+              "configuration": {
+                "type": "object",
+                "description": "Configuration overrides",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "manifestTemplates": {
+          "type": "array",
+          "description": "Import common technology combinations",
+          "items": {
+            "type": "object",
+            "required": [
+              "template"
+            ],
+            "properties": {
+              "template": {
+                "type": "string",
+                "description": "Template from library (e.g., '@specverse/manifest-templates/jamstack')"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version constraint"
+              }
+            }
+          }
+        },
+        "configuration": {
+          "type": "object",
+          "description": "Global configuration settings",
+          "additionalProperties": true
+        },
+        "conditionalMappings": {
+          "type": "array",
+          "description": "Environment-based capability mappings",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition": {
+                "type": "object",
+                "properties": {
+                  "environment": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ],
+                    "description": "Target environment(s)"
+                  },
+                  "region": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "featureFlags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Required feature flags (prefix ! for negation)"
+                  },
+                  "scale": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "integer"
+                      },
+                      "max": {
+                        "type": "integer"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "capabilityMappings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "capability": {
+                      "type": "string"
+                    },
+                    "instanceFactory": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "configuration": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "fallback": {
+                      "type": "array",
+                      "description": "Fallback instance factories",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "instanceFactory": {
+                            "type": "string"
+                          },
+                          "degradedMode": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "warnings": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "errors": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "requiredAcknowledgment": {
+                            "type": "boolean",
+                            "default": false
+                          }
+                        },
+                        "required": [
+                          "instanceFactory"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "capability",
+                    "instanceFactory"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "condition",
+              "capabilityMappings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "description": "Technology conflict declarations",
+          "items": {
+            "type": "object",
+            "properties": {
+              "instanceFactories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "description": "Conflicting instance factory names"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Explanation of conflict"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warning"
+                ],
+                "default": "error"
+              }
+            },
+            "required": [
+              "instanceFactories",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "instanceFactories": {
+          "type": "array",
+          "description": "List of instance factories used by this manifest.",
+          "items": {
+            "$ref": "#/$defs/InstanceFactoryRef"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ManifestImportSection": {
+      "type": "array",
+      "description": "Import standard definition libraries for implementation types",
+      "items": {
+        "type": "object",
+        "description": "Import standard definition library",
+        "required": [
+          "library"
+        ],
+        "properties": {
+          "library": {
+            "type": "string",
+            "description": "Library path (e.g., '@specverse/standards/nextjs')"
+          },
+          "version": {
+            "type": "string",
+            "description": "Version constraint (e.g., '^1.0.0')"
+          },
+          "select": {
+            "type": "array",
+            "description": "Select specific definitions from library",
+            "items": {
+              "type": "string"
+            }
+          },
+          "alias": {
+            "type": "string",
+            "description": "Optional alias for the imported library"
+          }
+        }
+      }
+    },
+    "ManifestComponentReference": {
+      "type": "object",
+      "description": "Information about the v3.1.0 Component specification",
+      "required": [
+        "componentSource",
+        "componentVersion"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "componentSource": {
+          "type": "string",
+          "description": "Source of the component"
+        },
+        "componentVersion": {
+          "type": "string",
+          "description": "Version constraint for the component (should be ^3.1.0)",
+          "pattern": "^(\\^|>=|~)?3\\.[1-9]\\.[0-9]+"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the component"
+        }
+      }
+    },
+    "ManifestDeploymentReference": {
+      "type": "object",
+      "description": "Information about the v3.1.0 Deployment specification",
+      "required": [
+        "deploymentSource",
+        "deploymentVersion"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "deploymentSource": {
+          "type": "string",
+          "description": "Source of the deployment specification"
+        },
+        "deploymentVersion": {
+          "type": "string",
+          "description": "Version constraint for the deployment (should be ^3.1.0)",
+          "pattern": "^(\\^|>=|~)?3\\.[1-9]\\.[0-9]+"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the deployment"
+        }
+      }
+    },
+    "ImplementationTypesSection": {
+      "type": "object",
+      "description": "Reusable implementation type definitions",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "type": "object",
+          "oneOf": [
+            {
+              "description": "Extend from imported standard definition",
+              "required": [
+                "extends"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "extends": {
+                  "type": "string",
+                  "description": "Reference to imported standard definition"
+                },
+                "overrides": {
+                  "type": "object",
+                  "description": "Override any standard definition properties"
+                },
+                "localExtensions": {
+                  "type": "object",
+                  "description": "Technology-specific local extensions"
+                }
+              }
+            },
+            {
+              "description": "Custom local definition",
+              "required": [
+                "type",
+                "technology"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "controller",
+                    "service",
+                    "view",
+                    "database",
+                    "authentication",
+                    "messaging",
+                    "cache",
+                    "storage",
+                    "api"
+                  ],
+                  "description": "Category of implementation"
+                },
+                "technology": {
+                  "type": "string",
+                  "description": "Core technology (e.g., 'NextJS', 'PostgreSQL')"
+                },
+                "framework": {
+                  "type": "string"
+                },
+                "adapter": {
+                  "type": "string"
+                },
+                "provider": {
+                  "type": "string"
+                },
+                "libraries": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "environmentVariables": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "defaultPath": {
+                  "type": "string"
+                },
+                "configuration": {
+                  "type": "object"
+                },
+                "capabilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BehaviorMappingsSection": {
+      "type": "array",
+      "description": "Model behavior implementation mappings",
+      "items": {
+        "type": "object",
+        "required": [
+          "modelName",
+          "behaviorName",
+          "implementationMethod"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "modelName": {
+            "type": "string"
+          },
+          "behaviorName": {
+            "type": "string"
+          },
+          "implementationMethod": {
+            "type": "string"
+          },
+          "implementationPath": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CapabilityMappingsSection": {
+      "type": "array",
+      "description": "v3.1.0 capability mappings using implementation types",
+      "items": {
+        "type": "object",
+        "required": [
+          "capability",
+          "implementationType"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "type": "string",
+            "description": "Capability pattern (e.g., '*', 'models.*')"
+          },
+          "implementationType": {
+            "type": "string",
+            "description": "Reference to implementationType"
+          },
+          "capabilityType": {
+            "type": "string",
+            "enum": [
+              "advertises",
+              "uses",
+              "bidirectional"
+            ]
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "channelBinding": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CommunicationChannelsSection": {
+      "type": "array",
+      "description": "v3.1.0 communication channel mappings",
+      "items": {
+        "type": "object",
+        "required": [
+          "channelName",
+          "implementationType"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "channelName": {
+            "type": "string"
+          },
+          "implementationType": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "LogicalDeploymentSection": {
+      "type": "object",
+      "description": "v3.1.0 logical deployment configuration",
+      "additionalProperties": false,
+      "properties": {
+        "deploymentName": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "instances": {
+          "type": "object",
+          "properties": {
+            "controllers": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            },
+            "services": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            },
+            "views": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            },
+            "communications": {
+              "$ref": "#/$defs/LogicalInstanceMapping"
+            }
+          }
+        }
+      }
+    },
+    "LogicalInstanceMapping": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_]*$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Reference to implementationType"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "implementationType": {
+                  "type": "string"
+                },
+                "overrides": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "implementationType"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "NamespaceConfigurationSection": {
+      "type": "object",
+      "description": "v3.1.0 namespace scoping configuration",
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "single",
+            "domain-based",
+            "environment-based",
+            "tenant-based"
+          ]
+        },
+        "namespaces": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "isolation": {
+                  "type": "string",
+                  "enum": [
+                    "strict",
+                    "permissive"
+                  ]
+                },
+                "resourceLimits": {
+                  "type": "object"
+                },
+                "securityPolicy": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "crossNamespacePolicy": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "allow",
+            "explicit"
+          ]
+        }
+      }
+    },
+    "InstanceFactoryDefinition": {
+      "type": "object",
+      "description": "Instance factory definition - reusable technology specification for deployment instances",
+      "required": [
+        "name",
+        "version",
+        "category",
+        "capabilities",
+        "technology",
+        "codeTemplates"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9]*$",
+          "description": "Unique name (e.g., 'FastifyPrismaAPI', 'PostgreSQL15')"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9-]+)?(\\+[A-Za-z0-9-]+)?$",
+          "description": "Semantic version"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "controller",
+            "service",
+            "view",
+            "storage",
+            "security",
+            "infrastructure",
+            "monitoring",
+            "communication",
+            "scaffolding",
+            "application",
+            "cli"
+          ],
+          "description": "Which deployment instance category this implements"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description"
+        },
+        "compatibility": {
+          "type": "object",
+          "description": "Version compatibility requirements",
+          "required": [
+            "specverse"
+          ],
+          "properties": {
+            "specverse": {
+              "type": "string",
+              "description": "SpecVerse version range (semver)"
+            },
+            "node": {
+              "type": "string",
+              "description": "Node.js version requirement"
+            }
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "description": "What this instance provides and requires",
+          "required": [
+            "provides"
+          ],
+          "properties": {
+            "provides": {
+              "type": "array",
+              "description": "Capabilities this instance type provides",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*\\.[a-z][a-z0-9]*(\\.[a-z*][a-z0-9*]*)*$"
+              },
+              "minItems": 1
+            },
+            "requires": {
+              "type": "array",
+              "description": "Capabilities this instance type requires",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "technology": {
+          "type": "object",
+          "description": "Technology stack information",
+          "required": [
+            "runtime",
+            "language"
+          ],
+          "properties": {
+            "runtime": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$",
+              "description": "Runtime environment identifier. Standard runtimes: node, deno, bun, python, rust, go, browser. See SpecVerse Registry for complete list.",
+              "examples": [
+                "node",
+                "deno",
+                "bun"
+              ],
+              "$comment": "Validation: Linter checks against SpecVerse runtime registry"
+            },
+            "language": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$",
+              "description": "Programming language identifier (kebab-case). Standard languages: typescript, javascript, python, rust, go, java, csharp, php, ruby, kotlin, swift. See SpecVerse Registry for complete list.",
+              "examples": [
+                "typescript",
+                "python",
+                "rust"
+              ],
+              "$comment": "Validation: Linter checks against SpecVerse language registry"
+            },
+            "framework": {
+              "type": "string",
+              "description": "Framework name (e.g., 'fastify', 'express', 'nextjs')"
+            },
+            "database": {
+              "type": "string",
+              "description": "Database system (e.g., 'postgresql', 'mongodb')"
+            },
+            "version": {
+              "type": "string",
+              "description": "Technology version"
+            }
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "Additional tech-specific fields (e.g., orm, validation, cache)"
+          }
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Package dependencies",
+          "properties": {
+            "runtime": {
+              "type": "array",
+              "description": "Runtime dependencies",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "version"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "optional": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "dev": {
+              "type": "array",
+              "description": "Development dependencies",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "version"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "peer": {
+              "type": "array",
+              "description": "Peer dependencies",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "version"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "codeTemplates": {
+          "type": "object",
+          "description": "Code generation templates",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "engine",
+              "outputPattern"
+            ],
+            "properties": {
+              "engine": {
+                "type": "string",
+                "description": "Template engine to use",
+                "enum": [
+                  "typescript",
+                  "handlebars",
+                  "ai"
+                ]
+              },
+              "template": {
+                "type": "string",
+                "description": "Template content or path (for handlebars)"
+              },
+              "generator": {
+                "type": "string",
+                "description": "Path to generator function (for typescript)"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "Generation prompt (for AI)"
+              },
+              "outputPattern": {
+                "type": "string",
+                "description": "Output file path pattern with variables"
+              },
+              "validators": {
+                "type": "array",
+                "description": "Validation function paths",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "postProcessors": {
+                "type": "array",
+                "description": "Post-processing function paths",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "minProperties": 1
+        },
+        "configuration": {
+          "type": "object",
+          "description": "Default configuration (tech-specific structure)",
+          "additionalProperties": true
+        },
+        "configurationSchema": {
+          "description": "Optional JSON Schema to validate configuration overrides",
+          "oneOf": [
+            {
+              "type": "object",
+              "description": "Inline JSON Schema"
+            },
+            {
+              "type": "object",
+              "required": [
+                "$ref"
+              ],
+              "properties": {
+                "$ref": {
+                  "type": "string",
+                  "description": "Path to external schema file"
+                }
+              }
+            }
+          ]
+        },
+        "configurationDocs": {
+          "type": "object",
+          "description": "Documentation for configuration options",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "extends": {
+          "type": "string",
+          "description": "Parent instance type to extend from"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata",
+          "properties": {
+            "author": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string",
+              "format": "uri"
+            },
+            "homepage": {
+              "type": "string",
+              "format": "uri"
+            },
+            "license": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "documentation": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "requirements": {
+          "type": "object",
+          "description": "Generic requirements declared by this implementation type for scaffolding (runtime-agnostic structure)",
+          "properties": {
+            "dependencies": {
+              "type": "object",
+              "description": "Package/library dependencies (structure varies by runtime: npm, pip, cargo, go-mod, etc.)",
+              "additionalProperties": true
+            },
+            "environment": {
+              "type": "array",
+              "description": "Environment variables and configuration (universal structure)",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Environment variable name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Human-readable description"
+                  },
+                  "example": {
+                    "type": "string",
+                    "description": "Example value"
+                  },
+                  "required": {
+                    "type": "boolean",
+                    "description": "Whether this variable is required"
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "Category for grouping (e.g., 'Database', 'Server', 'Authentication')"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "configuration": {
+              "type": "object",
+              "description": "Build/runtime configuration files (structure varies by runtime: tsconfig, pyproject, cargo-toml, etc.)",
+              "additionalProperties": true
+            },
+            "files": {
+              "type": "array",
+              "description": "Additional files to generate (optional)",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "File path relative to project root"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of what this file is for"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "middleware": {
+          "type": "object",
+          "description": "Framework-specific middleware configuration",
+          "properties": {
+            "global": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "preHandler": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "postHandler": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "onResponse": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "onError": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "interceptors": {
+          "type": "object",
+          "description": "Framework-specific interceptors",
+          "properties": {
+            "global": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "controller": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "route": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "guards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Framework-specific guards"
+        },
+        "pipes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Framework-specific validation pipes"
+        },
+        "dependencyInjection": {
+          "type": "object",
+          "description": "DI system configuration",
+          "properties": {
+            "defaultScope": {
+              "type": "string",
+              "enum": [
+                "singleton",
+                "transient",
+                "request",
+                "session"
+              ],
+              "default": "singleton"
+            },
+            "scopeOptions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "lifecycle": {
+          "type": "object",
+          "description": "Framework-specific lifecycle hook mappings",
+          "properties": {
+            "mount": {
+              "type": "string"
+            },
+            "unmount": {
+              "type": "string"
+            },
+            "update": {
+              "type": "string"
+            },
+            "beforeUpdate": {
+              "type": "string"
+            },
+            "afterUpdate": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "contentNegotiation": {
+          "type": "object",
+          "description": "Content type serialization/parsing",
+          "properties": {
+            "serializers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "contentType": {
+                    "type": "string"
+                  },
+                  "handler": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "contentType",
+                  "handler"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "parsers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "contentType": {
+                    "type": "string"
+                  },
+                  "handler": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "contentType",
+                  "handler"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "eventRouting": {
+          "type": "object",
+          "description": "Technology-specific event routing",
+          "properties": {
+            "mechanism": {
+              "type": "string",
+              "enum": [
+                "topic",
+                "queue",
+                "direct",
+                "fanout",
+                "partition"
+              ]
+            },
+            "exchangeType": {
+              "type": "string"
+            },
+            "topicStrategy": {
+              "type": "string"
+            },
+            "partitionStrategy": {
+              "type": "string",
+              "enum": [
+                "hash",
+                "roundRobin",
+                "custom"
+              ]
+            },
+            "routingKeyPattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "consumer": {
+          "type": "object",
+          "description": "Consumer implementation details",
+          "properties": {
+            "groupIdPattern": {
+              "type": "string"
+            },
+            "queuePattern": {
+              "type": "string"
+            },
+            "autoCommit": {
+              "type": "boolean"
+            },
+            "prefetch": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        },
+        "deadLetterQueue": {
+          "type": "object",
+          "description": "DLQ implementation",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "namingPattern": {
+              "type": "string"
+            },
+            "mechanism": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "webhookVerification": {
+          "type": "object",
+          "description": "Webhook signature verification",
+          "properties": {
+            "signatureHeader": {
+              "type": "string"
+            },
+            "algorithm": {
+              "type": "string",
+              "enum": [
+                "sha256",
+                "sha512",
+                "rsa"
+              ]
+            },
+            "verificationMethod": {
+              "type": "string",
+              "enum": [
+                "hmac",
+                "rsa",
+                "custom"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "styling": {
+          "type": "object",
+          "description": "Styling implementation approach",
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": [
+                "cssModules",
+                "styledComponents",
+                "scopedStyles",
+                "emotion",
+                "tailwind"
+              ]
+            },
+            "fileExtension": {
+              "type": "string"
+            },
+            "classNameStrategy": {
+              "type": "string",
+              "enum": [
+                "camelCase",
+                "kebab-case",
+                "snake_case"
+              ]
+            },
+            "library": {
+              "type": "string"
+            },
+            "preprocessor": {
+              "type": "string",
+              "enum": [
+                "scss",
+                "sass",
+                "less",
+                "stylus"
+              ]
+            },
+            "scoped": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "migrations": {
+          "type": "array",
+          "description": "Version migration paths",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "breaking": {
+                "type": "boolean",
+                "default": false
+              },
+              "migrationSteps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "step": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "automated": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "command": {
+                      "type": "string"
+                    },
+                    "codemod": {
+                      "type": "string"
+                    },
+                    "documentation": {
+                      "type": "string"
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "step",
+                    "description"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "estimatedDuration": {
+                "type": "string"
+              },
+              "rollbackStrategy": {
+                "type": "object",
+                "properties": {
+                  "automatic": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "backupRequired": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "deprecations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "api": {
+                      "type": "string"
+                    },
+                    "replacement": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "InstanceFactoryRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "peerDependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string",
+                "description": "Semver range"
+              },
+              "optional": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "required": [
+              "name",
+              "version"
+            ]
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "name",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "ViewComponent": {
+      "type": "object",
+      "description": "Individual UI component within a view",
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "table",
+                "list",
+                "grid",
+                "card",
+                "chart",
+                "tree",
+                "timeline",
+                "avatar",
+                "image",
+                "form",
+                "input",
+                "textarea",
+                "select",
+                "checkbox",
+                "radio",
+                "slider",
+                "switch",
+                "autocomplete",
+                "datepicker",
+                "timepicker",
+                "button",
+                "button-group",
+                "link",
+                "icon",
+                "menu",
+                "modal",
+                "dialog",
+                "drawer",
+                "popover",
+                "tooltip",
+                "alert",
+                "snackbar",
+                "badge",
+                "spinner",
+                "tabs",
+                "breadcrumb",
+                "navbar",
+                "sidebar",
+                "pagination",
+                "accordion",
+                "carousel",
+                "container",
+                "divider",
+                "header",
+                "footer",
+                "progress-bar",
+                "progress-circle",
+                "searchBar",
+                "filterPanel"
+              ],
+              "description": "Standard component types"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-Z][a-zA-Z0-9]*$",
+              "description": "Custom component type (PascalCase)"
+            },
+            {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$",
+              "description": "Custom component type (kebab-case)"
+            }
+          ],
+          "description": "Component type identifier"
+        },
+        "model": {
+          "$ref": "#/$defs/TypeReference",
+          "description": "Model this component operates on"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Column names for table/grid components"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "required": {
+                    "type": "boolean"
+                  },
+                  "placeholder": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            ]
+          },
+          "description": "Form fields or filter fields"
+        },
+        "chartType": {
+          "type": "string",
+          "enum": [
+            "pie",
+            "bar",
+            "line",
+            "area",
+            "scatter",
+            "donut"
+          ],
+          "description": "Chart type for chart components"
+        },
+        "dataSource": {
+          "type": "string",
+          "description": "Data source reference (e.g., 'tasks.status', 'events')"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source reference for component data"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ]
+              }
+            ]
+          },
+          "description": "Options for select/dropdown components (strings or {label, value} objects)"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Component-specific properties",
+          "additionalProperties": true
+        },
+        "events": {
+          "type": "object",
+          "description": "Event handlers",
+          "patternProperties": {
+            "^on[A-Z][a-zA-Z0-9]*$": {
+              "type": "string",
+              "description": "Handler reference (e.g., 'UserController.updateUser')"
+            }
+          },
+          "additionalProperties": false
+        },
+        "validation": {
+          "type": "object",
+          "description": "Validation rules for form components",
+          "properties": {
+            "required": {
+              "type": "boolean"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "minLength": {
+              "type": "integer"
+            },
+            "maxLength": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "StandardLayout": {
+      "type": "object",
+      "description": "Standard layout patterns",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "single-column",
+            "two-column",
+            "three-column",
+            "grid",
+            "flex",
+            "sidebar-left",
+            "sidebar-right",
+            "sidebar-both",
+            "header-content",
+            "header-content-footer",
+            "master-detail",
+            "split-horizontal",
+            "split-vertical"
+          ],
+          "description": "Layout pattern type"
+        },
+        "regions": {
+          "type": "object",
+          "description": "Named layout regions",
+          "patternProperties": {
+            "^[a-z][a-zA-Z0-9_]*$": {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "type": "string"
+                },
+                "minWidth": {
+                  "type": "string"
+                },
+                "maxWidth": {
+                  "type": "string"
+                },
+                "height": {
+                  "type": "string"
+                },
+                "minHeight": {
+                  "type": "string"
+                },
+                "maxHeight": {
+                  "type": "string"
+                },
+                "flex": {
+                  "type": "string"
+                },
+                "order": {
+                  "type": "integer"
+                },
+                "align": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "center",
+                    "end",
+                    "stretch"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "spacing": {
+          "type": "string",
+          "description": "Gap between regions"
+        },
+        "responsive": {
+          "type": "object",
+          "description": "Responsive breakpoint overrides",
+          "properties": {
+            "mobile": {
+              "type": "object"
+            },
+            "tablet": {
+              "type": "object"
+            },
+            "desktop": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "ViewProperties": {
+      "type": "object",
+      "description": "View-level feature flags and configuration",
+      "properties": {
+        "responsive": {
+          "type": "boolean"
+        },
+        "authenticated": {
+          "type": "boolean"
+        },
+        "authorized": {
+          "type": "boolean"
+        },
+        "realtime": {
+          "type": "boolean"
+        },
+        "sortable": {
+          "type": "boolean"
+        },
+        "filterable": {
+          "type": "boolean"
+        },
+        "searchable": {
+          "type": "boolean"
+        },
+        "paginated": {
+          "type": "boolean"
+        },
+        "pagination": {
+          "type": "boolean"
+        },
+        "exportable": {
+          "type": "boolean"
+        },
+        "printable": {
+          "type": "boolean"
+        },
+        "bookmarkable": {
+          "type": "boolean"
+        },
+        "cacheable": {
+          "type": "boolean"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "refreshInterval": {
+          "type": "integer",
+          "description": "Auto-refresh interval in milliseconds"
+        },
+        "theme": {
+          "type": "string",
+          "enum": [
+            "light",
+            "dark",
+            "auto",
+            "system"
+          ]
+        },
+        "locale": {
+          "type": "string",
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+        }
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "array"
+          },
+          {
+            "type": "object"
+          }
+        ]
+      }
+    },
+    "OperationPolicies": {
+      "type": "object",
+      "description": "Deployment-specific operational policies for an operation",
+      "properties": {
+        "transactional": {
+          "type": "object",
+          "description": "Transaction management configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "isolation": {
+              "type": "string",
+              "enum": [
+                "READ_UNCOMMITTED",
+                "READ_COMMITTED",
+                "REPEATABLE_READ",
+                "SERIALIZABLE"
+              ],
+              "default": "READ_COMMITTED",
+              "description": "Transaction isolation level"
+            },
+            "propagation": {
+              "type": "string",
+              "enum": [
+                "REQUIRED",
+                "REQUIRES_NEW",
+                "SUPPORTS",
+                "NOT_SUPPORTED",
+                "MANDATORY",
+                "NEVER"
+              ],
+              "default": "REQUIRED",
+              "description": "Transaction propagation behavior"
+            },
+            "timeout": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Transaction timeout in seconds"
+            },
+            "readOnly": {
+              "type": "boolean",
+              "default": false,
+              "description": "Mark transaction as read-only for optimization"
+            }
+          },
+          "additionalProperties": false
+        },
+        "retry": {
+          "$ref": "#/$defs/RetryPolicy"
+        },
+        "circuitBreaker": {
+          "$ref": "#/$defs/CircuitBreakerPolicy"
+        },
+        "idempotency": {
+          "type": "object",
+          "description": "Idempotency enforcement",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "keyField": {
+              "type": "string",
+              "description": "Parameter field to use as idempotency key"
+            },
+            "ttlSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "How long to remember idempotency keys"
+            }
+          },
+          "additionalProperties": false
+        },
+        "cache": {
+          "type": "object",
+          "description": "Operation-level caching",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "ttlSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Cache TTL in seconds"
+            },
+            "keyFields": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Parameter fields to include in cache key"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RateLimitPolicy": {
+      "type": "object",
+      "description": "Rate limiting configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "requestsPerMinute": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum requests per minute"
+        },
+        "burstSize": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Burst allowance above rate limit"
+        },
+        "byIP": {
+          "type": "boolean",
+          "default": true,
+          "description": "Apply limit per IP address"
+        },
+        "byUser": {
+          "type": "boolean",
+          "default": false,
+          "description": "Apply limit per authenticated user"
+        },
+        "byApiKey": {
+          "type": "boolean",
+          "default": false,
+          "description": "Apply limit per API key"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RetryPolicy": {
+      "type": "object",
+      "description": "Retry policy configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3,
+          "description": "Maximum retry attempts"
+        },
+        "backoffMs": {
+          "type": "integer",
+          "minimum": 100,
+          "description": "Initial backoff delay in milliseconds"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "minimum": 1,
+          "default": 2,
+          "description": "Exponential backoff multiplier"
+        },
+        "maxBackoffMs": {
+          "type": "integer",
+          "minimum": 100,
+          "description": "Maximum backoff delay"
+        },
+        "retryableErrors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Error types/codes that should trigger retry"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CircuitBreakerPolicy": {
+      "type": "object",
+      "description": "Circuit breaker policy configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5,
+          "description": "Number of failures before opening circuit"
+        },
+        "successThreshold": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2,
+          "description": "Number of successes before closing circuit"
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 100,
+          "description": "Operation timeout before considering it a failure"
+        },
+        "halfOpenAfterMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "default": 60000,
+          "description": "Time to wait before attempting half-open state"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ResourceConfiguration": {
+      "type": "object",
+      "description": "Resource requests and limits",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "description": "Guaranteed resource allocation",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "pattern": "^[0-9]+(m|[0-9]*\\.?[0-9]+)?$",
+              "description": "CPU request (e.g., 100m, 0.5, 1)"
+            },
+            "memory": {
+              "type": "string",
+              "pattern": "^[0-9]+([KMGT]i?)?$",
+              "description": "Memory request (e.g., 128Mi, 1Gi)"
+            },
+            "ephemeralStorage": {
+              "type": "string",
+              "pattern": "^[0-9]+([KMGT]i?)?$",
+              "description": "Ephemeral storage request"
+            }
+          },
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "description": "Maximum resource allocation",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "pattern": "^[0-9]+(m|[0-9]*\\.?[0-9]+)?$",
+              "description": "CPU limit"
+            },
+            "memory": {
+              "type": "string",
+              "pattern": "^[0-9]+([KMGT]i?)?$",
+              "description": "Memory limit"
+            },
+            "ephemeralStorage": {
+              "type": "string",
+              "pattern": "^[0-9]+([KMGT]i?)?$",
+              "description": "Ephemeral storage limit"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "AutoscalingConfiguration": {
+      "type": "object",
+      "description": "Horizontal pod autoscaling configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "minReplicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Minimum number of replicas"
+        },
+        "maxReplicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Maximum number of replicas"
+        },
+        "targetCPU": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Target CPU utilization percentage"
+        },
+        "targetMemory": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Target memory utilization percentage"
+        },
+        "customMetrics": {
+          "type": "array",
+          "description": "Custom metrics for scaling",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "pods",
+                  "object",
+                  "external"
+                ]
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "Utilization",
+                      "Value",
+                      "AverageValue"
+                    ]
+                  },
+                  "averageValue": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "scaleDown": {
+          "type": "object",
+          "description": "Scale down behavior",
+          "properties": {
+            "stabilizationWindowSeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 300,
+              "description": "Cooldown period before scaling down"
+            },
+            "selectPolicy": {
+              "type": "string",
+              "enum": [
+                "Max",
+                "Min",
+                "Disabled"
+              ],
+              "default": "Max"
+            }
+          },
+          "additionalProperties": false
+        },
+        "scaleUp": {
+          "type": "object",
+          "description": "Scale up behavior",
+          "properties": {
+            "stabilizationWindowSeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "selectPolicy": {
+              "type": "string",
+              "enum": [
+                "Max",
+                "Min",
+                "Disabled"
+              ],
+              "default": "Max"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

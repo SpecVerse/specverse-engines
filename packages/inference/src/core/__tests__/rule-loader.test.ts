@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 /**
  * Tests for Rule Loader - JSON rule loading and validation
  */

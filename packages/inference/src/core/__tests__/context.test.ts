@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 /**
  * Tests for Inference Context Management
  * Tests relationship analysis and context creation

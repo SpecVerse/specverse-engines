@@ -10,7 +10,7 @@ import { viewTests } from '../core/views/tests/index.js';
 import { loadManifest, validateManifest } from '../_shared/manifest.js';
 
 // Also import original processor for parity test
-import { ViewProcessor as OriginalProcessor } from '@specverse/engine-parser/processors/ViewProcessor.js';
+import { ViewProcessor as OriginalProcessor } from '../core/views/conventions/view-processor.js';
 import { ViewProcessor as EntityProcessor } from '../core/views/conventions/view-processor.js';
 import type { ProcessorContext } from '@specverse/types';
 

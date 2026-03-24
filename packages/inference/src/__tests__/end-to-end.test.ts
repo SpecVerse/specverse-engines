@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 /**
  * End-to-End Integration Tests for V3.1 Inference Engine
  * Tests complete inference pipeline with real-world scenarios

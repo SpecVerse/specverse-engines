@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 /**
  * Integration Tests for V3.1 Logical Generators
  * Tests how all generators work together in realistic scenarios

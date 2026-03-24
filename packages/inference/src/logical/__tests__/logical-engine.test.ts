@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 /**
  * Integration Tests for V3.1 Logical Inference Engine
  * Tests the complete inference pipeline from models to specifications

@@ -10,7 +10,7 @@ import { deploymentTests } from '../core/deployments/tests/index.js';
 import { loadManifest, validateManifest } from '../_shared/manifest.js';
 
 // Also import original processor for parity test
-import { DeploymentProcessor as OriginalProcessor } from '@specverse/engine-parser/processors/DeploymentProcessor.js';
+import { DeploymentProcessor as OriginalProcessor } from '../core/deployments/conventions/deployment-processor.js';
 import { DeploymentProcessor as EntityProcessor } from '../core/deployments/conventions/deployment-processor.js';
 import type { ProcessorContext } from '@specverse/types';
 

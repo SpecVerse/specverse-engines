@@ -10,7 +10,7 @@ import { eventTests } from '../core/events/tests/index.js';
 import { loadManifest, validateManifest } from '../_shared/manifest.js';
 
 // Also import original processor for parity test
-import { EventProcessor as OriginalProcessor } from '@specverse/engine-parser/processors/EventProcessor.js';
+import { EventProcessor as OriginalProcessor } from '../core/events/conventions/event-processor.js';
 import { EventProcessor as EntityProcessor } from '../core/events/conventions/event-processor.js';
 import type { ProcessorContext } from '@specverse/types';
 

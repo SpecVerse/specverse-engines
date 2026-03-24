@@ -9,7 +9,7 @@ import { serviceTests } from '../core/services/tests/index.js';
 import { loadManifest, validateManifest } from '../_shared/manifest.js';
 
 // Also import original processor for parity test
-import { ServiceProcessor as OriginalProcessor } from '@specverse/engine-parser/processors/ServiceProcessor.js';
+import { ServiceProcessor as OriginalProcessor } from '../core/services/conventions/service-processor.js';
 import { ServiceProcessor as EntityProcessor } from '../core/services/conventions/service-processor.js';
 import type { ProcessorContext } from '@specverse/types';
 

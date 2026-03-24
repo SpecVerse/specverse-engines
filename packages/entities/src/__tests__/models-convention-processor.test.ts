@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { modelsModule } from '../core/models/index.js';
-import { ModelProcessor as OriginalModelProcessor } from '@specverse/engine-parser/processors/ModelProcessor.js';
+import { ModelProcessor as OriginalModelProcessor } from '../core/models/conventions/model-processor.js';
 import type { ProcessorContext } from '@specverse/types';
 import type { ModelSpec } from '@specverse/types';
 

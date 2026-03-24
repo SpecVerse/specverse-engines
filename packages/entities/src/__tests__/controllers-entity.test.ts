@@ -9,7 +9,7 @@ import { controllerTests } from '../core/controllers/tests/index.js';
 import { loadManifest, validateManifest } from '../_shared/manifest.js';
 
 // Also import original processor for parity test
-import { ControllerProcessor as OriginalProcessor } from '@specverse/engine-parser/processors/ControllerProcessor.js';
+import { ControllerProcessor as OriginalProcessor } from '../core/controllers/conventions/controller-processor.js';
 import { ControllerProcessor as EntityProcessor } from '../core/controllers/conventions/controller-processor.js';
 import type { ProcessorContext } from '@specverse/types';
 
