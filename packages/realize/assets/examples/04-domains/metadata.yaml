@@ -1,0 +1,67 @@
+# Domain Examples Metadata
+category: "domains"
+title: "Real-World Domain Examples"
+description: "Complete business domain models demonstrating SpecVerse applied to real scenarios"
+targetAudience: "intermediate-to-advanced"
+estimatedTime: "6-8 hours"
+
+learningObjectives:
+  - "Apply SpecVerse to complete business domains"
+  - "See complex profile composition in production scenarios"
+  - "Understand enterprise patterns and compliance requirements"
+  - "Model real-world business processes and workflows"
+  - "Integrate multiple SpecVerse concepts in cohesive systems"
+
+examples:
+  - id: "04-01-digital-product-catalog"
+    title: "Digital Product E-commerce"
+    description: "Complete e-commerce system with digital products, subscriptions, and download management"
+    concepts: ["e-commerce", "digital-products", "subscriptions", "licensing", "payments", "downloads"]
+    prerequisites: ["02-profiles", "03-architecture"]
+    difficulty: "advanced"
+    estimatedTime: "3-4 hours"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Model complex e-commerce business logic"
+      - "Implement subscription billing and lifecycle management"
+      - "Handle digital rights and download security"
+      - "Coordinate multiple profiles for product variants"
+      - "Design event-driven payment and fulfillment flows"
+    specverseFeatures: ["Multi-Profile Composition", "Complex Lifecycles", "Event-Driven Architecture"]
+    businessDomain: "e-commerce"
+    realWorldUseCase: "Software sales, digital content, SaaS platforms, online courses"
+
+  - id: "04-02-organization-management"
+    title: "Enterprise Organization Management"
+    description: "Complete organizational system with companies, employees, compliance, and audit trails"
+    concepts: ["enterprise", "organizations", "employees", "compliance", "audit-trails", "hierarchies"]
+    prerequisites: ["02-profiles", "03-architecture"]
+    difficulty: "advanced"
+    estimatedTime: "3-4 hours"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Model complex organizational structures"
+      - "Implement compliance and audit requirements"
+      - "Handle multi-entity corporate hierarchies"
+      - "Design role-based access control systems"
+      - "Create comprehensive audit and tracking patterns"
+    specverseFeatures: ["Enterprise Patterns", "Audit Profiles", "Complex Relations"]
+    businessDomain: "enterprise"
+    realWorldUseCase: "HR systems, corporate compliance, legal tech, organizational design"
+
+nextSteps:
+  - category: "05-meta"
+    description: "Study meta-specifications and build systems"
+    reason: "See how domain models integrate into complete systems"
+  - category: "06-deploy"
+    description: "Learn deployment and infrastructure patterns"
+    reason: "Bridge the gap between specifications and production systems"
+
+validationCommands:
+  - "specverse validate 04-domains/04-01-digital-product-catalog.specly"
+  - "specverse validate 04-domains/04-02-organization-management.specly"
+
+# Key teaching progression:
+# 1. E-commerce domain showing complex business logic
+# 2. Enterprise domain showing compliance and organizational complexity
+# These represent two major application categories with different challenges

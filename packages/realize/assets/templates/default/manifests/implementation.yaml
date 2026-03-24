@@ -1,0 +1,176 @@
+# SpecVerse v3.3 Implementation Manifest
+# Defines technology stack using implementation types and capability mappings
+
+manifests:
+  {{projectNameKebab}}Implementation:
+    specVersion: "3.3.0"
+    name: "{{projectNameKebab}}-implementation"
+    version: "1.0.0"
+    description: "Development implementation manifest for {{projectName}}"
+
+    # v3.3: Deployment reference
+    deployment:
+      deploymentSource: "../specs/main.specly"
+      deploymentName: "development"
+
+    # v3.3: Default technology stack mappings
+    defaultMappings:
+      storage: "PostgreSQL15"
+      controller: "PrismaServices"
+      service: "PrismaServices"
+      routing: "FastifyAPI"
+      orm: "PrismaORM"
+      communication: "EventEmitter"
+
+    # v3.3: Map deployment instance capabilities to implementation types
+    capabilityMappings:
+      # API Layer - Fastify REST API (routing)
+      - capability: "api.rest"
+        instanceFactory: "FastifyAPI"
+
+      # Business Logic Layer - PrismaServices (controllers + services)
+      - capability: "service.controller"
+        instanceFactory: "PrismaServices"
+
+      - capability: "service.business"
+        instanceFactory: "PrismaServices"
+
+      - capability: "service.crud"
+        instanceFactory: "PrismaServices"
+
+      # Data Layer - PostgreSQL + Prisma
+      - capability: "storage.database"
+        instanceFactory: "PostgreSQL15"
+
+      # ORM - Prisma (schema + client)
+      - capability: "orm.schema"
+        instanceFactory: "PrismaORM"
+
+      - capability: "orm.client"
+        instanceFactory: "PrismaORM"
+
+      - capability: "orm.prisma"
+        instanceFactory: "PrismaORM"
+
+      # Events - In-memory for development
+      - capability: "messaging.pubsub"
+        instanceFactory: "EventEmitter"
+
+      - capability: "messaging.events"
+        instanceFactory: "EventEmitter"
+
+      # Validation - Zod
+      - capability: "validation.runtime"
+        instanceFactory: "ZodValidation"
+
+      - capability: "validation.schema"
+        instanceFactory: "ZodValidation"
+
+      # Project Scaffolding (generates package.json, tsconfig.json, etc.)
+      - capability: "project.scaffold"
+        instanceFactory: "GenericScaffold"
+
+      # Backend Application Entry Point (generates backend/src/main.ts)
+      - capability: "app.entrypoint"
+        instanceFactory: "GenericApp"
+
+      # Frontend Application (generates frontend/index.html, App.tsx, etc.)
+      - capability: "app.frontend"
+        instanceFactory: "ReactApp"
+
+      # UI Components - React (views and components)
+      - capability: "ui.components"
+        instanceFactory: "ReactComponents"
+
+      - capability: "ui.views"
+        instanceFactory: "ReactComponents"
+
+      - capability: "ui.forms"
+        instanceFactory: "ReactComponents"
+
+    # v3.3: Configuration section
+    configuration:
+      # Project structure
+      outputStructure: "monorepo"
+      frontendDir: "frontend"
+      backendDir: "backend"
+
+      # API connection (for frontend)
+      apiBaseUrl: "http://localhost:3000"
+      # Environment-specific settings
+      environments:
+        development:
+          database:
+            provider: "postgresql"
+            url: "postgresql://localhost:5432/{{projectNameKebab}}_dev"
+          server:
+            port: 3000
+            host: "localhost"
+            logLevel: "debug"
+          features:
+            hotReload: true
+            debugMode: true
+
+        test:
+          database:
+            provider: "postgresql"
+            url: "postgresql://localhost:5432/{{projectNameKebab}}_test"
+          server:
+            port: 3001
+            host: "localhost"
+            logLevel: "silent"
+
+        production:
+          database:
+            provider: "postgresql"
+            url: "${DATABASE_URL}"
+          server:
+            port: "${PORT:-8080}"
+            host: "0.0.0.0"
+            logLevel: "info"
+          middleware:
+            rateLimit:
+              max: 1000
+              timeWindow: "1 minute"
+            compression: true
+
+      # Authentication configuration
+      authentication:
+        enabled: true
+        provider: "jwt"
+        secret: "${JWT_SECRET}"
+        expiresIn: "7d"
+
+      # CORS configuration
+      cors:
+        origin: "*"  # Change to specific domains in production
+        credentials: true
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+
+      # Validation configuration
+      validation:
+        enabled: true
+        provider: "zod"
+        stripUnknown: true
+        abortEarly: false
+
+      # Logging configuration
+      logging:
+        level: "info"
+        pretty: true
+        destinations:
+          - type: "console"
+          - type: "file"
+            path: "logs/{{projectNameKebab}}.log"
+
+      # Code generation options
+      generation:
+        outputDir: "./generated/code"
+        typescript: true
+        validation: true
+        tests: false
+        documentation: true
+        metadata:
+          idStrategy: "uuid"
+          auditFields: true
+          softDeleteStrategy: "deletedAt"

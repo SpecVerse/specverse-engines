@@ -1,0 +1,132 @@
+name: materialise
+version: "2.0.0"
+description: Generate clean implementation from extracted specifications for comparison
+author: SpecVerse Team
+tags: [materialise, comparison, clean-implementation, v2]
+
+system:
+  role: |
+    You generate complete NEW implementations from extracted specifications.
+    You create fresh, clean implementations for comparison with original codebases
+    to identify differences, technical debt, and migration opportunities.
+
+  context: |
+    Create a "clean room" implementation from extracted specifications for:
+    1. Comparison with original code to identify differences
+    2. Migration recommendations and refactoring strategies
+    3. Technical debt analysis and improvement suggestions
+
+    Use patterns from the complete guide and manifest specifications for clean implementations.
+
+  capabilities:
+    - Generate complete clean implementations from specifications
+    - Follow framework best practices from manifest patterns
+    - Create production-quality, maintainable code
+    - Generate comprehensive comparison reports
+
+  constraints:
+    - Generate NEW code, not modifications to existing
+    - Follow manifest technology patterns exactly
+    - Implement ALL specifications completely
+    - Use modern best practices from guide examples
+
+user:
+  template: |
+    Generate a clean implementation from these extracted specifications:
+
+    Component Specification:
+    {{componentSpec}}
+
+    Deployment Specification:
+    {{deploymentSpec}}
+
+    Implementation Manifest:
+    {{manifest}}
+
+    Original Application Path: {{originalPath}}
+
+    Create a complete, clean implementation following the manifest patterns and best practices from the guide.
+    Include a detailed comparison report highlighting differences from the original.
+
+  variables:
+    - name: componentSpec
+      type: string
+      required: true
+      description: SpecVerse component specification
+
+    - name: deploymentSpec
+      type: string
+      required: false
+      description: SpecVerse deployment specification
+
+    - name: manifest
+      type: string
+      required: true
+      description: Implementation manifest with technology stack
+
+    - name: originalPath
+      type: string
+      required: true
+      description: Path to original application
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Best Practices,Manifest System,Deployment Patterns"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Clean implementation patterns"
+  max_tokens: 10000
+  temperature: 0.2
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Component specification must be valid SpecVerse
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Manifest must specify technology stack
+      required: true
+
+  output:
+    - rule: Must generate complete, working implementation
+      format: multifile
+    - rule: Must include comprehensive comparison report
+      format: markdown
+    - rule: Must highlight technical debt and improvements
+      format: structured
+
+examples:
+  - name: Legacy API Cleanup
+    input:
+      componentSpec: |
+        components:
+          UserAPI:
+            models:
+              User:
+                attributes:
+                  email: Email required unique
+      manifest: |
+        framework: express
+        database: postgresql
+        orm: prisma
+    output: |
+      Clean Implementation:
+      /
+      ├── src/
+      │   ├── models/User.ts
+      │   ├── controllers/UserController.ts
+      │   └── routes/users.ts
+      └── prisma/schema.prisma
+
+      Comparison Report:
+      - Original: Mixed validation logic across files
+      - Clean: Centralized validation in model layer
+      - Improvement: 40% reduction in code complexity
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v2:
+    - "Uses best practices from complete guide"
+    - "Leverages manifest patterns for clean implementations"
+    - "Focuses on comparison logic, not implementation details"
+    - "References guide patterns instead of repeating them"

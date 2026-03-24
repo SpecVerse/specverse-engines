@@ -1,0 +1,61 @@
+# 05-meta Examples Metadata
+category: "05-meta"
+title: "Meta-Specifications"
+description: "Self-referential examples where SpecVerse describes itself and demonstrates meta-programming concepts"
+targetAudience: "Advanced users interested in meta-programming and language design"
+estimatedTime: "60-90 minutes"
+
+learningObjectives:
+  - "Understand self-referential specification design"
+  - "Learn meta-programming concepts with SpecVerse"
+  - "See how SpecVerse can model itself and build systems"
+  - "Distinguish between language definition and application modeling"
+
+examples:
+  - id: "05-01-specverse-meta-specification"
+    title: "SpecVerse Meta-Specification"
+    description: "The ultimate recursive example: SpecVerse defining its own language syntax and architecture"
+    concepts: ["meta-programming", "self-reference", "language definition", "recursive modeling"]
+    prerequisites: ["04-domains"]
+    difficulty: "advanced"
+    estimatedTime: "45 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Understand how SpecVerse can define its own syntax"
+      - "Learn complete language coverage including Components, Deployments"
+      - "See recursive profile system modeling"
+      - "Understand parser and processor architecture"
+    businessDomain: "Language Design"
+    specverseFeatures: ["Meta-Programming", "Self-Reference", "Language Definition", "Component Architecture"]
+    realWorldUseCase: "Building language servers, parsers, and meta-tools"
+
+  - id: "05-02-specverse-app-build"
+    title: "SpecVerse App Build"
+    description: "Modeling SpecVerse as a business application with build systems and deployment"
+    concepts: ["application modeling", "build systems", "CI/CD", "deployment automation"]
+    prerequisites: ["05-01-specverse-meta-specification"]
+    difficulty: "advanced"
+    estimatedTime: "30 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Model a complete build and deployment system"
+      - "Design CI/CD pipeline architecture"
+      - "Implement automated deployment strategies"
+      - "Use SpecVerse for infrastructure as code"
+    businessDomain: "DevOps and Build Systems"
+    specverseFeatures: ["Deployment Specifications", "Build Automation", "Infrastructure as Code"]
+    realWorldUseCase: "Building automated deployment pipelines and DevOps workflows"
+
+nextSteps:
+  - category: "06-deploy"
+    description: "Learn production deployment patterns"
+    reason: "Apply meta-programming knowledge to real deployment scenarios"
+
+validationCommands:
+  - "specverse validate 05-meta/05-01-specverse-meta-specification.specly"
+  - "specverse validate 05-meta/05-02-specverse-app-build.specly"
+
+# Key teaching progression:
+# 1. Meta-specification showing self-referential language design
+# 2. Application build showing practical system modeling
+# These examples demonstrate SpecVerse's power for meta-programming and self-description

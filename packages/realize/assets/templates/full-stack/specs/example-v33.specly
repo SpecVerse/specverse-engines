@@ -1,0 +1,297 @@
+# SpecVerse v3.3 Full-Featured Example
+# Complete task management application with GUI, database, events, and services
+#
+# This demonstrates ALL v3.3 capabilities:
+# - Multiple models with relationships
+# - v3.3 metadata primitives (id strategies, audit, softDelete, status, version)
+# - Controllers with CURED operations
+# - Event-driven architecture with services
+# - Views for the frontend
+# - Full deployment configuration
+#
+# To use:
+# 1. Copy this to main.specly (or use directly: npm run realize:all specs/example-v33.specly)
+# 2. Run: npm run realize:all
+# 3. Run: npm install && npm run db:push && npm run dev
+# 4. Visit: http://localhost:3000
+
+components:
+  TaskManagement:
+    version: "1.0.0"
+    description: "Full-featured task management with v3.3 capabilities"
+    tags: ["v3.3", "full-stack", "production-ready"]
+
+    models:
+      # PRIMARY MODEL: Task with ALL v3.3 metadata primitives
+      Task:
+        description: "Task with complete metadata support"
+
+        metadata:
+          id: uuid                    # UUID primary key
+          audit: true                 # createdAt, updatedAt, createdBy, updatedBy
+          softDelete: true            # deletedAt, isDeleted for soft deletion
+          status: "status"            # Links status field to lifecycle
+          version: true               # version field for optimistic locking
+
+        attributes:
+          title: String required
+          description: Text
+          dueDate: DateTime
+          priority: String default="medium" values=["low", "medium", "high", "urgent"]
+          assignee: String
+          estimatedHours: Integer
+          completedAt: DateTime
+
+        lifecycles:
+          status:
+            flow: pending -> in_progress -> review -> completed -> archived
+
+        relationships:
+          comments: hasMany Comment
+          labels: manyToMany Label through TaskLabel
+
+      # RELATED MODEL: Comments with minimal metadata
+      Comment:
+        description: "Comments on tasks"
+
+        metadata:
+          id: uuid
+          audit: true                 # Just timestamps and user tracking
+
+        attributes:
+          content: Text required
+          authorName: String required
+          authorEmail: String
+
+        relationships:
+          task: belongsTo Task
+
+      # TAG MODEL: Labels with integer ID strategy
+      Label:
+        description: "Labels for categorizing tasks"
+
+        metadata:
+          id: integer                 # Auto-incrementing integer ID
+          audit: true
+          softDelete: true
+
+        attributes:
+          name: String required unique
+          color: String default="#3b82f6"
+          description: Text
+
+        relationships:
+          tasks: manyToMany Task through TaskLabel
+
+      # JOIN TABLE for many-to-many
+      TaskLabel:
+        description: "Join table for Task-Label relationship"
+
+        metadata:
+          id: uuid
+          audit: true
+
+        attributes:
+          assignedAt: DateTime default=now
+
+        relationships:
+          task: belongsTo Task
+          label: belongsTo Label
+
+    # CONTROLLERS: API endpoints with CURED operations
+    controllers:
+      TaskController:
+        model: Task
+        description: "Manage tasks"
+
+        cured:
+          validate: {}                # POST /api/tasks/validate
+          create: {}                  # POST /api/tasks
+          retrieve: {}                # GET /api/tasks/:id
+          update: {}                  # PUT /api/tasks/:id
+          evolve: {}                  # PATCH /api/tasks/:id/status
+          delete: {}                  # DELETE /api/tasks/:id
+
+        actions:
+          listAll:
+            description: "List all tasks with filtering"
+            parameters:
+              status: String
+              priority: String
+              assignee: String
+            returns: Array<Task>
+
+          assignTask:
+            description: "Assign task to user"
+            parameters:
+              taskId: UUID required
+              assignee: String required
+            returns: Task
+            publishes: [TaskAssigned]
+
+      CommentController:
+        model: Comment
+        description: "Manage task comments"
+
+        cured:
+          create: {}
+          retrieve: {}
+          delete: {}
+
+        actions:
+          listByTask:
+            description: "Get all comments for a task"
+            parameters:
+              taskId: UUID required
+            returns: Array<Comment>
+
+      LabelController:
+        model: Label
+        description: "Manage labels"
+
+        cured:
+          create: {}
+          retrieve: {}
+          update: {}
+          delete: {}
+
+        actions:
+          listAll:
+            description: "List all labels"
+            returns: Label[]
+
+    # SERVICES: Event-driven business logic
+    services:
+      NotificationService:
+        description: "Handle task notifications"
+        subscribes_to: [TaskCreated, TaskAssigned, TaskCompleted]
+
+        operations:
+          sendNotification:
+            description: "Send notification for task events"
+            parameters:
+              taskId: UUID required
+              eventType: String required
+              recipient: String required
+            returns: Boolean
+
+      AnalyticsService:
+        description: "Track task metrics"
+        subscribes_to: [TaskCreated, TaskCompleted, TaskAssigned]
+
+        operations:
+          recordMetric:
+            description: "Record task metric"
+            parameters:
+              taskId: UUID required
+              metricType: String required
+              value: Integer
+            returns: Boolean
+
+    # EVENTS: Domain events for event-driven architecture
+    events:
+      TaskCreated:
+        description: "Task was created"
+        attributes:
+          id: UUID required
+          title: String required
+          priority: String required
+          createdAt: DateTime required
+
+      TaskAssigned:
+        description: "Task was assigned to user"
+        attributes:
+          id: UUID required
+          assignee: String required
+          assignedAt: DateTime required
+
+      TaskCompleted:
+        description: "Task was completed"
+        attributes:
+          id: UUID required
+          completedAt: DateTime required
+          completedBy: String
+
+      CommentAdded:
+        description: "Comment was added to task"
+        attributes:
+          commentId: UUID required
+          taskId: UUID required
+          authorName: String required
+          createdAt: DateTime required
+
+    # VIEWS: Frontend interface specifications
+    views:
+      TaskListView:
+        description: "List and filter tasks"
+        route: /tasks
+        subscribes_to: [TaskCreated, TaskAssigned, TaskCompleted]
+        displays:
+          - model: Task
+            operation: list
+          - model: Label
+            operation: list
+
+      TaskDetailView:
+        description: "View and edit single task"
+        route: /tasks/:id
+        subscribes_to: [TaskAssigned, CommentAdded]
+        displays:
+          - model: Task
+            operation: retrieve
+          - model: Comment
+            operation: listByTask
+
+      DashboardView:
+        description: "Overview dashboard"
+        route: /dashboard
+        subscribes_to: [TaskCreated, TaskCompleted]
+        displays:
+          - model: Task
+            operation: list
+
+# DEPLOYMENT: Production-ready configuration
+deployments:
+  development:
+    version: "1.0.0"
+    description: "Development environment with full stack"
+    environment: "development"
+
+    instances:
+      controllers:
+        apiServer:
+          component: TaskManagement
+          namespace: api
+          scale: 1
+          advertises: [api.*, events.*]
+          uses: [database.*, cache.*]
+
+      services:
+        notificationService:
+          component: TaskManagement
+          namespace: services
+          scale: 1
+          advertises: [notifications.*]
+          uses: [events.*]
+
+        analyticsService:
+          component: TaskManagement
+          namespace: services
+          scale: 1
+          advertises: [analytics.*]
+          uses: [events.*]
+
+      storage:
+        mainDB:
+          component: TaskManagement
+          namespace: data
+          type: relational
+          scale: 1
+          advertises: [persistence.*]
+
+        cache:
+          component: TaskManagement
+          namespace: data
+          type: cache
+          scale: 1
+          advertises: [cache.*]

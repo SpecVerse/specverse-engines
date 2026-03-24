@@ -1,0 +1,302 @@
+name: create
+version: "1.0.0"  
+description: Generate minimal SpecVerse specifications from natural language requirements
+author: SpecVerse Team
+tags: [creation, requirements, minimal-spec]
+
+system:
+  role: |
+    You are a SpecVerse specification creator that generates MINIMAL specifications from requirements.
+    You analyze user requirements and create the smallest possible valid specification that captures the core business logic.
+    The SpecVerse inference engine will later expand these minimal specs into complete architectures.
+    
+  context: |
+    Your task is to:
+    1. Analyze natural language requirements
+    2. Extract core business entities and their relationships
+    3. Generate a minimal SpecVerse specification with only essential attributes
+    4. Let the inference engine handle controllers, services, events, and views later
+    
+    Focus on business logic, not technical implementation details.
+    Start with the absolute minimum needed to represent the domain.
+    
+  capabilities:
+    - Parse natural language requirements
+    - Identify business entities and relationships
+    - Determine essential attributes only
+    - Apply SpecVerse convention syntax
+    - Select appropriate scale (personal/business/enterprise)
+    - Generate clean, minimal specifications
+    
+  constraints:
+    - Include ONLY explicitly mentioned features
+    - Do NOT add technical implementation details
+    - Do NOT generate controllers, services, or events (inference will handle these)
+    - Keep specifications as minimal as possible
+    - Use convention syntax for all attributes
+    - Focus on business domain, not technology
+
+user:
+  template: |
+    Generate a minimal SpecVerse specification from these requirements:
+    
+    Requirements:
+    {{requirements}}
+    
+    Project Scale: {{scale}}
+    Preferred Technology: {{preferredTech}}
+    
+    Guidelines:
+    1. Extract only the core business entities mentioned
+    2. Include only essential attributes that are explicitly stated
+    3. Define relationships between entities
+    4. Use SpecVerse convention syntax: attributeName: TypeName modifiers
+    5. Let the inference engine expand this later
+    
+    Common types to use:
+    - String, Integer, Decimal, Boolean
+    - UUID (for identifiers)
+    - Email, URL, Phone (for contact info)
+    - Date, DateTime, Time (for temporal data)
+    - Money (for financial amounts)
+    
+    Common modifiers:
+    - required / optional
+    - unique
+    - searchable
+    - default=value
+    - min=n / max=n
+    
+    Generate a minimal component specification that captures ONLY what was explicitly requested.
+    
+  variables:
+    - name: requirements
+      type: string
+      required: true
+      description: Natural language description of the application requirements
+      
+    - name: scale
+      type: string
+      required: false
+      default: "business"
+      description: Project scale (personal, business, enterprise)
+      validation: "^(personal|business|enterprise)$"
+      
+    - name: preferredTech
+      type: string
+      required: false
+      default: "auto"
+      description: Preferred technology stack
+
+context:
+  includes:
+    - schema: schema/SPECVERSE-V3.1-SCHEMA-AI.yaml
+    - template: "{{scale}}"
+  max_tokens: 2000
+  temperature: 0.5
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Requirements must be provided
+      required: true
+    - rule: Requirements should be between 10 and 5000 characters
+      required: false
+      
+  output:
+    - rule: Must generate valid SpecVerse v3.1 specification
+      format: yaml
+      schema: schema/SPECVERSE-SCHEMA.json
+    - rule: Must include at least one model
+      format: yaml
+    - rule: Should be minimal (typically under 100 lines)
+      format: yaml
+
+examples:
+  - name: Task Management System
+    description: Creating minimal spec for a task management application
+    input:
+      requirements: |
+        Build a task management system where users can create projects and add tasks to them.
+        Tasks should have a title, description, due date, and status (todo, in progress, done).
+        Users should be able to assign tasks to team members.
+      scale: business
+      preferredTech: auto
+      
+    output: |
+      components:
+        TaskManagement:
+          version: "1.0.0"
+          description: "Task management system"
+          
+          models:
+            Project:
+              description: "Container for related tasks"
+              attributes:
+                name: String required
+                description: String optional
+              relationships:
+                tasks: hasMany Task cascade
+                
+            Task:
+              description: "Individual work item"
+              attributes:
+                title: String required
+                description: String optional
+                dueDate: Date optional
+                status: String required default=todo values=["todo","in_progress","done"]
+              relationships:
+                project: belongsTo Project required
+                assignee: belongsTo User optional
+                
+            User:
+              description: "System user"
+              attributes:
+                email: Email required unique
+                name: String required
+              relationships:
+                assignedTasks: hasMany Task
+                
+    explanation: |
+      This minimal specification captures only what was explicitly mentioned:
+      - Three core entities: Project, Task, User
+      - Essential attributes for each
+      - Clear relationships between entities
+      - No controllers, services, or events (inference will add these)
+
+  - name: E-commerce Platform
+    description: Creating minimal spec for an online store
+    input:
+      requirements: |
+        Create an e-commerce platform where customers can browse products by category,
+        add items to a shopping cart, and place orders. Products have name, price,
+        description, and inventory count. Orders should track shipping address and payment status.
+      scale: business
+      preferredTech: auto
+      
+    output: |
+      components:
+        EcommercePlatform:
+          version: "1.0.0"
+          description: "E-commerce platform"
+          
+          models:
+            Product:
+              description: "Sellable item"
+              attributes:
+                name: String required searchable
+                price: Money required
+                description: String optional
+                inventoryCount: Integer required default=0 min=0
+              relationships:
+                category: belongsTo Category required
+                cartItems: hasMany CartItem
+                
+            Category:
+              description: "Product grouping"
+              attributes:
+                name: String required unique
+              relationships:
+                products: hasMany Product
+                
+            Cart:
+              description: "Shopping cart"
+              attributes:
+                status: String required default=active
+              relationships:
+                customer: belongsTo Customer required
+                items: hasMany CartItem cascade
+                
+            CartItem:
+              description: "Product in cart"
+              attributes:
+                quantity: Integer required min=1
+              relationships:
+                cart: belongsTo Cart required
+                product: belongsTo Product required
+                
+            Order:
+              description: "Customer order"
+              attributes:
+                shippingAddress: String required
+                paymentStatus: String required default=pending values=["pending","paid","failed"]
+              relationships:
+                customer: belongsTo Customer required
+                items: hasMany OrderItem cascade
+                
+            OrderItem:
+              description: "Product in order"
+              attributes:
+                quantity: Integer required min=1
+                priceAtPurchase: Money required
+              relationships:
+                order: belongsTo Order required
+                product: belongsTo Product required
+                
+            Customer:
+              description: "Platform customer"
+              attributes:
+                email: Email required unique
+              relationships:
+                cart: hasOne Cart
+                orders: hasMany Order
+                
+    explanation: |
+      Minimal specification includes:
+      - Core e-commerce entities only
+      - Essential attributes from requirements
+      - Proper relationships for cart and order flow
+      - No payment processing or shipping logic (inference will expand)
+
+  - name: Personal Blog
+    description: Creating minimal spec for a personal blog
+    input:
+      requirements: |
+        I want a simple blog where I can write posts with title and content.
+        Posts should support tags for organization.
+      scale: personal
+      preferredTech: auto
+      
+    output: |
+      components:
+        PersonalBlog:
+          version: "1.0.0"
+          description: "Personal blog system"
+          
+          models:
+            Post:
+              description: "Blog post"
+              attributes:
+                title: String required
+                content: String required
+                publishedAt: DateTime optional
+              relationships:
+                tags: manyToMany Tag
+                
+            Tag:
+              description: "Post categorization"
+              attributes:
+                name: String required unique
+              relationships:
+                posts: manyToMany Post
+                
+    explanation: |
+      Very minimal specification for personal use:
+      - Only two models as mentioned
+      - Basic attributes only
+      - Many-to-many relationship for tags
+      - No user model (personal blog doesn't need it)
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  tested_with:
+    - provider: openai
+      model: gpt-4
+      success_rate: 94
+    - provider: anthropic
+      model: claude-3-opus
+      success_rate: 96
+  performance:
+    avg_response_time: 3.2
+    avg_tokens_used: 1200

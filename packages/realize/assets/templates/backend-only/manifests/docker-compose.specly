@@ -1,0 +1,91 @@
+# Docker Compose Implementation Manifest
+# SpecVerse v3.3 manifest specification for Docker Compose deployment
+
+manifests:
+  DockerComposeManifest:
+    specVersion: "3.3.0"
+    name: "{{componentName}}DockerComposeManifest"
+    version: "1.0.0"
+    description: "Docker Compose implementation manifest for {{projectName}}"
+
+    # v3.3: Deployment reference (REQUIRED)
+    deployment:
+      deploymentSource: "./specs/main.specly"
+      deploymentName: "development"
+
+    # v3.3: Default technology mappings
+    defaultMappings:
+      storage: "SQLite"
+      controller: "DockerNodeApp"
+
+    # v3.3: Capability to implementation factory mappings
+    capabilityMappings:
+      - capability: "api.*"
+        instanceFactory: "DockerWebApp"
+
+      - capability: "database.*"
+        instanceFactory: "DockerDatabase"
+
+    # v3.3: Platform-specific configuration
+    configuration:
+      # Docker Compose specific settings
+      composeVersion: "3.8"
+
+      networks:
+        default:
+          driver: "bridge"
+
+      volumes:
+        app_data:
+          driver: "local"
+
+      # Implementation type definitions
+      implementationFactories:
+        DockerWebApp:
+          type: "controller"
+          technology: "docker"
+          framework: "compose"
+          config:
+            image: "node:18-alpine"
+            build:
+              context: "."
+              dockerfile: "Dockerfile"
+            ports:
+              - "3000:3000"
+            environment:
+              NODE_ENV: "development"
+              DATABASE_URL: "sqlite:./data/app.db"
+            volumes:
+              - "./src:/app/src"
+              - "./data:/app/data"
+            restart: "unless-stopped"
+
+        DockerDatabase:
+          type: "database"
+          technology: "sqlite"
+          framework: "docker"
+          config:
+            image: "alpine:latest"
+            volumes:
+              - "./data:/data"
+            command: "tail -f /dev/null"
+
+      # Namespace configuration
+      namespace:
+        strategy: "single"
+        name: "{{projectNameKebab}}"
+        description: "Main application namespace"
+        isolation: "permissive"
+
+      # AI implementation instructions
+      aiInstructions: |
+        When implementing this Docker Compose deployment:
+
+        1. **Development Focus**: This manifest is optimized for local development
+        2. **Live Reload**: Source code is mounted for immediate changes
+        3. **Data Persistence**: SQLite database with volume mounting
+        4. **Port Mapping**: Application accessible on localhost:3000
+        5. **Environment**: Configure environment variables in docker-compose.yml
+        6. **Networking**: Uses default bridge network for container communication
+        7. **Database**: Simple SQLite setup for development (upgrade to PostgreSQL for production)
+        8. **Restart Policy**: Containers restart unless manually stopped

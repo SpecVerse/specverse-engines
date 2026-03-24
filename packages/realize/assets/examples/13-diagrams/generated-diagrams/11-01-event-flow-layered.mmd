@@ -1,0 +1,148 @@
+graph TD
+  %% Event Flow Architecture
+
+  subgraph layer3_services["⚙️ LAYER 3B: SERVICES"]
+    direction LR
+    PaymentService("PaymentService
+↑ 3 events
+↓ 1 events")
+    InventoryService("InventoryService
+↑ 3 events
+↓ 1 events")
+    NotificationService("NotificationService
+↑ 2 events
+↓ 2 events")
+    AnalyticsService("AnalyticsService
+↑ 2 events
+↓ 2 events")
+    LoyaltyService("LoyaltyService
+↑ 1 events
+↓ 1 events")
+  end
+
+  subgraph layer4_controllers["⚙️ LAYER 4A: CONTROLLERS"]
+    direction LR
+    OrderController("OrderController
+↑ 3 events")
+    ProductController("ProductController
+↑ 2 events")
+    CustomerController("CustomerController
+↑ 2 events")
+  end
+
+  subgraph layer5_services["⚙️ LAYER 5B: SERVICES"]
+    direction LR
+    ShippingService("ShippingService
+↑ 2 events
+↓ 1 events")
+  end
+
+  subgraph layer3_events["🔔 LAYER 3: EVENTS"]
+    direction LR
+    OrderCreatedNotification{{"OrderCreatedNotification"}}
+    PaymentSuccessNotification{{"PaymentSuccessNotification"}}
+    ShippingNotification{{"ShippingNotification"}}
+    InventoryUpdated{{"InventoryUpdated"}}
+    PriceUpdateNotification{{"PriceUpdateNotification"}}
+    WelcomeScreenShown{{"WelcomeScreenShown"}}
+    PointsDisplayUpdated{{"PointsDisplayUpdated"}}
+    OrderPlaced{{"OrderPlaced"}}
+    PaymentConfirmed{{"PaymentConfirmed"}}
+    OrderShipped{{"OrderShipped"}}
+    OrderCompleted{{"OrderCompleted"}}
+  end
+
+  subgraph layer4_events["🔔 LAYER 4: EVENTS"]
+    direction LR
+    PaymentProcessed{{"PaymentProcessed"}}
+    PaymentFailed{{"PaymentFailed"}}
+    PaymentConfirmedNotification{{"PaymentConfirmedNotification"}}
+    StockReserved{{"StockReserved"}}
+    LowStockDetected{{"LowStockDetected"}}
+    StockMonitoringAlert{{"StockMonitoringAlert"}}
+    EmailSent{{"EmailSent"}}
+    ShippingEmailSent{{"ShippingEmailSent"}}
+    MetricsUpdated{{"MetricsUpdated"}}
+    InventoryInsightsUpdated{{"InventoryInsightsUpdated"}}
+    PointsAwarded{{"PointsAwarded"}}
+  end
+
+  subgraph layer6_events["🔔 LAYER 6: EVENTS"]
+    direction LR
+    ShipmentCreated{{"ShipmentCreated"}}
+    TrackingUpdated{{"TrackingUpdated"}}
+  end
+
+  subgraph views_layer["🖥️ LAYER 5: VIEWS (User Interface)"]
+    direction LR
+    OrderDashboard("OrderDashboard")
+    ProductCatalog("ProductCatalog")
+    CustomerProfile("CustomerProfile")
+    TrackingPage("TrackingPage")
+    CheckoutFlow("CheckoutFlow")
+    AdminAnalytics("AdminAnalytics")
+  end
+
+
+  %% Relationships
+  OrderController -->|"publishes"| OrderCreatedNotification
+  OrderController -->|"publishes"| PaymentSuccessNotification
+  OrderController -->|"publishes"| ShippingNotification
+  ProductController -->|"publishes"| InventoryUpdated
+  ProductController -->|"publishes"| PriceUpdateNotification
+  CustomerController -->|"publishes"| WelcomeScreenShown
+  CustomerController -->|"publishes"| PointsDisplayUpdated
+  PaymentService -->|"publishes"| PaymentProcessed
+  PaymentService -->|"publishes"| PaymentFailed
+  PaymentService -->|"publishes"| PaymentConfirmedNotification
+  InventoryService -->|"publishes"| StockReserved
+  InventoryService -->|"publishes"| LowStockDetected
+  InventoryService -->|"publishes"| StockMonitoringAlert
+  ShippingService -->|"publishes"| ShipmentCreated
+  ShippingService -->|"publishes"| TrackingUpdated
+  NotificationService -->|"publishes"| EmailSent
+  NotificationService -->|"publishes"| ShippingEmailSent
+  AnalyticsService -->|"publishes"| MetricsUpdated
+  AnalyticsService -->|"publishes"| InventoryInsightsUpdated
+  LoyaltyService -->|"publishes"| PointsAwarded
+  StockReserved -.->|"subscribes"| ShippingService
+
+  style OrderCreatedNotification fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PaymentSuccessNotification fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style ShippingNotification fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style InventoryUpdated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PriceUpdateNotification fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style WelcomeScreenShown fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PointsDisplayUpdated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PaymentProcessed fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PaymentFailed fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PaymentConfirmedNotification fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style OrderPlaced fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style StockReserved fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style LowStockDetected fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style StockMonitoringAlert fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PaymentConfirmed fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style ShipmentCreated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style TrackingUpdated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style EmailSent fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style ShippingEmailSent fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style OrderShipped fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style MetricsUpdated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style InventoryInsightsUpdated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style OrderCompleted fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style PointsAwarded fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style OrderController fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+  style ProductController fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+  style CustomerController fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+  style PaymentService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style InventoryService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style ShippingService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style NotificationService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style AnalyticsService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style LoyaltyService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style OrderDashboard fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+  style ProductCatalog fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+  style CustomerProfile fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+  style TrackingPage fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+  style CheckoutFlow fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+  style AdminAnalytics fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000

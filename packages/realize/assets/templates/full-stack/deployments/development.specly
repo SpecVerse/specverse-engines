@@ -1,0 +1,53 @@
+# Development Deployment
+# SpecVerse v3.1 deployment specification for local development
+
+deployments:
+  development:
+    version: "1.0.0"
+    environment: "development"
+    description: "Local development deployment with SQLite"
+    
+    # Based on libs/deployments/monolith/development pattern
+    instances:
+      controllers:
+        appController:
+          component: "{{componentName}}"
+          namespace: "api"
+          scale: 1
+          advertises: ["api.*"]
+          uses: ["database.*", "auth.*"]
+          
+      services:
+        appService:
+          component: "{{componentName}}"
+          namespace: "services"
+          scale: 1
+          advertises: ["business.*", "validation.*"]
+          uses: ["database.*"]
+          
+      storage:
+        localDB:
+          component: "{{componentName}}"
+          namespace: "data"
+          type: "relational"
+          scale: 1
+          advertises: ["persistence.*", "query.*"]
+          
+      security:
+        devAuth:
+          component: "{{componentName}}"
+          namespace: "auth"
+          type: "authentication"
+          provider: "local"
+          scope: "component"
+          scale: 1
+          advertises: ["auth.*"]
+          policies: ["dev-access"]
+          encryption: "basic"
+          auditLevel: "basic"
+          
+      communications:
+        localBus:
+          namespace: "local"
+          type: "rpc"
+          capabilities: ["*"]

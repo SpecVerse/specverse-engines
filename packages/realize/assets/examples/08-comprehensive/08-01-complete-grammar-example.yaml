@@ -1,0 +1,1639 @@
+components:
+  ECommercePlatform:
+    version: "3.2.0"
+    description: "Complete e-commerce platform demonstrating all SpecVerse v3.2 language features"
+    tags:
+      - "ecommerce"
+      - "platform"
+      - "microservices"
+      - "comprehensive"
+    import:
+      - file: "../common/common-definitions.yaml"
+        select:
+          - "UUID"
+          - "Money"
+          - "Email"
+          - "Phone"
+          - "DateTime"
+          - "Address"
+    export:
+      models:
+        - "User"
+        - "Product"
+        - "Order"
+        - "Payment"
+        - "Category"
+        - "ProductReview"
+        - "OrderItem"
+        - "Shipment"
+        - "ProductVariant"
+      controllers:
+        - "UserController"
+        - "ProductController"
+        - "OrderController"
+      services:
+        - "PaymentService"
+        - "NotificationService"
+        - "InventoryService"
+      events:
+        - "UserRegistered"
+        - "UserLoggedIn"
+        - "OrderCreated"
+        - "PaymentProcessed"
+        - "ProductRestocked"
+        - "OrderStatusChanged"
+      views:
+        - "UserProfileView"
+        - "ProductCatalogView"
+        - "OrderTrackingView"
+    models:
+      User:
+        description: "System user with authentication and profile management"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: true
+          email:
+            name: "email"
+            type: "Email"
+            required: true
+            unique: true
+          firstName:
+            name: "firstName"
+            type: "String"
+            required: true
+            unique: false
+          lastName:
+            name: "lastName"
+            type: "String"
+            required: true
+            unique: false
+          phone:
+            name: "phone"
+            type: "Phone"
+            required: false
+            unique: false
+          dateOfBirth:
+            name: "dateOfBirth"
+            type: "String"
+            required: false
+            unique: false
+          isActive:
+            name: "isActive"
+            type: "Boolean"
+            required: false
+            unique: false
+            default: "true"
+          loyaltyPoints:
+            name: "loyaltyPoints"
+            type: "Integer"
+            required: false
+            unique: false
+            default: "0"
+          tier:
+            name: "tier"
+            type: "String"
+            required: false
+            unique: false
+            default: "bronze"
+          profile:
+            name: "profile"
+            type: "String"
+            required: false
+            unique: false
+          preferences:
+            name: "preferences"
+            type: "String"
+            required: false
+            unique: false
+          lastLoginAt:
+            name: "lastLoginAt"
+            type: "DateTime"
+            required: false
+            unique: false
+          createdAt:
+            name: "createdAt"
+            type: "DateTime"
+            required: true
+            unique: false
+          updatedAt:
+            name: "updatedAt"
+            type: "DateTime"
+            required: false
+            unique: false
+        relationships:
+          orders:
+            name: "orders"
+            type: "hasMany"
+            target: "Order"
+          addresses:
+            name: "addresses"
+            type: "hasMany"
+            target: "Address"
+          payments:
+            name: "payments"
+            type: "hasMany"
+            target: "Payment"
+          reviews:
+            name: "reviews"
+            type: "hasMany"
+            target: "ProductReview"
+        lifecycles:
+          account:
+            flow: "pending -> verified -> active -> suspended -> deactivated"
+        behaviors:
+          authenticate:
+            parameters:
+              email:
+                name: "email"
+                type: "Email"
+                required: true
+                unique: false
+              password:
+                name: "password"
+                type: "String"
+                required: true
+                unique: false
+            description: "Authenticate user with email and password"
+            returns: "String"
+            requires:
+              - "user exists"
+              - "account is active"
+            ensures:
+              - "token is valid"
+              - "login attempt logged"
+            publishes:
+              - "UserLoggedIn"
+          updateProfile:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Update user profile information"
+            returns: "User"
+            requires:
+              - "user is authenticated"
+            ensures:
+              - "profile updated"
+              - "cache invalidated"
+            publishes:
+              - "UserProfileUpdated"
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      Product:
+        description: "Product in the e-commerce catalog"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: true
+          sku:
+            name: "sku"
+            type: "String"
+            required: true
+            unique: true
+          name:
+            name: "name"
+            type: "String"
+            required: true
+            unique: false
+          description:
+            name: "description"
+            type: "String"
+            required: false
+            unique: false
+          price:
+            name: "price"
+            type: "Money"
+            required: true
+            unique: false
+          cost:
+            name: "cost"
+            type: "Money"
+            required: true
+            unique: false
+          stock:
+            name: "stock"
+            type: "Integer"
+            required: false
+            unique: false
+            default: "0"
+          category:
+            name: "category"
+            type: "String"
+            required: true
+            unique: false
+          brand:
+            name: "brand"
+            type: "String"
+            required: false
+            unique: false
+          weight:
+            name: "weight"
+            type: "String"
+            required: false
+            unique: false
+          dimensions:
+            name: "dimensions"
+            type: "String"
+            required: false
+            unique: false
+          images:
+            name: "images"
+            type: "String"
+            required: false
+            unique: false
+          tags:
+            name: "tags"
+            type: "String"
+            required: false
+            unique: false
+          isActive:
+            name: "isActive"
+            type: "Boolean"
+            required: false
+            unique: false
+            default: "true"
+          createdAt:
+            name: "createdAt"
+            type: "DateTime"
+            required: true
+            unique: false
+          updatedAt:
+            name: "updatedAt"
+            type: "DateTime"
+            required: false
+            unique: false
+        relationships:
+          category:
+            name: "category"
+            type: "belongsTo"
+            target: "Category"
+          reviews:
+            name: "reviews"
+            type: "hasMany"
+            target: "ProductReview"
+          orderItems:
+            name: "orderItems"
+            type: "hasMany"
+            target: "OrderItem"
+          variants:
+            name: "variants"
+            type: "hasMany"
+            target: "ProductVariant"
+        lifecycles:
+          status:
+            flow: "draft -> review -> active -> discontinued -> archived"
+          inventory:
+            flow: "in_stock -> low_stock -> out_of_stock -> discontinued"
+        behaviors:
+          calculateDiscount:
+            parameters:
+              quantity:
+                name: "quantity"
+                type: "Integer"
+                required: true
+                unique: false
+              customerTier:
+                name: "customerTier"
+                type: "String"
+                required: true
+                unique: false
+              promoCode:
+                name: "promoCode"
+                type: "String"
+                required: false
+                unique: false
+            description: "Calculate discount based on quantity and customer tier"
+            returns: "Money"
+            requires:
+              - "product is active"
+              - "quantity > 0"
+            ensures:
+              - "discount is non-negative"
+            publishes:
+              - "DiscountCalculated"
+          checkAvailability:
+            parameters:
+              value:
+                name: "value"
+                type: "Integer"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "product exists"
+            ensures:
+              - "availability check is accurate"
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      Order:
+        description: "Customer order with items and fulfillment tracking"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: true
+          orderNumber:
+            name: "orderNumber"
+            type: "String"
+            required: true
+            unique: true
+          customerId:
+            name: "customerId"
+            type: "UUID"
+            required: true
+            unique: false
+          status:
+            name: "status"
+            type: "String"
+            required: false
+            unique: false
+            default: "pending"
+          subtotal:
+            name: "subtotal"
+            type: "Money"
+            required: true
+            unique: false
+          tax:
+            name: "tax"
+            type: "Money"
+            required: true
+            unique: false
+          shipping:
+            name: "shipping"
+            type: "Money"
+            required: true
+            unique: false
+          discount:
+            name: "discount"
+            type: "Money"
+            required: false
+            unique: false
+            default: "0"
+          total:
+            name: "total"
+            type: "Money"
+            required: true
+            unique: false
+          currency:
+            name: "currency"
+            type: "String"
+            required: false
+            unique: false
+            default: "USD"
+          shippingAddress:
+            name: "shippingAddress"
+            type: "String"
+            required: true
+            unique: false
+          billingAddress:
+            name: "billingAddress"
+            type: "String"
+            required: true
+            unique: false
+          notes:
+            name: "notes"
+            type: "String"
+            required: false
+            unique: false
+          createdAt:
+            name: "createdAt"
+            type: "DateTime"
+            required: true
+            unique: false
+          updatedAt:
+            name: "updatedAt"
+            type: "DateTime"
+            required: false
+            unique: false
+        relationships:
+          customer:
+            name: "customer"
+            type: "belongsTo"
+            target: "User"
+          items:
+            name: "items"
+            type: "hasMany"
+            target: "OrderItem"
+          payments:
+            name: "payments"
+            type: "hasMany"
+            target: "Payment"
+          shipments:
+            name: "shipments"
+            type: "hasMany"
+            target: "Shipment"
+        lifecycles:
+          fulfillment:
+            flow: "pending -> confirmed -> processing -> shipped -> delivered"
+          payment:
+            flow: "unpaid -> pending -> paid -> partially_refunded -> refunded"
+        behaviors:
+          calculateTotal:
+            parameters:
+              includeTax:
+                name: "includeTax"
+                type: "Boolean"
+                required: false
+                unique: false
+                default: "true"
+              applyDiscounts:
+                name: "applyDiscounts"
+                type: "Boolean"
+                required: false
+                unique: false
+                default: "true"
+            description: "Calculate order total including tax, shipping, and discounts"
+            returns: "Money"
+            requires:
+              - "order has items"
+            ensures:
+              - "total matches sum of components"
+            publishes:
+              - "OrderTotalCalculated"
+          validateOrder:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            returns: "String"
+            requires:
+              - "customer exists"
+              - "order has items"
+            ensures:
+              - "validation result is complete"
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      Payment:
+        description: "Payment transaction for orders"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: false
+          orderId:
+            name: "orderId"
+            type: "UUID"
+            required: true
+            unique: false
+          amount:
+            name: "amount"
+            type: "Money"
+            required: true
+            unique: false
+          method:
+            name: "method"
+            type: "String"
+            required: true
+            unique: false
+          status:
+            name: "status"
+            type: "String"
+            required: false
+            unique: false
+            default: "pending"
+          transactionId:
+            name: "transactionId"
+            type: "String"
+            required: false
+            unique: false
+          processedAt:
+            name: "processedAt"
+            type: "DateTime"
+            required: false
+            unique: false
+          refundedAmount:
+            name: "refundedAmount"
+            type: "Money"
+            required: false
+            unique: false
+        relationships:
+          order:
+            name: "order"
+            type: "belongsTo"
+            target: "Order"
+        lifecycles:
+          processing:
+            flow: "pending -> authorized -> captured -> settled"
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      Category:
+        description: "Product category hierarchy"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: false
+          name:
+            name: "name"
+            type: "String"
+            required: true
+            unique: false
+          description:
+            name: "description"
+            type: "String"
+            required: false
+            unique: false
+          parentId:
+            name: "parentId"
+            type: "UUID"
+            required: false
+            unique: false
+          isActive:
+            name: "isActive"
+            type: "Boolean"
+            required: false
+            unique: false
+            default: "true"
+          sortOrder:
+            name: "sortOrder"
+            type: "Integer"
+            required: false
+            unique: false
+            default: "0"
+        relationships:
+          products:
+            name: "products"
+            type: "hasMany"
+            target: "Product"
+          parent:
+            name: "parent"
+            type: "belongsTo"
+            target: "Category"
+          children:
+            name: "children"
+            type: "hasMany"
+            target: "Category"
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      ProductReview:
+        description: "Customer reviews for products"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: false
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          customerId:
+            name: "customerId"
+            type: "UUID"
+            required: true
+            unique: false
+          rating:
+            name: "rating"
+            type: "Integer"
+            required: true
+            unique: false
+          title:
+            name: "title"
+            type: "String"
+            required: false
+            unique: false
+          comment:
+            name: "comment"
+            type: "String"
+            required: false
+            unique: false
+          isVerified:
+            name: "isVerified"
+            type: "Boolean"
+            required: false
+            unique: false
+            default: "false"
+          isPublic:
+            name: "isPublic"
+            type: "Boolean"
+            required: false
+            unique: false
+            default: "true"
+          reviewDate:
+            name: "reviewDate"
+            type: "DateTime"
+            required: true
+            unique: false
+        relationships:
+          product:
+            name: "product"
+            type: "belongsTo"
+            target: "Product"
+          customer:
+            name: "customer"
+            type: "belongsTo"
+            target: "User"
+        lifecycles:
+          moderation:
+            flow: "pending -> approved -> rejected"
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      OrderItem:
+        description: "Individual line item in an order"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: false
+          orderId:
+            name: "orderId"
+            type: "UUID"
+            required: true
+            unique: false
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          quantity:
+            name: "quantity"
+            type: "Integer"
+            required: true
+            unique: false
+          unitPrice:
+            name: "unitPrice"
+            type: "Money"
+            required: true
+            unique: false
+          totalPrice:
+            name: "totalPrice"
+            type: "Money"
+            required: true
+            unique: false
+          discountAmount:
+            name: "discountAmount"
+            type: "Money"
+            required: false
+            unique: false
+            default: "0"
+        relationships:
+          order:
+            name: "order"
+            type: "belongsTo"
+            target: "Order"
+          product:
+            name: "product"
+            type: "belongsTo"
+            target: "Product"
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      Shipment:
+        description: "Shipping and tracking information"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: false
+          orderId:
+            name: "orderId"
+            type: "UUID"
+            required: true
+            unique: false
+          trackingNumber:
+            name: "trackingNumber"
+            type: "String"
+            required: false
+            unique: false
+          carrier:
+            name: "carrier"
+            type: "String"
+            required: true
+            unique: false
+          method:
+            name: "method"
+            type: "String"
+            required: true
+            unique: false
+          status:
+            name: "status"
+            type: "String"
+            required: false
+            unique: false
+            default: "preparing"
+          shippedAt:
+            name: "shippedAt"
+            type: "DateTime"
+            required: false
+            unique: false
+          deliveredAt:
+            name: "deliveredAt"
+            type: "DateTime"
+            required: false
+            unique: false
+          estimatedDelivery:
+            name: "estimatedDelivery"
+            type: "DateTime"
+            required: false
+            unique: false
+        relationships:
+          order:
+            name: "order"
+            type: "belongsTo"
+            target: "Order"
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      ProductVariant:
+        description: "Product variants for different sizes, colors, etc."
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: false
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          sku:
+            name: "sku"
+            type: "String"
+            required: true
+            unique: true
+          name:
+            name: "name"
+            type: "String"
+            required: true
+            unique: false
+          variantType:
+            name: "variantType"
+            type: "String"
+            required: true
+            unique: false
+          variantValue:
+            name: "variantValue"
+            type: "String"
+            required: true
+            unique: false
+          price:
+            name: "price"
+            type: "Money"
+            required: false
+            unique: false
+          stock:
+            name: "stock"
+            type: "Integer"
+            required: false
+            unique: false
+            default: "0"
+          isActive:
+            name: "isActive"
+            type: "Boolean"
+            required: false
+            unique: false
+            default: "true"
+        relationships:
+          product:
+            name: "product"
+            type: "belongsTo"
+            target: "Product"
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+    controllers:
+      UserController:
+        model: "User"
+        description: "User management and authentication endpoints"
+        actions:
+          register:
+            parameters:
+              userData:
+                name: "userData"
+                type: "String"
+                required: true
+                unique: false
+              sendWelcomeEmail:
+                name: "sendWelcomeEmail"
+                type: "Boolean"
+                required: false
+                unique: false
+                default: "true"
+            description: "Register new user account"
+            returns: "User"
+            requires:
+              - "email is unique"
+              - "password meets policy"
+            ensures:
+              - "user created"
+              - "welcome email sent"
+            publishes:
+              - "UserRegistered"
+          login:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Authenticate user and create session"
+            returns: "String"
+            requires:
+              - "credentials are valid"
+            ensures:
+              - "token created"
+              - "login logged"
+            publishes:
+              - "UserLoggedIn"
+          getProfile:
+            parameters:
+              userId:
+                name: "userId"
+                type: "UUID"
+                required: true
+                unique: false
+              includePreferences:
+                name: "includePreferences"
+                type: "Boolean"
+                required: false
+                unique: false
+                default: "false"
+            description: "Get user profile information"
+            returns: "User"
+            requires:
+              - "user is authenticated"
+            ensures:
+              - "profile data returned"
+          updateProfile:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Update user profile"
+            returns: "User"
+            requires:
+              - "user owns profile or is admin"
+            ensures:
+              - "profile updated"
+              - "cache invalidated"
+            publishes:
+              - "UserProfileUpdated"
+      ProductController:
+        model: "Product"
+        description: "Product catalog management"
+        actions:
+          listProducts:
+            parameters:
+              category:
+                name: "category"
+                type: "String"
+                required: false
+                unique: false
+              priceMin:
+                name: "priceMin"
+                type: "Money"
+                required: false
+                unique: false
+              priceMax:
+                name: "priceMax"
+                type: "Money"
+                required: false
+                unique: false
+              search:
+                name: "search"
+                type: "String"
+                required: false
+                unique: false
+              page:
+                name: "page"
+                type: "Integer"
+                required: false
+                unique: false
+                default: "1"
+              limit:
+                name: "limit"
+                type: "Integer"
+                required: false
+                unique: false
+                default: "20"
+              sortBy:
+                name: "sortBy"
+                type: "String"
+                required: false
+                unique: false
+                default: "name"
+              sortOrder:
+                name: "sortOrder"
+                type: "String"
+                required: false
+                unique: false
+                default: "asc"
+            description: "Get paginated list of products with filtering"
+            returns: "String"
+            ensures:
+              - "results are paginated"
+              - "filters applied correctly"
+          getProduct:
+            parameters:
+              uUID:
+                name: "uUID"
+                type: "UUID"
+                required: true
+                unique: false
+            description: "Get single product by ID"
+            returns: "Product"
+            requires:
+              - "product exists"
+            ensures:
+              - "complete product data returned"
+      OrderController:
+        model: "Order"
+        description: "Order management and processing"
+        actions:
+          createOrder:
+            parameters:
+              customerId:
+                name: "customerId"
+                type: "UUID"
+                required: true
+                unique: false
+              items:
+                name: "items"
+                type: "String"
+                required: true
+                unique: false
+              shippingAddress:
+                name: "shippingAddress"
+                type: "String"
+                required: true
+                unique: false
+              billingAddress:
+                name: "billingAddress"
+                type: "String"
+                required: true
+                unique: false
+            description: "Create new customer order"
+            returns: "Order"
+            requires:
+              - "customer exists"
+              - "items are valid"
+            ensures:
+              - "order created"
+              - "inventory reserved"
+            publishes:
+              - "OrderCreated"
+          getOrder:
+            parameters:
+              uUID:
+                name: "uUID"
+                type: "UUID"
+                required: true
+                unique: false
+            returns: "Order"
+            requires:
+              - "order exists"
+              - "user has access"
+            ensures:
+              - "order data returned"
+          updateOrderStatus:
+            parameters:
+              orderId:
+                name: "orderId"
+                type: "UUID"
+                required: true
+                unique: false
+              status:
+                name: "status"
+                type: "String"
+                required: true
+                unique: false
+              notes:
+                name: "notes"
+                type: "String"
+                required: false
+                unique: false
+            description: "Update order fulfillment status"
+            returns: "Order"
+            requires:
+              - "order exists"
+              - "status transition is valid"
+            ensures:
+              - "status updated"
+              - "notifications sent"
+            publishes:
+              - "OrderStatusChanged"
+    services:
+      PaymentService:
+        description: "External payment processing service"
+        operations:
+          processPayment:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Process payment for an order"
+            returns: "String"
+          refundPayment:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Process refund for a payment"
+            returns: "String"
+          validateCard:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Validate credit card information"
+            returns: "String"
+          getPaymentStatus:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Check status of a payment transaction"
+            returns: "String"
+      NotificationService:
+        description: "Multi-channel notification service"
+        operations:
+          sendEmail:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Send email notification"
+            returns: "String"
+          sendSMS:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Send SMS notification"
+            returns: "String"
+          sendPushNotification:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Send push notification to mobile devices"
+            returns: "String"
+      InventoryService:
+        description: "Inventory and stock management service"
+        operations:
+          checkStock:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Check available stock for products"
+            returns: "String"
+          reserveStock:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Reserve stock for an order"
+            returns: "String"
+          releaseStock:
+            parameters:
+              value:
+                name: "value"
+                type: "String"
+                required: true
+                unique: false
+            description: "Release reserved stock"
+            returns: "String"
+    events:
+      UserRegistered:
+        description: "New user account was created"
+        attributes:
+          userId:
+            name: "userId"
+            type: "UUID"
+            required: true
+            unique: false
+          email:
+            name: "email"
+            type: "Email"
+            required: true
+            unique: false
+          registrationDate:
+            name: "registrationDate"
+            type: "DateTime"
+            required: true
+            unique: false
+          source:
+            name: "source"
+            type: "String"
+            required: true
+            unique: false
+      UserLoggedIn:
+        description: "User successfully authenticated"
+        attributes:
+          userId:
+            name: "userId"
+            type: "UUID"
+            required: true
+            unique: false
+          loginTime:
+            name: "loginTime"
+            type: "DateTime"
+            required: true
+            unique: false
+          ipAddress:
+            name: "ipAddress"
+            type: "String"
+            required: false
+            unique: false
+          userAgent:
+            name: "userAgent"
+            type: "String"
+            required: false
+            unique: false
+      OrderCreated:
+        description: "New order was placed"
+        attributes:
+          orderId:
+            name: "orderId"
+            type: "UUID"
+            required: true
+            unique: false
+          customerId:
+            name: "customerId"
+            type: "UUID"
+            required: true
+            unique: false
+          orderTotal:
+            name: "orderTotal"
+            type: "Money"
+            required: true
+            unique: false
+          itemCount:
+            name: "itemCount"
+            type: "Integer"
+            required: true
+            unique: false
+          orderDate:
+            name: "orderDate"
+            type: "DateTime"
+            required: true
+            unique: false
+      PaymentProcessed:
+        description: "Payment was successfully processed"
+        attributes:
+          paymentId:
+            name: "paymentId"
+            type: "UUID"
+            required: true
+            unique: false
+          orderId:
+            name: "orderId"
+            type: "UUID"
+            required: true
+            unique: false
+          amount:
+            name: "amount"
+            type: "Money"
+            required: true
+            unique: false
+          method:
+            name: "method"
+            type: "String"
+            required: true
+            unique: false
+          processedAt:
+            name: "processedAt"
+            type: "DateTime"
+            required: true
+            unique: false
+      ProductRestocked:
+        description: "Product inventory was replenished"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          newStock:
+            name: "newStock"
+            type: "Integer"
+            required: true
+            unique: false
+          restockDate:
+            name: "restockDate"
+            type: "DateTime"
+            required: true
+            unique: false
+          supplier:
+            name: "supplier"
+            type: "String"
+            required: false
+            unique: false
+      OrderStatusChanged:
+        description: "Order status was updated"
+        attributes:
+          orderId:
+            name: "orderId"
+            type: "UUID"
+            required: true
+            unique: false
+          oldStatus:
+            name: "oldStatus"
+            type: "String"
+            required: true
+            unique: false
+          newStatus:
+            name: "newStatus"
+            type: "String"
+            required: true
+            unique: false
+          changedAt:
+            name: "changedAt"
+            type: "DateTime"
+            required: true
+            unique: false
+          changedBy:
+            name: "changedBy"
+            type: "UUID"
+            required: false
+            unique: false
+    views:
+      UserProfileView:
+        description: "User profile management interface"
+        type: "page"
+        model: "User"
+        uiComponents:
+          ProfileForm: "UI.FormView"
+          AddressList: "UI.ListView"
+          OrderHistory: "UI.TableView"
+          PreferenceSettings: "UI.FormView"
+      ProductCatalogView:
+        description: "Product browsing and search interface"
+        type: "page"
+        model: "Product"
+        uiComponents:
+          ProductGrid: "UI.GridView"
+          SearchFilters: "UI.FilterView"
+          CategoryNav: "UI.NavigationView"
+          ProductCard: "UI.CardView"
+          Pagination: "UI.PaginationView"
+      OrderTrackingView:
+        description: "Order status and tracking interface"
+        type: "page"
+        model: "Order"
+        uiComponents:
+          OrderDetails: "UI.DetailView"
+          StatusTimeline: "UI.TimelineView"
+          TrackingMap: "UI.MapView"
+          ContactSupport: "UI.ActionView"
+deployments:
+  ecommercePlatform:
+    version: "2.5.0"
+    description: "Production deployment for e-commerce platform"
+    environment: "production"
+    instances: {}

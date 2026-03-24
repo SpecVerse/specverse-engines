@@ -1,0 +1,420 @@
+name: GeneratedComponent
+version: 3.1.0
+description: Auto-generated component with 1 models
+controllers:
+  ProductController:
+    model: Product
+    description: Auto-generated CURED controller for Product
+    cured:
+      create:
+        parameters:
+          data: Product required
+        returns: Product
+        requires:
+          - Product data is valid
+          - id is not empty
+          - name is not empty
+          - price is not empty
+          - category is not empty
+        ensures:
+          - Product created with unique ID
+          - Product persisted to storage
+        publishes:
+          - ProductCreated
+      retrieve:
+        parameters:
+          id: UUID required
+        returns: Product
+        requires:
+          - Product with ID exists
+        ensures:
+          - Returns complete Product details
+      retrieve_many:
+        parameters:
+          filters: ProductFilter optional
+          limit: Integer default=20
+          offset: Integer default=0
+        returns: Array[Product]
+        ensures:
+          - Returns paginated list of Products
+          - Applies filters if specified
+      update:
+        parameters:
+          id: UUID required
+          updates: Object required
+        returns: Product
+        requires:
+          - Product with ID exists
+          - Update data is valid
+        ensures:
+          - Product attributes updated
+          - Version number incremented
+        publishes:
+          - ProductUpdated
+      destroy:
+        parameters:
+          id: UUID required
+          soft: Boolean default=true
+        returns: Boolean
+        requires:
+          - Product with ID exists
+        ensures:
+          - Product marked as deleted
+        publishes:
+          - ProductDeleted
+services:
+  ProductProcessingService:
+    description: Handles complex business logic and processing for Product
+    subscribes_to:
+      ProductCreated: handleProductCreation
+      ProductUpdated: handleProductUpdate
+    operations:
+      handleProductCreation:
+        parameters:
+          event: ProductCreatedEvent required
+        returns: Void
+        requires:
+          - Event data is valid
+        ensures:
+          - Product creation processing completed
+          - Related systems notified
+      handleProductUpdate:
+        parameters:
+          event: ProductUpdatedEvent required
+        returns: Void
+        requires:
+          - Event data is valid
+        ensures:
+          - Product update processing completed
+          - Change propagated to dependent systems
+      validateProduct:
+        parameters:
+          data: Product required
+          validationContext: Object optional
+        returns: ValidationResult
+        requires:
+          - Product data is provided
+        ensures:
+          - Complete validation performed
+          - Business rules checked
+      processProductBusinessRules:
+        parameters:
+          id: UUID required
+          ruleContext: Object required
+        returns: BusinessRuleResult
+        requires:
+          - Product exists
+          - Rule context is valid
+        ensures:
+          - All applicable business rules processed
+          - Results documented
+  NotificationService:
+    description: Handles notifications for all model events
+    subscribes_to:
+      ProductCreated: handleCreationNotification
+      ProductUpdated: handleUpdateNotification
+      ProductDeleted: handleDeletionNotification
+    operations:
+      sendNotification:
+        description: Send notification for an event
+        parameters:
+          eventType: String required
+          eventData: Object required
+          recipients: Array required
+        returns: Boolean
+        ensures:
+          - Notification sent to all recipients
+      sendEmail:
+        description: Send email notification
+        parameters:
+          to: String required
+          subject: String required
+          body: String required
+        returns: Boolean
+        ensures:
+          - Email sent successfully
+  AuditService:
+    description: Tracks all model changes for audit purposes
+    subscribes_to:
+      ProductCreated: recordCreation
+      ProductUpdated: recordUpdate
+      ProductDeleted: recordDeletion
+    operations:
+      recordChange:
+        description: Record a model change for audit
+        parameters:
+          entityType: String required
+          entityId: UUID required
+          changeType: String required
+          oldValues: Object optional
+          newValues: Object optional
+          userId: UUID required
+        returns: AuditRecord
+        ensures:
+          - Change recorded in audit log
+      getAuditHistory:
+        description: Get audit history for an entity
+        parameters:
+          entityType: String required
+          entityId: UUID required
+          limit: Integer default=50
+        returns: Array[AuditRecord]
+        ensures:
+          - Returns chronological audit history
+events:
+  ProductCreated:
+    description: Product was created
+    attributes:
+      id: UUID required
+      timestamp: DateTime required
+      createdBy: UUID required
+      version: Integer default=1
+      name: String required
+  ProductUpdated:
+    description: Product was updated
+    attributes:
+      id: UUID required
+      changedFields: Array required
+      previousValues: Object optional
+      newValues: Object required
+      timestamp: DateTime required
+      updatedBy: UUID required
+      version: Integer required
+      name: String optional
+  ProductDeleted:
+    description: Product was deleted
+    attributes:
+      id: UUID required
+      deletedBy: UUID required
+      timestamp: DateTime required
+      soft: Boolean default=true
+      reason: String optional
+      name: String optional
+views:
+  ProductListView:
+    type: list
+    model: Product
+    description: List view for Products with filtering and pagination
+    subscribes_to:
+      - ProductCreated
+      - ProductUpdated
+      - ProductDeleted
+    components:
+      searchBar:
+        type: SearchInput
+        properties:
+          placeholder: Search products...
+          debounce: 300
+      filters:
+        type: FilterPanel
+        properties:
+          model: Product
+          filterFields:
+            - name
+            - summary
+            - inStock
+            - category
+      productList:
+        type: List
+        properties:
+          model: Product
+          itemTemplate: ProductCard
+          pagination: true
+          sortable: true
+          selectable: true
+      actionToolbar:
+        type: ActionToolbar
+        properties:
+          actions:
+            - name: create
+              label: Create Product
+              icon: plus
+            - name: delete
+              label: Delete Selected
+              icon: trash
+              bulk: true
+            - name: export
+              label: Export
+              icon: download
+  ProductDetailView:
+    type: detail
+    model: Product
+    description: Detailed view for a single Product with related data
+    subscribes_to:
+      - ProductUpdated
+    components:
+      detailHeader:
+        type: DetailHeader
+        properties:
+          model: Product
+          showBreadcrumb: true
+          actions:
+            - name: edit
+              label: Edit
+              icon: edit
+            - name: delete
+              label: Delete
+              icon: trash
+      detailsPanel:
+        type: DetailsPanel
+        properties:
+          model: Product
+          layout: card
+          showMetadata: true
+  ProductFormView:
+    type: form
+    model: Product
+    description: Form view for creating and editing Product
+    subscribes_to:
+      - ProductCreated
+      - ProductUpdated
+    components:
+      formHeader:
+        type: FormHeader
+        properties:
+          model: Product
+          showProgress: true
+      basic informationSection:
+        type: FormSection
+        properties:
+          title: Basic Information
+          fields:
+            - name: id
+              type: TextInput
+              label: Id
+              required: true
+            - name: name
+              type: TextInput
+              label: Name
+              required: true
+      additional detailsSection:
+        type: FormSection
+        properties:
+          title: Additional Details
+          fields:
+            - name: summary
+              type: TextInput
+              label: Summary
+              required: false
+            - name: price
+              type: CurrencyInput
+              label: Price
+              required: true
+            - name: inStock
+              type: Checkbox
+              label: In Stock
+              required: false
+            - name: category
+              type: TextInput
+              label: Category
+              required: true
+            - name: contactEmail
+              type: EmailInput
+              label: Contact Email
+              required: false
+      formControls:
+        type: FormControls
+        properties:
+          submitLabel: Save Product
+          cancelLabel: Cancel
+          showValidation: true
+  ProductEnhancedListView:
+    type: list
+    model: Product
+    description: Enhanced list view for Product with advanced filtering
+    subscribes_to:
+      - ProductCreated
+      - ProductUpdated
+      - ProductDeleted
+    components:
+      advancedSearch:
+        type: AdvancedSearchInput
+        properties:
+          placeholder: Search Products...
+          debounce: 300
+          enableSuggestions: true
+      advancedFilters:
+        type: FilterPanel
+        properties:
+          model: Product
+          collapsible: true
+      productTable:
+        type: DataTable
+        properties:
+          model: Product
+          pagination:
+            enabled: true
+            pageSize: 25
+            showSizeSelector: true
+          selection:
+            enabled: true
+            multiSelect: true
+          sorting:
+            enabled: true
+            multiColumn: true
+  ProductAnalyticsView:
+    type: dashboard
+    model: Product
+    description: Analytics and reporting dashboard for Product
+    subscribes_to:
+      - ProductCreated
+      - ProductUpdated
+      - ProductDeleted
+    components:
+      keyMetrics:
+        type: MetricsSummary
+        properties:
+          title: Product Key Metrics
+          refreshInterval: 300000
+      trendsChart:
+        type: TimeSeriesChart
+        properties:
+          title: Product Trends Over Time
+          chartType: line
+          dateRange: last30Days
+models:
+  Product:
+    description: Auto-generated model specification for Product
+    attributes:
+      id: UUID required
+      name: String required
+      summary: String
+      price: Money required
+      inStock: Boolean default=true
+      category: String required
+      contactEmail: Email
+    relationships: {}
+commonDefinitions:
+  ProductCreateRequest:
+    type: object
+    description: Request to create Product
+    properties:
+      name: String required
+      summary: String
+      price: Money required
+      inStock: Boolean default=true
+      category: String required
+      contactEmail: Email
+  ProductUpdateRequest:
+    type: object
+    description: Request to update Product
+    properties:
+      id: UUID required
+      name: String
+      summary: String
+      price: Money
+      inStock: Boolean default=true
+      category: String
+      contactEmail: Email
+  ProductFilter:
+    type: object
+    description: Filter criteria for Product listings
+    properties:
+      id: UUID optional
+      nameContains: String optional
+      summaryContains: String optional
+      priceMin: Money optional
+      priceMax: Money optional
+      inStock: Boolean optional
+      categoryContains: String optional
+      contactEmail: Email optional

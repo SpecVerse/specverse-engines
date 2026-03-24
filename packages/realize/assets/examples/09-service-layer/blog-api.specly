@@ -1,0 +1,124 @@
+components:
+  BlogAPI:
+    version: "3.1.0"
+    models:
+      User:
+        attributes:
+          id: "UUID required unique"
+          email: "Email required unique"
+          username: "String required unique"
+          firstName: "String required"
+          lastName: "String required"
+          bio: "Text"
+          avatarUrl: "URL"
+          createdAt: "Timestamp required"
+          updatedAt: "Timestamp required"
+        relationships:
+          posts: "hasMany Post"
+          comments: "hasMany Comment"
+      Post:
+        attributes:
+          id: "UUID required unique"
+          title: "String required"
+          slug: "String required unique"
+          content: "Text required"
+          excerpt: "String"
+          publishedAt: "Timestamp"
+          viewCount: "Integer default=0"
+          createdAt: "Timestamp required"
+          updatedAt: "Timestamp required"
+        relationships:
+          author: "belongsTo User"
+          comments: "hasMany Comment"
+          tags: "manyToMany Tag"
+      Comment:
+        attributes:
+          id: "UUID required unique"
+          content: "Text required"
+          createdAt: "Timestamp required"
+          updatedAt: "Timestamp required"
+        relationships:
+          post: "belongsTo Post"
+          author: "belongsTo User"
+      Tag:
+        attributes:
+          id: "UUID required unique"
+          name: "String required unique"
+          slug: "String required unique"
+        relationships:
+          posts: "manyToMany Post"
+    controllers:
+      UserController:
+        model: "User"
+        cured:
+          create:
+            parameters:
+              email: "Email required"
+              username: "String required"
+              firstName: "String required"
+              lastName: "String required"
+              bio: "Text"
+            requires:
+              - "email is valid"
+              - "username length > 3"
+          retrieve: {}
+          retrieve_many:
+            parameters:
+              page: "Integer"
+              limit: "Integer"
+              sort: "String"
+              search: "String"
+          update:
+            parameters:
+              firstName: "String"
+              lastName: "String"
+              bio: "Text"
+              avatarUrl: "URL"
+          delete: {}
+      PostController:
+        model: "Post"
+        cured:
+          create:
+            parameters:
+              title: "String required"
+              content: "Text required"
+              excerpt: "String"
+            requires:
+              - "title length > 5"
+              - "content length > 100"
+          retrieve: {}
+          retrieve_many:
+            parameters:
+              page: "Integer"
+              limit: "Integer"
+              sort: "String"
+              authorId: "UUID"
+              tag: "String"
+          update:
+            parameters:
+              title: "String"
+              content: "Text"
+              excerpt: "String"
+          delete: {}
+          evolve:
+            parameters:
+              status: "String"
+      CommentController:
+        model: "Comment"
+        cured:
+          create:
+            parameters:
+              postId: "UUID required"
+              content: "Text required"
+            requires:
+              - "content length > 1"
+          retrieve: {}
+          retrieve_many:
+            parameters:
+              page: "Integer"
+              limit: "Integer"
+              postId: "UUID"
+          update:
+            parameters:
+              content: "Text"
+          delete: {}

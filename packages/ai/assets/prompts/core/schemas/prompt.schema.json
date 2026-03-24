@@ -1,0 +1,309 @@
+{
+  "$id": "https://specverse.org/schemas/prompt-v1.0.0.yaml",
+  "title": "SpecVerse Prompt Schema",
+  "description": "Schema for validating SpecVerse AI prompt definitions",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "system",
+    "user",
+    "context",
+    "validation"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique prompt identifier (kebab-case)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (e.g., 1.0.0)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Brief description of prompt purpose"
+    },
+    "author": {
+      "type": "string",
+      "description": "Prompt author or team"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categorization tags"
+    },
+    "system": {
+      "type": "object",
+      "required": [
+        "role",
+        "context"
+      ],
+      "properties": {
+        "role": {
+          "type": "string",
+          "description": "System role description for the LLM"
+        },
+        "context": {
+          "type": "string",
+          "description": "Required context and background"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of capabilities the system should demonstrate"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Limitations or rules to follow"
+        }
+      }
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "template"
+      ],
+      "properties": {
+        "template": {
+          "type": "string",
+          "description": "User prompt template with {{variables}}"
+        },
+        "variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "type"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*$"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "object",
+                  "array"
+                ]
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "description": {
+                "type": "string"
+              },
+              "default": {
+                "description": "Default value if not provided"
+              },
+              "validation": {
+                "type": "string",
+                "description": "Validation rule or regex pattern"
+              }
+            }
+          }
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "required": [
+        "includes"
+      ],
+      "properties": {
+        "includes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "schema": {
+                "type": "string",
+                "description": "Schema file to include"
+              },
+              "library": {
+                "type": "string",
+                "description": "Library to include"
+              },
+              "template": {
+                "type": "string",
+                "description": "Template to include"
+              }
+            }
+          },
+          "description": "Context files to include"
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 32000,
+          "default": 4000,
+          "description": "Maximum tokens for response"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0.7,
+          "description": "LLM temperature setting"
+        },
+        "top_p": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1,
+          "description": "LLM top_p setting"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string",
+                "description": "Input validation rule"
+              },
+              "required": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          },
+          "description": "Input validation rules"
+        },
+        "output": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string",
+                "description": "Output validation rule"
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "yaml",
+                  "json",
+                  "markdown",
+                  "text"
+                ]
+              },
+              "schema": {
+                "type": "string",
+                "description": "Schema to validate against"
+              }
+            }
+          },
+          "description": "Output validation rules"
+        }
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "input",
+          "output"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Example name"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this example demonstrates"
+          },
+          "input": {
+            "description": "Example input"
+          },
+          "output": {
+            "description": "Expected output"
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Explanation of the example"
+          }
+        }
+      },
+      "description": "Example usage cases"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tested_with": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "openai",
+                  "anthropic",
+                  "azure",
+                  "local"
+                ]
+              },
+              "model": {
+                "type": "string"
+              },
+              "success_rate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            }
+          },
+          "description": "Testing results with different providers"
+        },
+        "performance": {
+          "type": "object",
+          "properties": {
+            "avg_response_time": {
+              "type": "number",
+              "description": "Average response time in seconds"
+            },
+            "avg_tokens_used": {
+              "type": "integer",
+              "description": "Average tokens consumed"
+            }
+          }
+        }
+      },
+      "description": "Prompt metadata and performance metrics"
+    }
+  },
+  "additionalProperties": false
+}

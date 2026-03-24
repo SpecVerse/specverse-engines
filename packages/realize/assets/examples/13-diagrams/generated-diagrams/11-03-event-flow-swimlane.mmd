@@ -1,0 +1,199 @@
+graph LR
+  %% Event Flow Architecture
+
+  subgraph swimlane_OrderController["OrderController (controller)"]
+    direction TB
+    OrderController_entry("OrderController
+controller")
+    OrderController_create("create")
+    OrderController_update("update")
+    OrderController_cancelOrder("cancelOrder")
+  end
+
+  subgraph swimlane_PaymentService["PaymentService (service)"]
+    direction TB
+    PaymentService_entry("PaymentService
+service")
+    PaymentService_processPayment("processPayment")
+    PaymentService_retryPayment("retryPayment")
+    PaymentService_refundPayment("refundPayment")
+  end
+
+  subgraph swimlane_InventoryService["InventoryService (service)"]
+    direction TB
+    InventoryService_entry("InventoryService
+service")
+    InventoryService_reserveItems("reserveItems")
+    InventoryService_releaseItems("releaseItems")
+    InventoryService_allocateItems("allocateItems")
+  end
+
+  subgraph swimlane_FulfillmentService["FulfillmentService (service)"]
+    direction TB
+    FulfillmentService_entry("FulfillmentService
+service")
+    FulfillmentService_prepareShipment("prepareShipment")
+    FulfillmentService_shipOrder("shipOrder")
+    FulfillmentService_cancelShipment("cancelShipment")
+  end
+
+  subgraph swimlane_NotificationService["NotificationService (service)"]
+    direction TB
+    NotificationService_entry("NotificationService
+service")
+    NotificationService_sendOrderConfirmation("sendOrderConfirmation")
+    NotificationService_sendPaymentConfirmation("sendPaymentConfirmation")
+    NotificationService_sendPaymentFailureNotice("sendPaymentFailureNotice")
+    NotificationService_sendInventoryConfirmation("sendInventoryConfirmation")
+    NotificationService_sendOutOfStockNotice("sendOutOfStockNotice")
+    NotificationService_sendShipmentNotification("sendShipmentNotification")
+    NotificationService_sendTrackingInfo("sendTrackingInfo")
+    NotificationService_sendCancellationNotice("sendCancellationNotice")
+  end
+
+  subgraph swimlane_AnalyticsService["AnalyticsService (service)"]
+    direction TB
+    AnalyticsService_entry("AnalyticsService
+service")
+    AnalyticsService_trackOrderCreated("trackOrderCreated")
+    AnalyticsService_trackPaymentSuccess("trackPaymentSuccess")
+    AnalyticsService_trackPaymentFailure("trackPaymentFailure")
+    AnalyticsService_trackOrderShipped("trackOrderShipped")
+  end
+
+  event_OrderCreated{{"OrderCreated"}}
+  event_OrderUpdated{{"OrderUpdated"}}
+  event_OrderCancelled{{"OrderCancelled"}}
+  event_PaymentProcessed{{"PaymentProcessed"}}
+  event_PaymentFailed{{"PaymentFailed"}}
+  event_PaymentRetryInitiated{{"PaymentRetryInitiated"}}
+  event_PaymentRefunded{{"PaymentRefunded"}}
+  event_InventoryReserved{{"InventoryReserved"}}
+  event_InsufficientStock{{"InsufficientStock"}}
+  event_InventoryReleased{{"InventoryReleased"}}
+  event_InventoryAllocated{{"InventoryAllocated"}}
+  event_ShipmentPrepared{{"ShipmentPrepared"}}
+  event_ShipmentDelayed{{"ShipmentDelayed"}}
+  event_OrderShipped{{"OrderShipped"}}
+  event_ShipmentCancelled{{"ShipmentCancelled"}}
+  event_CustomerNotified{{"CustomerNotified"}}
+  event_AnalyticsEventRecorded{{"AnalyticsEventRecorded"}}
+
+
+  %% Relationships
+  OrderController_entry --> OrderController_create
+  OrderController_entry --> OrderController_update
+  OrderController_entry --> OrderController_cancelOrder
+  PaymentService_entry --> PaymentService_processPayment
+  PaymentService_entry --> PaymentService_retryPayment
+  PaymentService_entry --> PaymentService_refundPayment
+  InventoryService_entry --> InventoryService_reserveItems
+  InventoryService_entry --> InventoryService_releaseItems
+  InventoryService_entry --> InventoryService_allocateItems
+  FulfillmentService_entry --> FulfillmentService_prepareShipment
+  FulfillmentService_entry --> FulfillmentService_shipOrder
+  FulfillmentService_entry --> FulfillmentService_cancelShipment
+  NotificationService_entry --> NotificationService_sendOrderConfirmation
+  NotificationService_entry --> NotificationService_sendPaymentConfirmation
+  NotificationService_entry --> NotificationService_sendPaymentFailureNotice
+  NotificationService_entry --> NotificationService_sendInventoryConfirmation
+  NotificationService_entry --> NotificationService_sendOutOfStockNotice
+  NotificationService_entry --> NotificationService_sendShipmentNotification
+  NotificationService_entry --> NotificationService_sendTrackingInfo
+  NotificationService_entry --> NotificationService_sendCancellationNotice
+  AnalyticsService_entry --> AnalyticsService_trackOrderCreated
+  AnalyticsService_entry --> AnalyticsService_trackPaymentSuccess
+  AnalyticsService_entry --> AnalyticsService_trackPaymentFailure
+  AnalyticsService_entry --> AnalyticsService_trackOrderShipped
+  OrderController_create -->|"publishes"| event_OrderCreated
+  OrderController_update -->|"publishes"| event_OrderUpdated
+  OrderController_cancelOrder -->|"publishes"| event_OrderCancelled
+  PaymentService_processPayment -->|"publishes"| event_PaymentProcessed
+  PaymentService_processPayment -->|"publishes"| event_PaymentFailed
+  PaymentService_retryPayment -->|"publishes"| event_PaymentRetryInitiated
+  PaymentService_refundPayment -->|"publishes"| event_PaymentRefunded
+  event_OrderCreated -.->|"subscribes"| PaymentService_entry
+  InventoryService_reserveItems -->|"publishes"| event_InventoryReserved
+  InventoryService_reserveItems -->|"publishes"| event_InsufficientStock
+  InventoryService_releaseItems -->|"publishes"| event_InventoryReleased
+  InventoryService_allocateItems -->|"publishes"| event_InventoryAllocated
+  event_PaymentProcessed -.->|"subscribes"| InventoryService_entry
+  event_OrderCancelled -.->|"subscribes"| InventoryService_entry
+  FulfillmentService_prepareShipment -->|"publishes"| event_ShipmentPrepared
+  FulfillmentService_prepareShipment -->|"publishes"| event_ShipmentDelayed
+  FulfillmentService_shipOrder -->|"publishes"| event_OrderShipped
+  FulfillmentService_cancelShipment -->|"publishes"| event_ShipmentCancelled
+  event_InventoryReserved -.->|"subscribes"| FulfillmentService_entry
+  event_OrderCancelled -.->|"subscribes"| FulfillmentService_entry
+  NotificationService_sendOrderConfirmation -->|"publishes"| event_CustomerNotified
+  NotificationService_sendPaymentConfirmation -->|"publishes"| event_CustomerNotified
+  NotificationService_sendPaymentFailureNotice -->|"publishes"| event_CustomerNotified
+  NotificationService_sendInventoryConfirmation -->|"publishes"| event_CustomerNotified
+  NotificationService_sendOutOfStockNotice -->|"publishes"| event_CustomerNotified
+  NotificationService_sendShipmentNotification -->|"publishes"| event_CustomerNotified
+  NotificationService_sendTrackingInfo -->|"publishes"| event_CustomerNotified
+  NotificationService_sendCancellationNotice -->|"publishes"| event_CustomerNotified
+  event_OrderCreated -.->|"subscribes"| NotificationService_entry
+  event_PaymentProcessed -.->|"subscribes"| NotificationService_entry
+  event_PaymentFailed -.->|"subscribes"| NotificationService_entry
+  event_InventoryReserved -.->|"subscribes"| NotificationService_entry
+  event_InsufficientStock -.->|"subscribes"| NotificationService_entry
+  event_ShipmentPrepared -.->|"subscribes"| NotificationService_entry
+  event_OrderShipped -.->|"subscribes"| NotificationService_entry
+  event_OrderCancelled -.->|"subscribes"| NotificationService_entry
+  AnalyticsService_trackOrderCreated -->|"publishes"| event_AnalyticsEventRecorded
+  AnalyticsService_trackPaymentSuccess -->|"publishes"| event_AnalyticsEventRecorded
+  AnalyticsService_trackPaymentFailure -->|"publishes"| event_AnalyticsEventRecorded
+  AnalyticsService_trackOrderShipped -->|"publishes"| event_AnalyticsEventRecorded
+  event_OrderCreated -.->|"subscribes"| AnalyticsService_entry
+  event_PaymentProcessed -.->|"subscribes"| AnalyticsService_entry
+  event_PaymentFailed -.->|"subscribes"| AnalyticsService_entry
+  event_OrderShipped -.->|"subscribes"| AnalyticsService_entry
+
+  style OrderController_entry fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+  style OrderController_create fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style OrderController_update fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style OrderController_cancelOrder fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style PaymentService_entry fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style PaymentService_processPayment fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style PaymentService_retryPayment fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style PaymentService_refundPayment fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style InventoryService_entry fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style InventoryService_reserveItems fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style InventoryService_releaseItems fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style InventoryService_allocateItems fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style FulfillmentService_entry fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style FulfillmentService_prepareShipment fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style FulfillmentService_shipOrder fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style FulfillmentService_cancelShipment fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_entry fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style NotificationService_sendOrderConfirmation fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendPaymentConfirmation fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendPaymentFailureNotice fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendInventoryConfirmation fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendOutOfStockNotice fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendShipmentNotification fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendTrackingInfo fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style NotificationService_sendCancellationNotice fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style AnalyticsService_entry fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style AnalyticsService_trackOrderCreated fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style AnalyticsService_trackPaymentSuccess fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style AnalyticsService_trackPaymentFailure fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style AnalyticsService_trackOrderShipped fill:#E8F5E9,stroke:#333,stroke-width:2px,color:#000
+  style event_OrderCreated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_OrderUpdated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_OrderCancelled fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_PaymentProcessed fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_PaymentFailed fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_PaymentRetryInitiated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_PaymentRefunded fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_InventoryReserved fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_InsufficientStock fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_InventoryReleased fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_InventoryAllocated fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_ShipmentPrepared fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_ShipmentDelayed fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_OrderShipped fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_ShipmentCancelled fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_CustomerNotified fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  style event_AnalyticsEventRecorded fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000

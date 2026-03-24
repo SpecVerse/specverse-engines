@@ -16,6 +16,6 @@
   "devDependencies": {
     "@types/node": "^20.8.0"
   },
-  "files": ["dist"],
+  "files": ["dist", "assets"],
   "license": "MIT"
 }

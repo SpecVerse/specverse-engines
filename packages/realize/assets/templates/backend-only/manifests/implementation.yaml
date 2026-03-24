@@ -1,0 +1,100 @@
+# SpecVerse v3.3 Implementation Manifest - Backend Only
+# Generates standalone backend API without frontend
+
+manifests:
+  {{projectNameKebab}}Implementation:
+    specVersion: "3.3.0"
+    name: "{{projectNameKebab}}-backend"
+    version: "1.0.0"
+    description: "Backend API implementation for {{projectName}}"
+
+    # v3.3: Deployment reference
+    deployment:
+      deploymentSource: "../specs/main.specly"
+      deploymentName: "development"
+
+    # v3.3: Configuration for standalone backend
+    configuration:
+      outputStructure: "standalone"
+      backendDir: "."
+      
+      apiPort: 3000
+      apiHost: "0.0.0.0"
+      corsOrigins: "${CORS_ORIGINS:-*}"
+
+      # Environment-specific settings
+      environments:
+        development:
+          database:
+            provider: "postgresql"
+            url: "postgresql://localhost:5432/{{projectNameKebab}}_dev"
+          server:
+            port: 3000
+            host: "localhost"
+            logLevel: "debug"
+          cors:
+            origins: ["http://localhost:5173", "http://localhost:3000"]
+
+        production:
+          database:
+            provider: "postgresql"
+            url: "${DATABASE_URL}"
+          server:
+            port: "${PORT:-8080}"
+            host: "0.0.0.0"
+            logLevel: "info"
+          cors:
+            origins: "${CORS_ORIGINS}"
+          middleware:
+            rateLimit:
+              max: 1000
+              timeWindow: "1 minute"
+            compression: true
+
+    # v3.3: Backend-only capability mappings
+    capabilityMappings:
+      # Database Layer
+      - capability: "orm.schema"
+        instanceFactory: "PrismaORM"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+
+      # Business Logic Layer
+      - capability: "service.controller"
+        instanceFactory: "PrismaServices"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+
+      # API Layer
+      - capability: "api.rest"
+        instanceFactory: "FastifyAPI"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+          server:
+            cors:
+              enabled: true
+
+      # Application Entry Point
+      - capability: "app.entrypoint"
+        instanceFactory: "GenericApp"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+
+      # Project Scaffolding
+      - capability: "project.scaffold"
+        instanceFactory: "GenericScaffold"
+        configuration:
+          outputStructure: "standalone"
+          includeReadme: true
+
+      # Validation
+      - capability: "validation.runtime"
+        instanceFactory: "ZodValidation"
+
+      # Events (in-memory for development)
+      - capability: "messaging.events"
+        instanceFactory: "EventEmitter"

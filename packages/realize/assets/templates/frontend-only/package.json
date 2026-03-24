@@ -1,0 +1,59 @@
+{
+  "name": "{{projectNameKebab}}",
+  "version": "0.1.0",
+  "description": "{{projectName}} - SpecVerse Project",
+  "scripts": {
+    "_comment_workflow": "=== Main Workflow ===",
+    "genAll": "npm run realize:all && echo '\n✅ Code generation complete!\n' && echo '📦 Installing dependencies...\n' && cd generated/code && npm install && echo '\n🗄️  Setting up database...\n' && npm run db:setup && echo '\n✅ Setup complete! Next steps:\n' && echo '   npm run app:build  # Build the project' && echo '   npm run app:test   # Run tests' && echo '   npm run app:start  # Start production server' && echo '   npm run app:dev    # Start development server\n'",
+    "app:build": "if [ -d generated/code ]; then cd generated/code && npm run build; else echo '❌ No generated code found. Run: npm run genAll'; exit 1; fi",
+    "app:test": "if [ -d generated/code ]; then cd generated/code && npm test; else echo '❌ No generated code found. Run: npm run genAll'; exit 1; fi",
+    "app:start": "if [ -d generated/code ]; then cd generated/code && npm start; else echo '❌ No generated code found. Run: npm run genAll'; exit 1; fi",
+    "app:dev": "if [ -d generated/code ]; then cd generated/code && npm run dev; else echo '❌ No generated code found. Run: npm run genAll'; exit 1; fi",
+
+    "_comment_validation": "=== Validation ===",
+    "validate": "specverse validate specs/main.specly",
+    "validate:all": "npm run validate && npm run validate:manifests",
+    "validate:manifests": "specverse validate manifests/docker-compose.specly && specverse validate manifests/kubernetes.specly",
+
+    "_comment_inference": "=== AI Inference ===",
+    "infer": "specverse infer specs/main.specly -o generated/{{projectNameKebab}}-complete.specly",
+    "infer:deployment": "specverse infer specs/main.specly --deployment --environment development -o generated/{{projectNameKebab}}-deployed.specly",
+    "infer:deployment:prod": "specverse infer specs/main.specly --deployment --environment production -o generated/{{projectNameKebab}}-deployed-prod.specly",
+
+    "_comment_generation": "=== Generation ===",
+    "generate:docs": "specverse gen docs specs/main.specly --output docs/main-docs.md",
+    "generate:diagrams": "specverse gen diagram specs/main.specly --output docs/diagrams",
+    "generate:diagram:er": "specverse gen diagram specs/main.specly -t er-diagram -o docs/diagrams/er-diagram.mmd",
+    "generate:diagram:event-flow": "specverse gen diagram specs/main.specly -t event-flow-layered -o docs/diagrams/event-flow-layered.mmd",
+    "generate:diagram:lifecycle": "specverse gen diagram specs/main.specly -t lifecycle -o docs/diagrams/lifecycle.mmd",
+    "generate:diagram:deployment": "specverse gen diagram specs/main.specly -t deployment-topology -o docs/diagrams/deployment.mmd",
+    "generate:diagram:architecture": "specverse gen diagram specs/main.specly -t model-architecture -o docs/diagrams/architecture.mmd",
+    "generate:complete": "npm run infer && npm run infer:docs",
+
+    "_comment_inference_docs": "=== Inference Documentation ===",
+    "infer:docs": "specverse gen docs generated/{{projectNameKebab}}-complete.specly --output generated/docs/complete-docs.md && specverse gen diagram generated/{{projectNameKebab}}-complete.specly --output generated/docs/complete-diagrams",
+    "infer:deployment:docs": "specverse gen docs generated/{{projectNameKebab}}-deployed.specly --output generated/docs/deployed-docs.md && specverse gen diagram generated/{{projectNameKebab}}-deployed.specly --output generated/docs/deployed-diagrams",
+    "infer:deployment:prod:docs": "specverse gen docs generated/{{projectNameKebab}}-deployed-prod.specly --output generated/docs/deployed-prod-docs.md && specverse gen diagram generated/{{projectNameKebab}}-deployed-prod.specly --output generated/docs/deployed-prod-diagrams",
+
+    "_comment_realization": "=== Code Realization (v3.3) ===",
+    "realize:orm": "specverse realize orm specs/main.specly -m manifests/implementation.yaml",
+    "realize:services": "specverse realize services specs/main.specly -m manifests/implementation.yaml",
+    "realize:routes": "specverse realize routes specs/main.specly -m manifests/implementation.yaml",
+    "realize:all": "specverse realize all specs/main.specly -m manifests/implementation.yaml -o generated/code",
+
+    "_comment_utilities": "=== Utilities ===",
+    "process": "specverse gen yaml specs/main.specly -o generated/{{projectNameKebab}}-processed.yaml",
+    "format": "specverse dev format specs/main.specly --write",
+
+    "_comment_testing": "=== Testing ===",
+    "test:all": "./scripts/test-all.sh",
+    "test:generated:compile": "cd generated/code && npx tsc --noEmit --skipLibCheck 2>&1 || echo 'TypeScript compilation check (some errors expected without npm install)'",
+    "test:generated:run": "cd generated/code && npm install && npm run db:generate && echo 'Generated code is ready to run with: npm run dev'"
+  },
+  "keywords": ["specverse", "specification", "ai", "inference"],
+  "devDependencies": {
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,344 @@
+name: realize
+version: "3.0.0"
+description: Generate complete application implementation from SpecVerse three-layer specifications
+author: SpecVerse Team
+tags: [realize, implementation, new-application, v3, three-layer]
+
+system:
+  role: |
+    You generate complete, production-ready applications from SpecVerse three-layer specifications.
+    You create new applications from scratch by:
+    1. Using COMPONENT SPEC to understand WHAT to build
+    2. Creating/selecting MANIFEST to define HOW to build
+    3. Following DEPLOYMENT SPEC for WHERE to run
+
+    You transform logical designs into working implementations with all necessary
+    code, configuration, and documentation.
+
+  context: |
+    THREE-LAYER REALIZATION WORKFLOW:
+
+    STEP 1 - ANALYZE COMPONENT SPEC:
+    - Understand models, relationships, and behaviors
+    - Identify required controllers and services
+    - Map out events and communication patterns
+    - Extract business rules from behavior steps
+
+    STEP 2 - CREATE/SELECT MANIFEST:
+    - Choose optimal technology stack for requirements
+    - Define implementation patterns and conventions
+    - Map logical components to technical implementations
+    - Specify database schemas and API formats
+
+    STEP 3 - APPLY DEPLOYMENT SPEC:
+    - Configure for target environment
+    - Set up scaling and performance parameters
+    - Configure infrastructure services
+    - Implement monitoring and observability
+
+    CRITICAL: Transform behavior steps into actual implementation code.
+    Each step in a behavior becomes commented, traceable code.
+
+  capabilities:
+    - Select optimal technology stacks based on requirements and scale
+    - Generate complete application architectures from three layers
+    - Transform behavior steps into working code
+    - Create all layers following manifest specifications
+    - Generate production-ready, deployable applications
+    - Include comprehensive testing based on behavior specs
+
+  constraints:
+    - Must implement ALL specifications completely
+    - Follow selected technology stack conventions
+    - Generate working, compilable, deployable code
+    - Include comprehensive testing and documentation
+    - Maintain traceability from specs to implementation
+    - Use behavior steps as implementation blueprint
+
+user:
+  template: |
+    Generate a complete application from these specifications:
+
+    COMPONENT SPECIFICATION (from create):
+    {{componentSpec}}
+
+    DEPLOYMENT SPECIFICATION (from create):
+    {{deploymentSpec}}
+
+    Original Requirements:
+    {{originalRequirements}}
+
+    User Preferences:
+    - Scale: {{scale}}
+    - Technology: {{techPreference}}
+    - Deployment Target: {{deploymentTarget}}
+
+    Available Technology Patterns:
+    {{availablePatterns}}
+
+    REALIZATION REQUIREMENTS:
+
+    1. CREATE MANIFEST:
+    Generate a complete manifest that bridges the component spec to implementation:
+    - Select technology stack based on preferences and scale
+    - Define all implementation patterns
+    - Map models to database schemas
+    - Specify API conventions
+    - Document error handling
+
+    2. IMPLEMENT BEHAVIORS:
+    Transform each behavior's steps into actual code:
+    Example:
+      Behavior: processPayment
+      Steps:
+        - "Validate payment amount"
+        - "Check customer credit"
+
+      Becomes:
+      ```javascript
+      async function processPayment(amount, customerId) {
+        // Step 1: Validate payment amount
+        if (amount <= 0) throw new Error('Invalid amount');
+
+        // Step 2: Check customer credit
+        const credit = await checkCustomerCredit(customerId);
+        if (credit < amount) throw new Error('Insufficient credit');
+      }
+      ```
+
+    3. GENERATE COMPLETE APPLICATION:
+    - All models with full CRUD operations
+    - Controllers implementing CURED patterns
+    - Services with behavior implementations
+    - Database schemas and migrations
+    - API routes and middleware
+    - Configuration files
+    - Documentation and tests
+
+  variables:
+    - name: componentSpec
+      type: string
+      required: true
+      description: Complete SpecVerse component specification
+
+    - name: deploymentSpec
+      type: string
+      required: false
+      description: SpecVerse deployment specification
+
+    - name: originalRequirements
+      type: string
+      required: true
+      description: Original user requirements for context
+
+    - name: scale
+      type: string
+      required: false
+      default: "business"
+      enum: ["personal", "business", "enterprise"]
+
+    - name: techPreference
+      type: string
+      required: false
+      default: "auto"
+      description: Preferred technology stack
+
+    - name: deploymentTarget
+      type: string
+      required: false
+      default: "cloud"
+      description: Target deployment platform
+
+    - name: availablePatterns
+      type: string
+      required: false
+      description: Available technology patterns and templates
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Deployment Patterns,Manifest System,Best Practices"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Implementation syntax verification"
+    - resource: libs/deployments/
+      description: "Deployment pattern templates"
+  max_tokens: 15000
+  temperature: 0.3
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Component specification must be valid SpecVerse
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Scale must be specified
+      required: true
+
+  output:
+    - rule: Must generate complete manifest specification
+      format: yaml
+      required: true
+    - rule: Must generate complete, working application
+      format: multifile
+    - rule: Must include deployment configuration
+      format: yaml
+    - rule: Must include comprehensive documentation
+      format: markdown
+    - rule: Behavior steps must be traceable in code
+      required: true
+
+examples:
+  - name: Task Management App Realization
+    input:
+      componentSpec: |
+        components:
+          TaskManager:
+            models:
+              Task:
+                attributes:
+                  id: UUID required unique auto=uuid4
+                  title: String required
+                  completed: Boolean default=false
+                behaviors:
+                  completeTask:
+                    steps:
+                      - "Verify task exists"
+                      - "Check task not already completed"
+                      - "Update completed status"
+                      - "Record completion timestamp"
+                      - "Trigger TaskCompleted event"
+
+            controllers:
+              TaskController:
+                model: Task
+                path: "/api/tasks"
+                cured:
+                  create:
+                    steps:
+                      - "Validate title not empty"
+                      - "Create task with defaults"
+                      - "Return created task"
+
+      scale: "personal"
+      techPreference: "nextjs"
+
+    output: |
+      === GENERATED MANIFEST ===
+      manifest:
+        name: "TaskManager-NextJS-Implementation"
+        version: "1.0.0"
+
+        technology_stack:
+          frontend:
+            framework: "Next.js 14"
+            ui: "React with Tailwind"
+          backend:
+            api: "Next.js App Router"
+            database: "SQLite" # Personal scale
+            orm: "Prisma"
+
+        implementation_patterns:
+          api:
+            location: "app/api/[resource]/route.ts"
+            format: "REST/JSON"
+            error_format: "{ error: string, code: string }"
+
+        data_mappings:
+          Task:
+            table: "tasks"
+            columns:
+              id: "TEXT PRIMARY KEY"
+              title: "TEXT NOT NULL"
+              completed: "BOOLEAN DEFAULT 0"
+              completed_at: "DATETIME"
+
+      === FILE STRUCTURE ===
+      /
+      ├── package.json
+      ├── app/
+      │   ├── api/
+      │   │   └── tasks/
+      │   │       └── route.ts
+      │   ├── services/
+      │   │   └── taskService.ts
+      │   └── page.tsx
+      ├── prisma/
+      │   └── schema.prisma
+      └── README.md
+
+      === IMPLEMENTATION ===
+
+      /app/services/taskService.ts:
+      ```typescript
+      // Generated from behavior: completeTask
+      export async function completeTask(taskId: string): Promise<Task> {
+        // Step 1: Verify task exists
+        const task = await prisma.task.findUnique({ where: { id: taskId } });
+        if (!task) {
+          throw new Error('Task not found');
+        }
+
+        // Step 2: Check task not already completed
+        if (task.completed) {
+          throw new Error('Task already completed');
+        }
+
+        // Step 3: Update completed status
+        // Step 4: Record completion timestamp
+        const updatedTask = await prisma.task.update({
+          where: { id: taskId },
+          data: {
+            completed: true,
+            completed_at: new Date()
+          }
+        });
+
+        // Step 5: Trigger TaskCompleted event
+        await eventBus.emit('TaskCompleted', {
+          taskId: updatedTask.id,
+          completedAt: updatedTask.completed_at
+        });
+
+        return updatedTask;
+      }
+      ```
+
+      /app/api/tasks/route.ts:
+      ```typescript
+      // Generated from TaskController.create
+      export async function POST(request: Request) {
+        const body = await request.json();
+
+        // Step 1: Validate title not empty
+        if (!body.title || body.title.trim() === '') {
+          return NextResponse.json(
+            { error: 'Title is required', code: 'INVALID_TITLE' },
+            { status: 400 }
+          );
+        }
+
+        // Step 2: Create task with defaults
+        const task = await prisma.task.create({
+          data: {
+            id: crypto.randomUUID(),
+            title: body.title.trim(),
+            completed: false
+          }
+        });
+
+        // Step 3: Return created task
+        return NextResponse.json(task);
+      }
+      ```
+
+      [Additional files follow with complete implementation...]
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v3:
+    - "Three-layer architecture understanding"
+    - "Automatic manifest generation from specs"
+    - "Behavior steps traced in implementation"
+    - "Complete code generation with comments"
+    - "Technology selection based on scale"
+    - "Full application scaffolding"

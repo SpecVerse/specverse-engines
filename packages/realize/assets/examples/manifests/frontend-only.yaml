@@ -1,0 +1,27 @@
+manifests:
+  frontendOnlyImplementation:
+    specVersion: "3.5.0"
+    deployment:
+      deploymentSource: "../specs/main.specly"
+      deploymentName: "production"
+    configuration:
+      outputStructure: "standalone"
+      frontendDir: "."
+      apiBaseUrl: "${VITE_API_BASE_URL}"
+      apiPrefix: "/api"
+    capabilityMappings:
+      - capability: "app.frontend"
+        instanceFactory: "ReactApp"
+        configuration:
+          outputStructure: "standalone"
+          frontendDir: "."
+          apiBaseUrl: "${VITE_API_BASE_URL}"
+          vite:
+            port: 5173
+            proxy:
+              /api: "${VITE_API_BASE_URL}"
+      - capability: "ui.components"
+        instanceFactory: "ReactComponents"
+        configuration:
+          outputStructure: "standalone"
+          frontendDir: "."

@@ -1,0 +1,680 @@
+components:
+  InventoryManagementSystem:
+    version: "3.2.0"
+    description: "A system for managing product catalog and inventory with real-time updates"
+    import:
+      - file: "../common/common-definitions.yaml"
+        select:
+          - "UUID"
+          - "DateTime"
+    export:
+      models:
+        - "Product"
+        - "Transaction"
+      controllers:
+        - "ProductController"
+        - "TransactionController"
+      events:
+        - "ProductAdded"
+        - "ProductDeleted"
+        - "ProductPurchased"
+        - "ProductSold"
+        - "LowInventoryDetected"
+        - "OutOfStockDetected"
+      views:
+        - "ProductCatalogView"
+        - "ProductDetailView"
+        - "NewProductView"
+    models:
+      Product:
+        description: "Represents a product in the inventory system"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: true
+          name:
+            name: "name"
+            type: "String"
+            required: true
+            unique: false
+          description:
+            name: "description"
+            type: "String"
+            required: false
+            unique: false
+          price:
+            name: "price"
+            type: "Money"
+            required: true
+            unique: false
+          inventory:
+            name: "inventory"
+            type: "Integer"
+            required: true
+            unique: false
+          inventoryThreshold:
+            name: "inventoryThreshold"
+            type: "Integer"
+            required: true
+            unique: false
+            default: "5"
+          category:
+            name: "category"
+            type: "String"
+            required: true
+            unique: false
+        behaviors:
+          increaseInventory:
+            parameters:
+              quantity:
+                name: "quantity"
+                type: "Integer"
+                required: true
+                unique: false
+            description: "Increases the inventory by the specified quantity"
+            returns: "Product"
+            publishes:
+              - "ProductPurchased"
+          decreaseInventory:
+            parameters:
+              quantity:
+                name: "quantity"
+                type: "Integer"
+                required: true
+                unique: false
+            description: "Reduces the inventory by the specified quantity"
+            returns: "Product"
+            requires:
+              - "quantity > 0"
+              - "inventory >= quantity"
+            publishes:
+              - "ProductSold"
+              - "LowInventoryDetected"
+              - "OutOfStockDetected"
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+      Transaction:
+        description: "Represents a purchase or sale transaction"
+        attributes:
+          id:
+            name: "id"
+            type: "UUID"
+            required: true
+            unique: true
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          transactionType:
+            name: "transactionType"
+            type: "String"
+            required: true
+            unique: false
+          quantity:
+            name: "quantity"
+            type: "Integer"
+            required: true
+            unique: false
+          unitPrice:
+            name: "unitPrice"
+            type: "Money"
+            required: true
+            unique: false
+          totalAmount:
+            name: "totalAmount"
+            type: "Money"
+            required: true
+            unique: false
+          timestamp:
+            name: "timestamp"
+            type: "DateTime"
+            required: true
+            unique: false
+        behaviors:
+          attachProfile:
+            description: "Attach a profile to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile exists and is compatible with this model"
+            ensures:
+              - "Profile is attached"
+              - "Profile attributes are available"
+          detachProfile:
+            description: "Detach a profile from this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+            requires:
+              - "Profile is currently attached"
+            ensures:
+              - "Profile is detached"
+              - "Profile attributes are no longer available"
+          hasProfile:
+            description: "Check if a profile is attached to this model instance"
+            parameters:
+              profileName:
+                name: "profileName"
+                type: "String"
+                required: true
+                unique: false
+            returns: "Boolean"
+    controllers:
+      ProductController:
+        model: "Product"
+        description: "Handles product-related operations"
+        actions:
+          addProduct:
+            parameters:
+              productData:
+                name: "productData"
+                type: "Product"
+                required: true
+                unique: false
+            description: "Adds a new product to the catalog"
+            returns: "Product"
+            requires:
+              - "Product name is provided"
+              - "Product price is valid"
+              - "Initial inventory quantity is valid"
+            ensures:
+              - "New product is created and added to catalog"
+            publishes:
+              - "ProductAdded"
+          deleteProduct:
+            parameters:
+              productId:
+                name: "productId"
+                type: "UUID"
+                required: true
+                unique: false
+            description: "Removes a product from the catalog"
+            returns: "Boolean"
+            requires:
+              - "Product exists in the catalog"
+              - "Product ID is provided"
+            ensures:
+              - "Product is removed from the catalog"
+            publishes:
+              - "ProductDeleted"
+          purchaseInventory:
+            parameters:
+              productId:
+                name: "productId"
+                type: "UUID"
+                required: true
+                unique: false
+              quantity:
+                name: "quantity"
+                type: "Integer"
+                required: true
+                unique: false
+            description: "Adds inventory to a product (restocking)"
+            returns: "Product"
+            requires:
+              - "Product exists in the catalog"
+              - "Product ID is provided"
+              - "Purchase quantity is greater than zero"
+            ensures:
+              - "Product inventory is increased"
+              - "Purchase transaction is recorded"
+          sellProduct:
+            parameters:
+              productId:
+                name: "productId"
+                type: "UUID"
+                required: true
+                unique: false
+              quantity:
+                name: "quantity"
+                type: "Integer"
+                required: true
+                unique: false
+            description: "Reduces inventory of a product (sales)"
+            returns: "Product"
+            requires:
+              - "Product exists in the catalog"
+              - "Product ID is provided"
+              - "Sell quantity is greater than zero"
+              - "Sufficient inventory is available"
+            ensures:
+              - "Product inventory is decreased"
+              - "Sale transaction is recorded"
+          getProductCatalog:
+            parameters: {}
+            description: "Returns all products in the catalog"
+            returns: "String"
+            ensures:
+              - "List of all products is returned"
+          getProductDetails:
+            parameters:
+              productId:
+                name: "productId"
+                type: "UUID"
+                required: true
+                unique: false
+            description: "Returns details for a specific product"
+            returns: "Product"
+            requires:
+              - "Product ID is provided"
+              - "Product exists in the catalog"
+            ensures:
+              - "Product details are returned"
+          filterByCategory:
+            parameters:
+              category:
+                name: "category"
+                type: "String"
+                required: true
+                unique: false
+            description: "Filters products by category"
+            returns: "String"
+            requires:
+              - "Category is a valid product category"
+            ensures:
+              - "Returns filtered list of products"
+          searchProducts:
+            parameters:
+              searchTerm:
+                name: "searchTerm"
+                type: "String"
+                required: true
+                unique: false
+            description: "Searches products by name or description"
+            returns: "String"
+            requires:
+              - "Search term is provided"
+            ensures:
+              - "Returns matching products"
+      TransactionController:
+        model: "Transaction"
+        description: "Handles transaction-related operations"
+        actions:
+          getTransactionHistory:
+            parameters:
+              productId:
+                name: "productId"
+                type: "UUID"
+                required: true
+                unique: false
+            description: "Returns transaction history for a product"
+            returns: "String"
+            requires:
+              - "Product ID is provided"
+            ensures:
+              - "Transaction history is returned"
+    events:
+      ProductAdded:
+        description: "Triggered when a new product is added to the catalog"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          name:
+            name: "name"
+            type: "String"
+            required: true
+            unique: false
+          category:
+            name: "category"
+            type: "String"
+            required: true
+            unique: false
+          price:
+            name: "price"
+            type: "Money"
+            required: true
+            unique: false
+          initialInventory:
+            name: "initialInventory"
+            type: "Integer"
+            required: true
+            unique: false
+      ProductDeleted:
+        description: "Triggered when a product is removed from the catalog"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+      ProductPurchased:
+        description: "Triggered when inventory is added to a product (restock)"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          quantity:
+            name: "quantity"
+            type: "Integer"
+            required: true
+            unique: false
+          newInventoryLevel:
+            name: "newInventoryLevel"
+            type: "Integer"
+            required: true
+            unique: false
+          timestamp:
+            name: "timestamp"
+            type: "DateTime"
+            required: true
+            unique: false
+      ProductSold:
+        description: "Triggered when inventory is removed from a product (sale)"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          quantity:
+            name: "quantity"
+            type: "Integer"
+            required: true
+            unique: false
+          newInventoryLevel:
+            name: "newInventoryLevel"
+            type: "Integer"
+            required: true
+            unique: false
+          timestamp:
+            name: "timestamp"
+            type: "DateTime"
+            required: true
+            unique: false
+      LowInventoryDetected:
+        description: "Triggered when product inventory falls below threshold"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          productName:
+            name: "productName"
+            type: "String"
+            required: true
+            unique: false
+          currentInventory:
+            name: "currentInventory"
+            type: "Integer"
+            required: true
+            unique: false
+          threshold:
+            name: "threshold"
+            type: "Integer"
+            required: true
+            unique: false
+      OutOfStockDetected:
+        description: "Triggered when product inventory reaches zero"
+        attributes:
+          productId:
+            name: "productId"
+            type: "UUID"
+            required: true
+            unique: false
+          productName:
+            name: "productName"
+            type: "String"
+            required: true
+            unique: false
+          timestamp:
+            name: "timestamp"
+            type: "DateTime"
+            required: true
+            unique: false
+    views:
+      ProductCatalogView:
+        description: "Browse available products with inventory information"
+        type: "page"
+        model: "Product"
+        layout:
+          searchBar: "top left"
+          categoryFilter: "top right"
+          inventoryStatusPanel: "below searchBar and categoryFilter"
+          productList: "filling remaining space below inventoryStatusPanel"
+        uiComponents:
+          searchBar:
+            type: "SearchInput"
+            properties:
+              placeholder: "Search products..."
+            events:
+              onSearch: "ProductController.searchProducts"
+          categoryFilter:
+            type: "DropdownMenu"
+            properties:
+              placeholder: "Filter by category"
+              options:
+                - label: "All Categories"
+                  value: ""
+                - label: "Electronics"
+                  value: "Electronics"
+                - label: "Clothing"
+                  value: "Clothing"
+                - label: "Books"
+                  value: "Books"
+                - label: "Food"
+                  value: "Food"
+                - label: "Other"
+                  value: "Other"
+            events:
+              onChange: "ProductController.filterByCategory"
+          inventoryStatusPanel:
+            type: "Panel"
+            properties:
+              title: "Inventory Status"
+              content: "Total Products: {count} | Low Inventory: {lowCount} | Out of Stock: {outCount}"
+          productList:
+            type: "DataGrid"
+            properties:
+              columns:
+                - "id"
+                - "name"
+                - "category"
+                - "price"
+                - "inventory"
+            events:
+              onRowClick: "showProductDetails"
+      ProductDetailView:
+        description: "View and manage a specific product"
+        type: "page"
+        model: "Product"
+        layout:
+          productDetailsPanel: "main area"
+          purchasePanel: "below productDetailsPanel"
+          purchaseQtyInput: "inside purchasePanel"
+          purchaseBtn: "inside purchasePanel"
+          sellPanel: "beside purchasePanel"
+          sellQtyInput: "inside sellPanel"
+          sellBtn: "inside sellPanel"
+          deleteButton: "below panels"
+          transactionHistoryGrid: "bottom area"
+        uiComponents:
+          productDetailsPanel:
+            type: "Panel"
+            properties:
+              title: "Product Details"
+              content: "<h3>{name}</h3><div>Price: ${price}</div><div>Current Inventory: {inventory}</div><div>Category: {category}</div><div>Description: {description}</div>"
+          purchasePanel:
+            type: "Panel"
+            properties:
+              title: "Add Inventory"
+          purchaseQtyInput:
+            type: "Input"
+            properties:
+              label: "Purchase Quantity:"
+              type: "number"
+              min: 1
+              value: 1
+              required: true
+          purchaseBtn:
+            type: "Button"
+            properties:
+              text: "Add Inventory"
+              type: "primary"
+            events:
+              onClick: "handlePurchase"
+          sellPanel:
+            type: "Panel"
+            properties:
+              title: "Sell Product"
+          sellQtyInput:
+            type: "Input"
+            properties:
+              label: "Sell Quantity:"
+              type: "number"
+              min: 1
+              value: 1
+              required: true
+          sellBtn:
+            type: "Button"
+            properties:
+              text: "Sell Product"
+              type: "primary"
+            events:
+              onClick: "handleSell"
+          deleteButton:
+            type: "Button"
+            properties:
+              text: "Delete Product"
+              type: "danger"
+            events:
+              onClick: "handleDelete"
+          transactionHistoryGrid:
+            type: "DataGrid"
+            properties:
+              title: "Transaction History"
+              columns:
+                - "timestamp"
+                - "transactionType"
+                - "quantity"
+                - "unitPrice"
+                - "totalAmount"
+      NewProductView:
+        description: "Add a new product to the catalog"
+        type: "page"
+        model: "Product"
+        layout:
+          addProductPanel: "main form area"
+          productNameInput: "inside addProductPanel"
+          productDescriptionInput: "inside addProductPanel"
+          productPriceInput: "inside addProductPanel"
+          productCategorySelect: "inside addProductPanel"
+          productInventoryInput: "inside addProductPanel"
+          productThresholdInput: "inside addProductPanel"
+          addProductBtn: "inside addProductPanel"
+        uiComponents:
+          addProductPanel:
+            type: "Panel"
+            properties:
+              title: "Add New Product"
+          productNameInput:
+            type: "Input"
+            properties:
+              label: "Product Name:"
+              required: true
+          productDescriptionInput:
+            type: "Input"
+            properties:
+              label: "Description:"
+              multiline: true
+          productPriceInput:
+            type: "Input"
+            properties:
+              label: "Price:"
+              type: "number"
+              min: 0.01
+              step: 0.01
+              value: 0.01
+              required: true
+          productCategorySelect:
+            type: "DropdownMenu"
+            properties:
+              label: "Category:"
+              options:
+                - label: "Electronics"
+                  value: "Electronics"
+                - label: "Clothing"
+                  value: "Clothing"
+                - label: "Books"
+                  value: "Books"
+                - label: "Food"
+                  value: "Food"
+                - label: "Other"
+                  value: "Other"
+              required: true
+          productInventoryInput:
+            type: "Input"
+            properties:
+              label: "Initial Inventory:"
+              type: "number"
+              min: 0
+              value: 0
+              required: true
+          productThresholdInput:
+            type: "Input"
+            properties:
+              label: "Low Inventory Threshold:"
+              type: "number"
+              min: 1
+              value: 5
+              required: true
+          addProductBtn:
+            type: "Button"
+            properties:
+              text: "Add Product"
+              type: "primary"
+            events:
+              onClick: "handleAddProduct"
+deployments: {}

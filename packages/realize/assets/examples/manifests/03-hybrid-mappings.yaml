@@ -1,0 +1,109 @@
+# SpecVerse v3.3 Manifest - Hybrid Mappings Example
+#
+# This manifest demonstrates the full power of v3.3 hybrid mapping:
+# All three mapping strategies working together with clear priorities.
+#
+# Resolution Priority:
+# 1. instanceMappings (highest) - explicit instance name
+# 2. capabilityMappings (medium) - capability pattern match
+# 3. defaultMappings (lowest) - category-based fallback
+
+specVersion: "3.3.0"
+name: "hybrid-mapping-manifest"
+description: "Complex API using all three mapping strategies for maximum flexibility"
+version: "1.0.0"
+
+deployment:
+  deploymentSource: "./blog-api.specly"
+  deploymentName: "production"
+
+# PRIORITY 3: Default factories by category (lowest priority)
+# Used when no capability or instance mapping matches
+# Fine-grained factories enable flexible composition
+defaultMappings:
+  controller: "FastifyAPI"       # Pure Fastify (no ORM coupling)
+  service: "PrismaORM"           # Prisma data access layer
+  view: "TypeScriptSDK"
+  storage: "PostgreSQL15"
+  infrastructure: "DockerK8s"
+
+# PRIORITY 2: Capability-based mappings (medium priority)
+# Overrides defaultMappings when capability pattern matches
+capabilityMappings:
+  # Validation capabilities
+  - capability: "validation.runtime"
+    instanceFactory: "ZodValidation"
+
+  # Most REST APIs use Fastify
+  - capability: "api.rest"
+    instanceFactory: "FastifyAPI"
+
+  # But reporting APIs get specialized treatment
+  - capability: "api.rest.reports"
+    instanceFactory: "ReportingAPI"
+    configuration:
+      caching: true
+      batchSize: 1000
+      timeout: 120000
+
+  # Analytics capabilities use special processing
+  - capability: "api.rest.analytics"
+    instanceFactory: "AnalyticsAPI"
+    configuration:
+      aggregation: true
+      realtime: true
+
+  # WebSocket for real-time features
+  - capability: "api.websocket"
+    instanceFactory: "FastifyWebSocketAPI"
+
+  # Standard database operations
+  - capability: "storage.database"
+    instanceFactory: "PostgreSQL15"
+
+  # Cache operations
+  - capability: "storage.cache"
+    instanceFactory: "Redis7"
+
+# PRIORITY 1: Instance-specific mappings (highest priority)
+# Explicit instance names override everything else
+instanceMappings:
+  # Analytics database uses MongoDB instead of PostgreSQL
+  - instanceName: "analyticsDb"
+    instanceFactory: "MongoDB6"
+    configuration:
+      sharding: true
+      replication: 3
+
+  # High-performance cache for user sessions
+  - instanceName: "sessionCache"
+    instanceFactory: "Redis7"
+    configuration:
+      maxMemory: "4gb"
+      evictionPolicy: "allkeys-lru"
+
+  # Specialized API for admin operations
+  - instanceName: "adminApi"
+    instanceFactory: "NestJSAPI"
+    configuration:
+      rbac: true
+      auditLog: true
+
+  # Main user-facing API with specific config
+  - instanceName: "userApi"
+    instanceFactory: "FastifyPrismaAPI"
+    configuration:
+      rateLimit:
+        max: 1000
+        timeWindow: "1 minute"
+
+# Global configuration
+configuration:
+  environment: "production"
+  region: "us-east-1"
+  monitoring:
+    enabled: true
+    provider: "datadog"
+  logging:
+    level: "info"
+    format: "json"

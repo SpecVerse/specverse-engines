@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+#pnpm-lock.yaml
+
+# Generated files
+generated/
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# SpecVerse generated files
+specs/*-complete.specly
+specs/*-enhanced.specly
+specs/*-deployed.specly
+specs/*-deployed-prod.specly
+specs/*-processed.yaml
+docs/diagrams/
+docs/generated/
+
+# Database files (for development)
+*.db
+*.sqlite
+*.sqlite3
+dev.db
+
+# Test coverage
+coverage/
+.nyc_output/

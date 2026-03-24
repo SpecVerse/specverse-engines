@@ -1,0 +1,259 @@
+name: analyse
+version: "1.0.0"
+description: Extract SpecVerse specifications and manifest from existing application code
+author: SpecVerse Team
+tags: [analysis, extraction, reverse-engineering]
+
+system:
+  role: |
+    You are a SpecVerse specification extractor specialized in analyzing existing applications.
+    You examine complete codebases to extract clean, accurate specifications following SpecVerse v3.1 conventions.
+    
+  context: |
+    Your task is to analyze a complete application codebase and extract:
+    1. Component specifications including models, controllers, services, and events
+    2. Deployment topology and infrastructure configuration  
+    3. Implementation manifest describing the technology stack and patterns used
+    
+    You must preserve the actual implementation logic, not create idealized versions.
+    Focus on extracting what IS, not what SHOULD BE.
+    
+  capabilities:
+    - Detect multiple programming languages and frameworks
+    - Extract data models with attributes and relationships
+    - Identify API endpoints and map to controller actions
+    - Recognize service patterns and business logic
+    - Detect event-driven architectures
+    - Analyze deployment configurations
+    - Identify technology stack and dependencies
+    
+  constraints:
+    - Only extract actual implementation, not hypothetical features
+    - Preserve existing naming conventions
+    - Maintain relationship cardinality as implemented
+    - Use SpecVerse convention syntax where applicable
+    - Generate valid v3.1 specifications
+
+user:
+  template: |
+    Analyze the following application codebase and extract SpecVerse specifications.
+    
+    Application Path: {{applicationPath}}
+    Framework Type: {{frameworkType}}
+    
+    Directory Structure:
+    {{directoryStructure}}
+    
+    Key Files Content:
+    {{filesContent}}
+    
+    Please extract:
+    1. Component specification with all models, controllers, services, and events
+    2. Deployment specification based on configuration files
+    3. Implementation manifest describing the technology stack
+    
+    Use SpecVerse v3.1 convention syntax for attributes:
+    - attributeName: TypeName modifiers
+    - Common types: String, Integer, UUID, Email, DateTime, Boolean
+    - Common modifiers: required, optional, unique, auto, searchable
+    
+    Output the complete SpecVerse component specification with models, controllers, services, and events extracted from the actual implementation.
+    
+  variables:
+    - name: applicationPath
+      type: string
+      required: true
+      description: Path to the application being analyzed
+      
+    - name: frameworkType
+      type: string
+      required: false
+      default: "auto-detect"
+      description: Framework type (nextjs, django, spring, express, auto-detect)
+      
+    - name: directoryStructure
+      type: string
+      required: true
+      description: Tree structure of the application directory
+      
+    - name: filesContent
+      type: string
+      required: true
+      description: Content of key application files
+
+context:
+  includes:
+    - schema: schema/SPECVERSE-V3.1-SCHEMA-AI.yaml
+    - library: framework-patterns
+    - template: extraction-patterns
+  max_tokens: 8000
+  temperature: 0.3
+  top_p: 0.95
+
+validation:
+  input:
+    - rule: Application path must exist
+      required: true
+    - rule: Directory structure must be provided
+      required: true
+    - rule: At least one source file must be included
+      required: true
+      
+  output:
+    - rule: Must generate valid SpecVerse v3.1 component specification
+      format: yaml
+      schema: schema/SPECVERSE-SCHEMA.json
+    - rule: Must include at least one model if data layer exists
+      format: yaml
+    - rule: Must generate deployment specification if config files exist
+      format: yaml
+    - rule: Must generate implementation manifest
+      format: yaml
+
+examples:
+  - name: Next.js Application
+    description: Extracting specs from a Next.js 14 application
+    input:
+      applicationPath: /apps/my-nextjs-app
+      frameworkType: nextjs
+      directoryStructure: |
+        my-nextjs-app/
+        ├── app/
+        │   ├── api/
+        │   │   ├── users/
+        │   │   │   └── route.ts
+        │   │   └── posts/
+        │   │       └── route.ts
+        │   └── page.tsx
+        ├── prisma/
+        │   └── schema.prisma
+        └── package.json
+      filesContent: |
+        === prisma/schema.prisma ===
+        model User {
+          id        String   @id @default(cuid())
+          email     String   @unique
+          name      String?
+          posts     Post[]
+          createdAt DateTime @default(now())
+        }
+        
+        model Post {
+          id        String   @id @default(cuid())
+          title     String
+          content   String?
+          published Boolean  @default(false)
+          author    User     @relation(fields: [authorId], references: [id])
+          authorId  String
+        }
+        
+        === app/api/users/route.ts ===
+        export async function GET() {
+          const users = await prisma.user.findMany();
+          return Response.json(users);
+        }
+        
+        export async function POST(request: Request) {
+          const data = await request.json();
+          const user = await prisma.user.create({ data });
+          return Response.json(user);
+        }
+        
+    output: |
+      --- # component.specly
+      components:
+        UserManagement:
+          version: "1.0.0"
+          description: "User management component extracted from Next.js application"
+          
+          models:
+            User:
+              attributes:
+                id: String required unique auto=cuid
+                email: Email required unique
+                name: String optional
+                createdAt: DateTime required auto=now
+              relationships:
+                posts: hasMany Post cascade
+                
+            Post:
+              attributes:
+                id: String required unique auto=cuid
+                title: String required
+                content: String optional
+                published: Boolean required default=false
+              relationships:
+                author: belongsTo User required
+                
+          controllers:
+            UserController:
+              model: User
+              actions:
+                getUsers:
+                  description: "Retrieve all users"
+                  returns: User[]
+                  
+                createUser:
+                  description: "Create new user"
+                  parameters:
+                    email: Email required
+                    name: String optional
+                  returns: User
+                  
+      --- # deployment.specly
+      deployments:
+        production:
+          version: "1.0.0"
+          environment: production
+          instances:
+            controllers:
+              apiController:
+                component: "UserManagement"
+                namespace: "api"
+                advertises: "*"
+                scale: 1
+            storage:
+              database:
+                component: "UserManagement"
+                type: "relational"
+                provider: "postgresql"
+                persistence: "durable"
+                
+      --- # manifest.yaml
+      specVersion: "3.1.0"
+      name: "Next.js Application Manifest"
+      version: "1.0.0"
+      
+      technology:
+        framework: "nextjs"
+        version: "14.0.0"
+        language: "typescript"
+        
+      database:
+        orm: "prisma"
+        provider: "postgresql"
+        
+      api:
+        type: "rest"
+        pattern: "app-router"
+        
+    explanation: |
+      The extraction identified:
+      - Two models (User and Post) with their relationships
+      - API endpoints mapped to controller actions
+      - Deployment configuration for production
+      - Technology stack (Next.js 14, Prisma, PostgreSQL)
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  tested_with:
+    - provider: openai
+      model: gpt-4
+      success_rate: 95
+    - provider: anthropic
+      model: claude-3-opus
+      success_rate: 97
+  performance:
+    avg_response_time: 12.5
+    avg_tokens_used: 3500

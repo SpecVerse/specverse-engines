@@ -1,0 +1,36 @@
+# SpecVerse v3.3 Manifest - Simple Default Mappings Example
+#
+# This manifest demonstrates the simplest v3.3 approach:
+# Using defaultMappings to specify instance factories by category.
+#
+# Resolution: All instances of a category use the same factory.
+
+specVersion: "3.3.0"
+name: "simple-api-manifest"
+description: "Basic REST API with Fastify and PostgreSQL using default mappings"
+version: "1.0.0"
+
+# Link to deployment specification
+deployment:
+  deploymentSource: "./blog-api.specly"
+  deploymentName: "production"
+
+# Default instance factories by category (lowest priority)
+# Fine-grained factories allow flexible composition
+defaultMappings:
+  controller: "FastifyAPI"      # Pure Fastify routes (no ORM coupling)
+  service: "PrismaORM"          # Prisma ORM for data access
+  storage: "PostgreSQL15"        # PostgreSQL database instance
+
+# Capability-based mappings for cross-cutting concerns
+capabilityMappings:
+  - capability: "validation.runtime"
+    instanceFactory: "ZodValidation"
+
+# Global configuration applied to all instance factories
+configuration:
+  environment: "production"
+  region: "us-east-1"
+  logging:
+    level: "info"
+    format: "json"

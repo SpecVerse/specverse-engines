@@ -1,0 +1,40 @@
+manifests:
+  DockerComposeDeploymentManifest:
+    specVersion: "3.5.0"
+    name: "DockerComposeDeploymentManifest"
+    description: "Docker Compose implementation manifest for local and staging deployment"
+    version: "1.0.0"
+
+    deployment:
+      deploymentSource: "./06-01-basic-deployment.specly"
+      deploymentName: "basicWebApplication"
+
+    defaultMappings:
+      controller: "DockerWebApplication"
+      storage: "DockerDatabase"
+
+    capabilityMappings:
+      - capability: "web.*"
+        instanceFactory: "DockerWebApplication"
+
+      - capability: "database.*"
+        instanceFactory: "DockerDatabase"
+
+      - capability: "cache.*"
+        instanceFactory: "DockerCache"
+
+      - capability: "proxy.*"
+        instanceFactory: "DockerReverseProxy"
+
+      - capability: "monitoring.*"
+        instanceFactory: "DockerMonitoring"
+
+    instanceMappings:
+      - instanceName: "webApplicationController"
+        instanceFactory: "DockerWebApplication"
+
+      - instanceName: "reverseProxyInstance"
+        instanceFactory: "DockerReverseProxy"
+
+      - instanceName: "prometheusInstance"
+        instanceFactory: "DockerMonitoring"

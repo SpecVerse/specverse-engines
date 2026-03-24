@@ -1,0 +1,464 @@
+components:
+  TaskManagementApp:
+    version: "1.0.0"
+    description: "Complete task management application with real-time updates"
+    tags:
+      - "demo"
+      - "fullstack"
+      - "react"
+      - "events"
+    export:
+      models:
+        - "User"
+        - "Task"
+        - "Project"
+      controllers:
+        - "UserController"
+        - "TaskController"
+        - "ProjectController"
+      services:
+        - "NotificationService"
+        - "TaskAssignmentService"
+      events:
+        - "TaskCreated"
+        - "TaskUpdated"
+        - "TaskCompleted"
+        - "UserNotified"
+      views:
+        - "TaskListView"
+        - "TaskDetailView"
+        - "ProjectDashboard"
+    models:
+      User:
+        description: "Application user with authentication"
+        attributes:
+          id: "UUID required auto=uuid4"
+          username: "String required unique min=3 max=50"
+          email: "Email required unique"
+          displayName: "String required"
+          avatar: "String"
+          active: "Boolean default=true"
+          createdAt: "DateTime required auto=now"
+          updatedAt: "DateTime auto=now"
+        relationships:
+          assignedTasks: "hasMany Task"
+          ownedProjects: "hasMany Project"
+        behaviors:
+          activate:
+            description: "Activate user account"
+            parameters:
+              reason: "String required"
+            returns: "Boolean"
+            publishes:
+              - "UserNotified"
+      Project:
+        description: "Project containing multiple tasks"
+        attributes:
+          id: "UUID required auto=uuid4"
+          name: "String required min=1 max=100"
+          description: "Text"
+          status: "String required values=[planning,active,completed,archived] default=planning"
+          startDate: "DateTime"
+          dueDate: "DateTime"
+          createdAt: "DateTime required auto=now"
+          updatedAt: "DateTime auto=now"
+        relationships:
+          owner: "belongsTo User cascade"
+          tasks: "hasMany Task"
+        lifecycles:
+          status:
+            flow: "planning -> active -> completed -> archived"
+      Task:
+        description: "Individual task with assignment and status tracking"
+        attributes:
+          id: "UUID required auto=uuid4"
+          title: "String required min=1 max=200"
+          description: "Text"
+          status: "String required values=[todo,in_progress,review,done] default=todo"
+          priority: "String required values=[low,medium,high,urgent] default=medium"
+          dueDate: "DateTime"
+          completedAt: "DateTime"
+          createdAt: "DateTime required auto=now"
+          updatedAt: "DateTime auto=now"
+        relationships:
+          project: "belongsTo Project cascade"
+          assignee: "belongsTo User"
+        lifecycles:
+          status:
+            flow: "todo -> in_progress -> review -> done"
+        behaviors:
+          complete:
+            description: "Mark task as completed"
+            parameters:
+              completionNotes: "String"
+            returns: "Boolean"
+            ensures:
+              - "Task status is done"
+              - "Completed timestamp set"
+            publishes:
+              - "TaskCompleted"
+          assign:
+            description: "Assign task to a user"
+            parameters:
+              userId: "UUID required"
+            returns: "Boolean"
+            publishes:
+              - "TaskUpdated"
+              - "UserNotified"
+    controllers:
+      UserController:
+        description: "User management API"
+        model: "User"
+        subscribes_to: []
+        cured:
+          create:
+            description: "Register new user"
+            parameters:
+              username: "String required"
+              email: "Email required"
+              displayName: "String required"
+            returns: "User"
+            publishes:
+              - "UserNotified"
+          retrieve:
+            description: "Get user by ID"
+            parameters:
+              id: "UUID required"
+            returns: "User"
+          retrieve_many:
+            description: "List all users"
+            parameters:
+              limit: "Integer default=20 max=100"
+              offset: "Integer default=0"
+            returns: "Array<User>"
+          update:
+            description: "Update user profile"
+            parameters:
+              id: "UUID required"
+              changes: "String required"
+            returns: "User"
+          delete:
+            description: "Deactivate user account"
+            parameters:
+              id: "UUID required"
+            returns: "Boolean"
+      TaskController:
+        description: "Task management API with real-time updates"
+        model: "Task"
+        subscribes_to:
+          - "TaskCreated"
+          - "TaskUpdated"
+        cured:
+          create:
+            description: "Create new task"
+            parameters:
+              title: "String required"
+              projectId: "UUID required"
+              description: "Text"
+              priority: "String"
+            returns: "Task"
+            publishes:
+              - "TaskCreated"
+          retrieve:
+            description: "Get task by ID"
+            parameters:
+              id: "UUID required"
+            returns: "Task"
+          retrieve_many:
+            description: "List tasks with filtering"
+            parameters:
+              projectId: "UUID"
+              status: "String"
+              assigneeId: "UUID"
+              limit: "Integer default=20 max=100"
+              offset: "Integer default=0"
+            returns: "Array<Task>"
+          update:
+            description: "Update task details"
+            parameters:
+              id: "UUID required"
+              changes: "String required"
+            returns: "Task"
+            publishes:
+              - "TaskUpdated"
+          delete:
+            description: "Delete task"
+            parameters:
+              id: "UUID required"
+            returns: "Boolean"
+        actions:
+          complete:
+            description: "Mark task as completed"
+            parameters:
+              id: "UUID required"
+              completionNotes: "String"
+            returns: "Boolean"
+            publishes:
+              - "TaskCompleted"
+          assign:
+            description: "Assign task to user"
+            parameters:
+              id: "UUID required"
+              userId: "UUID required"
+            returns: "Boolean"
+            publishes:
+              - "TaskUpdated"
+              - "UserNotified"
+      ProjectController:
+        description: "Project management API"
+        model: "Project"
+        subscribes_to: []
+        cured:
+          create:
+            description: "Create new project"
+            parameters:
+              name: "String required"
+              description: "Text"
+              ownerId: "UUID required"
+            returns: "Project"
+          retrieve:
+            description: "Get project by ID"
+            parameters:
+              id: "UUID required"
+            returns: "Project"
+          retrieve_many:
+            description: "List projects"
+            parameters:
+              ownerId: "UUID"
+              status: "String"
+              limit: "Integer default=20 max=100"
+              offset: "Integer default=0"
+            returns: "Array<Project>"
+          update:
+            description: "Update project"
+            parameters:
+              id: "UUID required"
+              changes: "String required"
+            returns: "Project"
+          delete:
+            description: "Archive project"
+            parameters:
+              id: "UUID required"
+            returns: "Boolean"
+    services:
+      NotificationService:
+        description: "Send notifications to users"
+        subscribes_to:
+          - "TaskCreated"
+          - "TaskUpdated"
+          - "TaskCompleted"
+          - "UserNotified"
+        operations:
+          sendTaskNotification:
+            description: "Notify user about task changes"
+            parameters:
+              userId: "UUID required"
+              taskId: "UUID required"
+              eventType: "String required"
+            returns: "Boolean"
+            publishes:
+              - "UserNotified"
+          sendEmailNotification:
+            description: "Send email to user"
+            parameters:
+              userId: "UUID required"
+              subject: "String required"
+              body: "Text required"
+            returns: "Boolean"
+      TaskAssignmentService:
+        description: "Handle task assignment logic"
+        subscribes_to:
+          - "TaskCreated"
+          - "TaskUpdated"
+        operations:
+          assignTask:
+            description: "Assign task to best available user"
+            parameters:
+              taskId: "UUID required"
+              userId: "UUID"
+            returns: "Boolean"
+            publishes:
+              - "TaskUpdated"
+              - "UserNotified"
+          redistributeTasks:
+            description: "Redistribute tasks when user becomes unavailable"
+            parameters:
+              fromUserId: "UUID required"
+              toUserId: "UUID"
+            returns: "Boolean"
+    views:
+      TaskListView:
+        description: "Display list of tasks with filtering"
+        type: "list"
+        model: "Task"
+        subscribes_to:
+          - "TaskCreated"
+          - "TaskUpdated"
+          - "TaskCompleted"
+        uiComponents:
+          taskTable:
+            type: "table"
+            columns:
+              - "title"
+              - "status"
+              - "priority"
+              - "assignee"
+              - "dueDate"
+          filters:
+            type: "filterPanel"
+            fields:
+              - "status"
+              - "priority"
+              - "assignee"
+              - "project"
+        properties:
+          sortable: true
+          filterable: true
+          realtime: true
+      TaskDetailView:
+        description: "Detailed task view with editing"
+        type: "detail"
+        model: "Task"
+        subscribes_to:
+          - "TaskUpdated"
+          - "TaskCompleted"
+        uiComponents:
+          taskForm:
+            type: "form"
+            fields:
+              - "title"
+              - "description"
+              - "status"
+              - "priority"
+              - "dueDate"
+          activityLog:
+            type: "timeline"
+            source: "events"
+        properties:
+          editable: true
+          realtime: true
+      ProjectDashboard:
+        description: "Project overview with task statistics"
+        type: "dashboard"
+        model: "Project"
+        subscribes_to:
+          - "TaskCreated"
+          - "TaskUpdated"
+          - "TaskCompleted"
+        uiComponents:
+          projectHeader:
+            type: "header"
+            fields:
+              - "name"
+              - "status"
+              - "owner"
+          taskSummary:
+            type: "chart"
+            chartType: "pie"
+            dataSource: "tasks.status"
+          taskTimeline:
+            type: "gantt"
+            dataSource: "tasks"
+        properties:
+          realtime: true
+          refreshInterval: 5000
+    events:
+      TaskCreated:
+        description: "New task created"
+        attributes:
+          taskId: "UUID required"
+          projectId: "UUID required"
+          title: "String required"
+          createdBy: "UUID required"
+          timestamp: "DateTime required auto=now"
+      TaskUpdated:
+        description: "Task details updated"
+        attributes:
+          taskId: "UUID required"
+          updatedFields: "String required"
+          previousStatus: "String"
+          newStatus: "String"
+          updatedBy: "UUID required"
+          timestamp: "DateTime required auto=now"
+      TaskCompleted:
+        description: "Task marked as completed"
+        attributes:
+          taskId: "UUID required"
+          completedBy: "UUID required"
+          completionNotes: "String"
+          timestamp: "DateTime required auto=now"
+      UserNotified:
+        description: "User received notification"
+        attributes:
+          userId: "UUID required"
+          notificationType: "String required"
+          message: "Text required"
+          relatedEntityId: "UUID"
+          timestamp: "DateTime required auto=now"
+deployments:
+  development:
+    version: "1.0.0"
+    environment: "development"
+    description: "Local development environment"
+    instances:
+      controllers:
+        apiServer:
+          component: "TaskManagementApp"
+          advertises:
+            - "api.rest"
+            - "api.rest.crud"
+          uses:
+            - "storage.mainDb.*"
+            - "messaging.eventBus.*"
+          scale: 1
+      storage:
+        mainDb:
+          component: "TaskManagementApp"
+          type: "relational"
+          advertises:
+            - "storage.database"
+          persistence: "durable"
+          consistency: "strong"
+      communications:
+        eventBus:
+          namespace: "global"
+          type: "pubsub"
+          capabilities:
+            - "messaging.pubsub"
+            - "messaging.events"
+  production:
+    version: "1.0.0"
+    environment: "production"
+    description: "Production environment with scaling"
+    instances:
+      controllers:
+        apiServer:
+          component: "TaskManagementApp"
+          advertises:
+            - "api.rest"
+            - "api.rest.crud"
+          uses:
+            - "storage.mainDb.*"
+            - "messaging.eventBus.*"
+          scale: 3
+      storage:
+        mainDb:
+          component: "TaskManagementApp"
+          type: "relational"
+          advertises:
+            - "storage.database"
+          persistence: "durable"
+          consistency: "strong"
+        cacheDb:
+          component: "TaskManagementApp"
+          type: "keyvalue"
+          advertises:
+            - "storage.cache"
+          persistence: "durable"
+      communications:
+        eventBus:
+          namespace: "global"
+          type: "pubsub"
+          capabilities:
+            - "messaging.pubsub"
+            - "messaging.events"

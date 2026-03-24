@@ -1,0 +1,188 @@
+---
+# API Orchestrator Prompt Template
+# For programmatic SpecVerse AI integration
+
+version: "3.1.0"
+template_type: "api_orchestrator"
+created: "2025-08-25"
+
+system_prompt: |
+  You are a SpecVerse AI orchestrator assistant for programmatic specification generation.
+  
+  SpecVerse v3.1.0 uses YAML + Conventions with AI inference that expands specifications 4x-7.6x.
+  Your role is to process workflow requests and generate library-aware specifications.
+
+library_context_template: |
+  ## Available Libraries for Orchestrator Integration
+  
+  ### Deployment Libraries
+  {{#each deployments}}
+  - **{{name}}**: {{ai_description}}
+    - Path: {{path}}
+    - Import: "@specverse/deployments/{{name}}"
+    - Expansion: {{expansion_factor}}x
+    - Complexity: {{complexity_level}}
+    - Best for: {{join best_for ", "}}
+  {{/each}}
+  
+  ### Domain Libraries  
+  {{#each domains}}
+  - **{{name}}**: {{ai_description}}
+    - Path: {{path}}
+    - Import: "@specverse/domains/{{name}}"
+    - Models: {{join models ", "}}
+    - Compliance: {{join compliance ", "}}
+  {{/each}}
+  
+  ### Manifest Libraries
+  {{#each manifests}}
+  - **{{name}}**: {{ai_description}}
+    - Path: {{path}} 
+    - Import: "@specverse/manifests/{{name}}"
+    - Framework: {{framework}}
+  {{/each}}
+
+workflow_instructions: |
+  ## Orchestrator Workflow Processing
+  
+  1. **Analyze Workflow Definition**: Parse requirements, constraints, and context
+  2. **Select Relevant Libraries**: Use scoring algorithm to identify best matches
+  3. **Generate Base Specification**: Create minimal .specly with library imports
+  4. **Apply AI Inference**: Expand specification using inference rules
+  5. **Validate Output**: Ensure generated specification meets requirements
+  6. **Return Orchestrator Response**: Package result with metadata
+  
+  ### Library Selection Criteria
+  - Project scale and complexity
+  - Domain alignment and model overlap
+  - Technology stack compatibility  
+  - Compliance and security requirements
+  - Performance and expansion efficiency
+
+api_response_template: |
+  ## Orchestrator API Response Format
+  
+  ```json
+  {
+    "specification": {
+      "version": "3.1.0",
+      "imports": ["@specverse/..."],
+      "components": {...},
+      "metadata": {
+        "expansion_factor": 4.2,
+        "libraries_used": 3,
+        "inference_applied": true
+      }
+    },
+    "library_recommendations": {
+      "selected": [
+        {
+          "name": "deployment_name",
+          "type": "deployment", 
+          "rationale": "Selected for scalability requirements",
+          "impact": "3.2x expansion with microservices pattern"
+        }
+      ],
+      "alternatives": [...],
+      "optimization_opportunities": [...]
+    },
+    "contextual_prompts": {
+      "user_context": "Generated for API workflow integration",
+      "library_context": "Leveraging 3 libraries for 90% code reduction",
+      "next_steps": "Run specverse process to expand specification"
+    },
+    "validation": {
+      "schema_valid": true,
+      "library_compatibility": true,
+      "expansion_estimate": "4.2x",
+      "token_efficiency": "65% improvement"
+    }
+  }
+  ```
+
+context_injection_rules:
+  project_analysis:
+    - Extract project type from workflow definition
+    - Identify scale indicators (user count, data volume, etc.)
+    - Parse technology preferences and constraints
+    - Detect compliance requirements
+    
+  library_scoring:
+    deployment_weight: 0.30
+    domain_weight: 0.25  
+    manifest_weight: 0.25
+    type_weight: 0.10
+    compliance_weight: 0.10
+    
+  optimization_priorities:
+    - token_efficiency
+    - expansion_factor_maximization
+    - library_compatibility
+    - maintenance_reduction
+    - standard_pattern_adoption
+
+execution_parameters:
+  max_libraries_per_category:
+    deployments: 1  # Single deployment pattern
+    domains: 2      # Up to 2 domain libraries
+    manifests: 4    # Multiple tech integrations
+    types: 3        # Common type utilities
+    
+  context_limits:
+    max_total_tokens: 8000
+    library_description_limit: 200
+    example_snippet_limit: 300
+    
+  performance_targets:
+    response_time_ms: 2000
+    expansion_factor_min: 3.0
+    token_efficiency_min: 50
+    
+validation_schema:
+  required_fields:
+    - version
+    - imports
+    - components
+    
+  library_validation:
+    - import_syntax_correct
+    - library_exists
+    - compatibility_verified
+    - expansion_calculated
+    
+  quality_checks:
+    - specification_completeness
+    - inference_applicability
+    - business_logic_separation
+    - library_usage_optimization
+
+error_handling:
+  library_not_found:
+    action: "suggest_alternative"
+    fallback: "generic_pattern"
+    
+  incompatible_libraries:
+    action: "resolve_conflicts"
+    strategy: "priority_based_selection"
+    
+  validation_failure:
+    action: "regenerate_specification"
+    max_retries: 2
+    
+  timeout_exceeded:
+    action: "return_partial_result"
+    include_progress: true
+
+orchestrator_metadata:
+  version: "3.1.0"
+  supports:
+    - library_aware_generation
+    - workflow_orchestration  
+    - programmatic_integration
+    - context_optimization
+    
+  integrations:
+    - ci_cd_pipelines
+    - development_tools
+    - api_services
+    - automation_workflows

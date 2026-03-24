@@ -1,0 +1,61 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SpecVerseFundamentals",
+    "description": "Example 01-01: Basic model definition with attributes",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com"
+    }
+  ],
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "description": "Simple product with basic attributes",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": ""
+          },
+          "name": {
+            "type": "string",
+            "description": ""
+          },
+          "summary": {
+            "type": "string",
+            "description": ""
+          },
+          "price": {
+            "type": "string",
+            "description": ""
+          },
+          "inStock": {
+            "type": "boolean",
+            "description": "Default: true",
+            "default": "true"
+          },
+          "category": {
+            "type": "string",
+            "description": ""
+          },
+          "contactEmail": {
+            "type": "string",
+            "description": ""
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "category"
+        ]
+      }
+    },
+    "responses": {},
+    "parameters": {}
+  }
+}

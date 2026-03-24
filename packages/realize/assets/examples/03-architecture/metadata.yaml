@@ -1,0 +1,182 @@
+# Architecture Examples Metadata
+category: "architecture"
+title: "SpecVerse System Architecture"
+description: "Design complete system architectures with controllers, services, events, and views"
+targetAudience: "intermediate"
+estimatedTime: "5-6 hours"
+
+learningObjectives:
+  - "Master enhanced import system for modular specifications"
+  - "Design API controllers with actions and proper contracts"
+  - "Create service-oriented architectures with clear boundaries"
+  - "Implement event-driven communication patterns"
+  - "Build user interfaces with declarative view components"
+  - "Coordinate business operations across models and services"
+  - "Work with complex relationship patterns"
+  - "Use AI-powered inference capabilities"
+
+examples:
+  - id: "03-01-enhanced-imports"
+    title: "Enhanced Import System"
+    description: "Advanced import capabilities with granular construct selection"
+    concepts: ["imports", "construct-selection", "modular-specs", "dependency-management"]
+    prerequisites: ["01-01-basic-model", "01-03-model-with-behaviors"]
+    difficulty: "intermediate"
+    estimatedTime: "60 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Use enhanced import syntax for selective imports"
+      - "Manage dependencies between specifications"
+      - "Create modular and reusable specifications"
+      - "Understand import scoping and naming"
+    specverseFeatures: ["Enhanced Imports", "Modular Architecture", "Dependency Management"]
+    businessDomain: "general"
+    realWorldUseCase: "Large specifications, reusable components, team collaboration"
+
+  - id: "03-02-controllers-and-actions"
+    title: "Controllers and Actions"
+    description: "API design with controllers, actions, input/output contracts, and event publishing"
+    concepts: ["controllers", "actions", "input-output", "contracts", "api-design", "event-publishing"]
+    prerequisites: ["01-01-basic-model", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+    difficulty: "intermediate"
+    estimatedTime: "90 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Design RESTful controllers with clear actions"
+      - "Define input/output contracts with validation"
+      - "Implement proper error handling patterns"
+      - "Publish events for loose coupling"
+    specverseFeatures: ["Controllers", "Actions", "Contracts", "API Design"]
+    businessDomain: "general"
+    realWorldUseCase: "REST APIs, GraphQL resolvers, RPC services"
+
+  - id: "03-03-services-and-events"
+    title: "Services and Event-Driven Architecture"
+    description: "Service design with operations, event handling, and asynchronous workflows"
+    concepts: ["services", "operations", "event-driven", "async-workflows", "integration", "loose-coupling"]
+    prerequisites: ["03-02-controllers-and-actions", "01-03-model-with-behaviors"]
+    difficulty: "intermediate"
+    estimatedTime: "120 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Design services with clear operational boundaries"
+      - "Implement event-driven communication patterns"
+      - "Handle asynchronous operations and workflows"
+      - "Coordinate cross-service business processes"
+    specverseFeatures: ["Services", "Event Handlers", "Async Operations"]
+    businessDomain: "general"
+    realWorldUseCase: "Microservices, event sourcing, saga patterns, integration platforms"
+
+  - id: "03-04-views-and-components"
+    title: "Views and User Interface Components"
+    description: "Declarative UI design with views, components, data binding, and user interactions"
+    concepts: ["views", "components", "data-binding", "user-interactions", "ui-design", "presentation"]
+    prerequisites: ["03-02-controllers-and-actions", "01-04-models-with-relations"]
+    difficulty: "intermediate"
+    estimatedTime: "90 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Define user interfaces declaratively"
+      - "Create reusable component compositions"
+      - "Implement data binding and user interactions"
+      - "Design responsive and conditional UI patterns"
+    specverseFeatures: ["Views", "Components", "Data Binding", "UI Design"]
+    businessDomain: "general"
+    realWorldUseCase: "Web applications, mobile apps, dashboards, admin interfaces"
+
+  - id: "03-05-complete-event-flow"
+    title: "Complete Event Flow"
+    description: "End-to-end event-driven architecture with choreography patterns"
+    concepts: ["event-flow", "choreography", "saga-patterns", "event-sourcing", "integration"]
+    prerequisites: ["03-03-services-and-events", "03-02-controllers-and-actions"]
+    difficulty: "advanced"
+    estimatedTime: "120 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Design complex event choreography"
+      - "Implement saga patterns for distributed transactions"
+      - "Handle event ordering and consistency"
+      - "Create robust event-driven integrations"
+    specverseFeatures: ["Event Flow", "Choreography", "Saga Patterns"]
+    businessDomain: "general"
+    realWorldUseCase: "Distributed systems, microservices orchestration, integration platforms"
+
+  - id: "03-06-inference-engine-demo"
+    title: "Inference Engine Demo"
+    description: "AI-powered modeling with automatic relationship detection and code generation"
+    concepts: ["ai-inference", "relationship-detection", "code-generation", "pattern-recognition"]
+    prerequisites: ["01-04-models-with-relations", "03-02-controllers-and-actions"]
+    difficulty: "intermediate"
+    estimatedTime: "90 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Understand AI-powered modeling capabilities"
+      - "Use automatic relationship detection"
+      - "Generate code from specifications"
+      - "Recognize common modeling patterns"
+    specverseFeatures: ["AI Inference", "Pattern Recognition", "Code Generation"]
+    businessDomain: "e-commerce"
+    realWorldUseCase: "Rapid prototyping, model discovery, development acceleration"
+
+  - id: "03-07-relationships-demo"
+    title: "Advanced Relationships Demo"
+    description: "Complex relationship patterns with polymorphic associations and performance optimization"
+    concepts: ["advanced-relationships", "polymorphic", "self-referential", "performance", "optimization"]
+    prerequisites: ["01-04-models-with-relations", "02-01-using-profiles"]
+    difficulty: "advanced"
+    estimatedTime: "120 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Model polymorphic relationships"
+      - "Create self-referential patterns"
+      - "Optimize relationship performance"
+      - "Handle complex association scenarios"
+    specverseFeatures: ["Advanced Relations", "Polymorphic Patterns", "Performance Optimization"]
+    businessDomain: "general"
+    realWorldUseCase: "Content management, social networks, organizational hierarchies"
+
+  - id: "03-08-one-line-relationships"
+    title: "One-Line Relationships"
+    description: "Concise relationship syntax for rapid model development"
+    concepts: ["concise-syntax", "relationship-shortcuts", "rapid-modeling", "productivity"]
+    prerequisites: ["01-04-models-with-relations"]
+    difficulty: "intermediate"
+    estimatedTime: "45 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Use one-line relationship syntax"
+      - "Accelerate model development"
+      - "Understand syntax shortcuts"
+      - "Create clean, readable specifications"
+    specverseFeatures: ["Concise Syntax", "Productivity Features", "Rapid Development"]
+    businessDomain: "general"
+    realWorldUseCase: "Rapid prototyping, quick modeling, development efficiency"
+
+nextSteps:
+  - category: "04-domains"
+    description: "Apply architectural patterns to real-world domain examples"
+    reason: "See how complete architectures solve complex business problems"
+  - category: "05-meta"
+    description: "Explore meta-specifications and build systems"
+    reason: "Build on architectural knowledge with self-referential specifications"
+
+validationCommands:
+  - "specverse validate 03-architecture/03-01-enhanced-imports.specly"
+  - "specverse validate 03-architecture/03-02-controllers-and-actions.specly"
+  - "specverse validate 03-architecture/03-03-services-and-events.specly"
+  - "specverse validate 03-architecture/03-04-views-and-components.specly"
+  - "specverse validate 03-architecture/03-05-complete-event-flow.specly"
+  - "specverse validate 03-architecture/03-06-inference-engine-demo.specly"
+  - "specverse validate 03-architecture/03-07-relationships-demo.specly"
+  - "specverse validate 03-architecture/03-08-one-line-relationships.specly"
+
+# Key teaching progression:
+# 1. Enhanced imports for modular specifications
+# 2. Controllers for API layer and user interaction
+# 3. Services for business logic and integration
+# 4. Views for presentation and user experience
+# 5. Complete event flow for distributed systems
+# 6. AI inference for development acceleration
+# 7. Advanced relationships for complex modeling
+# 8. One-line syntax for productivity
+# This covers the complete architecture stack from basic to advanced patterns

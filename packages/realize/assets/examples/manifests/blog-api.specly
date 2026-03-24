@@ -1,0 +1,79 @@
+# Simple Blog API Deployment Example
+# Referenced by manifest examples to demonstrate v3.3 hybrid mapping
+
+components:
+  BlogAPI:
+    version: "1.0.0"
+    description: "Simple blog platform API"
+
+    models:
+      User:
+        attributes:
+          username: String required unique
+          email: Email required unique
+          passwordHash: String required
+          createdAt: DateTime auto=now
+
+      Post:
+        attributes:
+          title: String required
+          slug: String required unique
+          content: Text required
+          publishedAt: DateTime
+          status: String required values=[draft,published,archived]
+        relationships:
+          author: belongsTo User cascade
+
+      Comment:
+        attributes:
+          content: Text required
+          createdAt: DateTime auto=now
+        relationships:
+          post: belongsTo Post cascade
+          author: belongsTo User
+
+deployments:
+  production:
+    version: "1.0.0"
+    environment: production
+    description: "Production deployment with multiple instances"
+
+    instances:
+      controllers:
+        # Main API controller
+        userApi:
+          component: "BlogAPI"
+          advertises: ["api.rest", "api.rest.crud"]
+          uses: ["storage.database"]
+
+        # Admin API with additional capabilities
+        adminApi:
+          component: "BlogAPI"
+          advertises: ["api.rest.admin", "api.rest.reports"]
+          uses: ["storage.database", "storage.cache"]
+
+      storage:
+        # Main PostgreSQL database
+        userDb:
+          component: "BlogAPI"
+          type: "relational"
+          advertises: ["storage.database"]
+
+        # Analytics database (can be overridden to MongoDB)
+        analyticsDb:
+          component: "BlogAPI"
+          type: "document"
+          advertises: ["storage.database.analytics"]
+
+        # Session cache
+        sessionCache:
+          component: "BlogAPI"
+          type: "keyvalue"
+          advertises: ["storage.cache"]
+
+      services:
+        # Validation service
+        validator:
+          component: "BlogAPI"
+          advertises: ["validation.runtime"]
+          uses: ["api.rest"]

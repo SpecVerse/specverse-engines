@@ -1,0 +1,87 @@
+# Production Deployment
+# SpecVerse v3.1 deployment specification for production environment
+
+deployments:
+  production:
+    version: "1.0.0"
+    environment: "production"
+    description: "Production deployment with PostgreSQL and monitoring"
+    
+    # Based on libs/deployments/monolith/production pattern
+    instances:
+      controllers:
+        apiServer:
+          component: "{{componentName}}"
+          namespace: "api"
+          scale: 3
+          advertises: ["api.*"]
+          uses: ["database.*", "auth.*", "cache.*"]
+          
+      services:
+        businessService:
+          component: "{{componentName}}"
+          namespace: "services"
+          scale: 2
+          advertises: ["business.*", "validation.*"]
+          uses: ["database.*", "cache.*"]
+          
+      storage:
+        mainDB:
+          component: "{{componentName}}"
+          namespace: "data"
+          type: "relational"
+          scale: 2
+          backup: true
+          encryption: true
+          advertises: ["persistence.*", "query.*"]
+          
+        cache:
+          component: "{{componentName}}"
+          namespace: "cache"
+          type: "keyvalue"
+          scale: 2
+          advertises: ["cache.*", "session.*"]
+          
+      security:
+        authSystem:
+          component: "{{componentName}}"
+          namespace: "auth"
+          type: "authentication"
+          provider: "oauth"
+          scope: "global"
+          scale: 2
+          advertises: ["auth.*", "identity.*"]
+          policies: ["session-management", "rate-limiting"]
+          encryption: "strong"
+          auditLevel: "detailed"
+          
+      monitoring:
+        appMetrics:
+          component: "{{componentName}}"
+          namespace: "monitoring"
+          type: "metrics"
+          provider: "prometheus"
+          scope: "global"
+          retention: "medium"
+          resolution: "high"
+          advertises: ["metrics.*"]
+          dashboards: ["overview", "errors", "performance"]
+          alerts: ["high-error-rate", "service-down", "high-latency"]
+          
+      infrastructure:
+        loadBalancer:
+          component: "{{componentName}}"
+          namespace: "gateway"
+          type: "gateway"
+          provider: "nginx"
+          tier: "regional"
+          redundancy: "basic"
+          advertises: ["routing.*", "balancing.*"]
+          protocols: ["http", "https"]
+          healthChecks: true
+          
+      communications:
+        prodBus:
+          namespace: "global"
+          type: "pubsub"
+          capabilities: ["*"]

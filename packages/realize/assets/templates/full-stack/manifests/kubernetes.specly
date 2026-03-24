@@ -1,0 +1,140 @@
+# Kubernetes Implementation Manifest
+# SpecVerse v3.3 manifest specification for Kubernetes deployment
+
+manifests:
+  KubernetesManifest:
+    specVersion: "3.3.0"
+    name: "{{componentName}}KubernetesManifest"
+    version: "1.0.0"
+    description: "Kubernetes implementation manifest for {{projectName}}"
+
+    # v3.3: Deployment reference (REQUIRED)
+    deployment:
+      deploymentSource: "./specs/main.specly"
+      deploymentName: "production"
+
+    # v3.3: Default technology mappings
+    defaultMappings:
+      storage: "PostgreSQL15"
+      controller: "KubernetesApp"
+
+    # v3.3: Capability to implementation factory mappings
+    capabilityMappings:
+      - capability: "api.*"
+        instanceFactory: "KubernetesController"
+
+      - capability: "database.*"
+        instanceFactory: "KubernetesDatabase"
+
+      - capability: "networking.*"
+        instanceFactory: "KubernetesService"
+
+    # v3.3: Instance-specific mappings (optional - for fine-grained control)
+    instanceMappings:
+      - instanceName: "webApp"
+        instanceFactory: "KubernetesController"
+
+      - instanceName: "appDatabase"
+        instanceFactory: "KubernetesDatabase"
+
+      - instanceName: "webService"
+        instanceFactory: "KubernetesService"
+
+    # v3.3: Platform-specific configuration
+    configuration:
+      # Kubernetes specific settings
+      clusterVersion: "v1.28"
+
+      # Implementation factory definitions
+      implementationFactories:
+        KubernetesController:
+          type: "controller"
+          technology: "kubernetes"
+          framework: "deployment"
+          config:
+            apiVersion: "apps/v1"
+            kind: "Deployment"
+            replicas: 3
+            image: "{{projectNameKebab}}:latest"
+            containerPort: 3000
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+
+        KubernetesDatabase:
+          type: "database"
+          technology: "postgresql"
+          framework: "kubernetes-operator"
+          config:
+            apiVersion: "postgresql.cnpg.io/v1"
+            kind: "Cluster"
+            instances: 3
+            postgresql:
+              parameters:
+                max_connections: "100"
+                shared_buffers: "128MB"
+            storage:
+              size: "10Gi"
+              storageClass: "fast-ssd"
+
+        KubernetesService:
+          type: "service"
+          technology: "kubernetes"
+          framework: "service"
+          config:
+            apiVersion: "v1"
+            kind: "Service"
+            serviceType: "ClusterIP"
+            ports:
+              - port: 80
+                targetPort: 3000
+                protocol: "TCP"
+
+      # Horizontal Pod Autoscaling
+      scaling:
+        horizontal:
+          enabled: true
+          minReplicas: 3
+          maxReplicas: 10
+          targetCPUUtilization: 70
+
+      # Monitoring configuration
+      monitoring:
+        prometheus: true
+        grafana: true
+        alerts:
+          - name: "high-cpu"
+            threshold: "80%"
+          - name: "high-memory"
+            threshold: "85%"
+
+      # Namespace configuration
+      namespace:
+        strategy: "environment-based"
+        name: "{{projectNameKebab}}"
+        description: "Production application namespace"
+        isolation: "strict"
+        resourceLimits:
+          cpu: "2"
+          memory: "4Gi"
+          storage: "50Gi"
+        securityPolicy: "restricted"
+
+      # AI implementation instructions
+      aiInstructions: |
+        When implementing this Kubernetes deployment:
+
+        1. **Production Ready**: Configured for production with multiple replicas
+        2. **Resource Management**: CPU and memory limits defined
+        3. **Horizontal Scaling**: HPA configured for automatic scaling
+        4. **Database**: PostgreSQL with operator for high availability
+        5. **Networking**: ClusterIP service for internal communication
+        6. **Security**: Restricted security policy and namespace isolation
+        7. **Monitoring**: Prometheus and Grafana integration
+        8. **Storage**: Persistent volumes for database data
+        9. **Health Checks**: Configure readiness and liveness probes
+        10. **Secrets**: Use Kubernetes secrets for sensitive data

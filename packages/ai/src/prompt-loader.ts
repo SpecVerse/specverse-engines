@@ -15,29 +15,37 @@ export function resolvePromptPath(pver: string, basePath?: string): string {
   const __filename = basePath || fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  // Find the project root (contains prompts/ directory)
-  const possibleRoots = [
-    resolve(__dirname, '../../'),      // From src/ai/ to project root
-    resolve(__dirname, '../../../'),   // From dist/ai/ to project root
-    resolve(__dirname, '../../../../'), // From node_modules/@specverse/lang/dist/ai/
+  // Find prompts directory — check engine package assets first, then project root
+  const possiblePromptDirs = [
+    resolve(__dirname, '../assets/prompts'),        // From src/ to assets/ (development)
+    resolve(__dirname, '../../assets/prompts'),      // From dist/ to assets/ (built)
+    resolve(__dirname, '../../../assets/prompts'),    // From dist/commands/ to assets/
+    resolve(__dirname, '../../'),                     // Legacy: project root with prompts/ subdir
+    resolve(__dirname, '../../../'),
+    resolve(__dirname, '../../../../'),
   ];
 
-  let projectRoot: string | null = null;
-  for (const root of possibleRoots) {
-    if (existsSync(join(root, 'prompts'))) {
-      projectRoot = root;
+  let promptsBase: string | null = null;
+  for (const dir of possiblePromptDirs) {
+    // Check for assets/prompts layout (core/standard/vN inside)
+    if (existsSync(join(dir, 'core', 'standard'))) {
+      promptsBase = dir;
+      break;
+    }
+    // Check for legacy project root layout (prompts/core/standard/vN)
+    if (existsSync(join(dir, 'prompts', 'core', 'standard'))) {
+      promptsBase = join(dir, 'prompts');
       break;
     }
   }
 
-  if (!projectRoot) {
-    throw new Error('Could not locate prompts directory');
+  if (!promptsBase) {
+    throw new Error('Could not locate prompts directory. Ensure @specverse/engine-ai assets are installed.');
   }
 
   // Resolve version to path
   if (pver === 'default' || pver.match(/^v\d+$/)) {
-    // All versions (default, v1, v2, v3, ...) live in subdirectories
-    let versionPath = join(projectRoot, 'prompts/core/standard', pver);
+    let versionPath = join(promptsBase, 'core/standard', pver);
 
     // Handle 'default' - symlink may not survive npm package installation
     if (pver === 'default' && !existsSync(versionPath)) {
@@ -98,29 +106,27 @@ export function getAvailablePromptVersions(basePath?: string): { version: string
   try {
     const versions: { version: string; path: string; name: string }[] = [];
 
-    // Get the project root
-    const __filename = basePath || fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const possibleRoots = [
-      resolve(__dirname, '../../'),
-      resolve(__dirname, '../../../'),
-      resolve(__dirname, '../../../../'),
+    // Find prompts using the same resolution as resolvePromptPath
+    const __filename2 = basePath || fileURLToPath(import.meta.url);
+    const __dirname2 = dirname(__filename2);
+    const possiblePromptDirs2 = [
+      resolve(__dirname2, '../assets/prompts'),
+      resolve(__dirname2, '../../assets/prompts'),
+      resolve(__dirname2, '../../../assets/prompts'),
+      resolve(__dirname2, '../../'),
+      resolve(__dirname2, '../../../'),
+      resolve(__dirname2, '../../../../'),
     ];
 
-    let projectRoot: string | null = null;
-    for (const root of possibleRoots) {
-      if (existsSync(join(root, 'prompts'))) {
-        projectRoot = root;
-        break;
-      }
+    let standardPath: string | null = null;
+    for (const dir of possiblePromptDirs2) {
+      const candidate = join(dir, 'core', 'standard');
+      if (existsSync(candidate)) { standardPath = candidate; break; }
+      const legacy = join(dir, 'prompts', 'core', 'standard');
+      if (existsSync(legacy)) { standardPath = legacy; break; }
     }
 
-    if (!projectRoot) {
-      return [];
-    }
-
-    // Dynamically discover all vN directories
-    const standardPath = join(projectRoot, 'prompts/core/standard');
+    if (!standardPath) return [];
     if (existsSync(standardPath)) {
       const entries = readdirSync(standardPath, { withFileTypes: true });
 

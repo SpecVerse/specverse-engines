@@ -1,0 +1,242 @@
+name: materialise
+version: "5.0.0"
+description: Generate implementation guidance and code scaffolding from SpecVerse v3.2.0 specifications
+author: SpecVerse Team
+tags: [materialisation, implementation, code-generation, v5, scaffolding]
+
+system:
+  role: |
+    You are a SpecVerse implementation materializer that generates concrete implementation guidance
+    and code scaffolding from SpecVerse v3.2.0 specifications. You bridge the gap between
+    specification and actual implementation using standardized library patterns.
+
+  context: |
+    Your task is to take complete SpecVerse specifications and generate:
+    1. Implementation guidance documents
+    2. Code scaffolding and templates
+    3. Configuration files and setup instructions
+    4. Development workflow recommendations
+    5. Technology-specific best practices
+
+    Focus on practical, implementable guidance that developers can follow immediately.
+    Leverage @specverse/standards libraries for consistent patterns.
+    Generate framework-specific code that follows modern best practices.
+
+  capabilities:
+    - Parse v3.2.0 specifications with unified manifest format
+    - Generate technology-specific implementation templates
+    - Create file structures and project scaffolding
+    - Map @specverse/standards to concrete implementations
+    - Generate configuration files for target frameworks
+    - Create development setup and build scripts
+    - Provide testing strategies and examples
+    - Generate deployment configuration templates
+
+  constraints:
+    - Follow exact specification requirements without additions
+    - Use modern, production-ready patterns and practices
+    - Leverage @specverse/standards library implementations
+    - Generate framework-idiomatic code
+    - Include proper error handling and validation
+    - Follow security best practices
+    - Ensure scalability and maintainability
+
+user:
+  template: |
+    Generate implementation guidance and code scaffolding from this SpecVerse v3.2.0 specification:
+
+    Specification File: {{specificationFile}}
+    Target Framework: {{targetFramework}}
+    Implementation Style: {{implementationStyle}}
+    Development Environment: {{developmentEnvironment}}
+
+    Component Specification:
+    {{componentSpec}}
+
+    Implementation Manifest:
+    {{implementationManifest}}
+
+    Deployment Specification:
+    {{deploymentSpec}}
+
+    Please generate:
+
+    1. PROJECT STRUCTURE:
+    - Complete directory structure for target framework
+    - File organization following framework conventions
+    - Configuration files and environment setup
+
+    2. IMPLEMENTATION TEMPLATES:
+    - Model/Entity classes with proper relationships
+    - Controller classes with CURED operations
+    - Service classes with business logic structure
+    - Event handlers and messaging setup
+    - View templates and component structure
+
+    3. CONFIGURATION SETUP:
+    - Database configuration and migration files
+    - API routing and middleware setup
+    - Authentication and authorization configuration
+    - Environment variables and secrets management
+    - Build and deployment scripts
+
+    4. DEVELOPMENT GUIDANCE:
+    - Setup instructions and prerequisites
+    - Development workflow recommendations
+    - Testing strategies and example tests
+    - Documentation templates and standards
+    - Code quality and linting configuration
+
+    5. DEPLOYMENT PREPARATION:
+    - Infrastructure as code templates
+    - Container configuration (Docker/Kubernetes)
+    - Environment-specific configurations
+    - Monitoring and logging setup
+    - Scaling and performance considerations
+
+    Focus on providing immediately actionable implementation guidance.
+
+  variables:
+    - name: specificationFile
+      type: string
+      required: true
+      description: Path to the SpecVerse specification file
+
+    - name: targetFramework
+      type: string
+      required: true
+      enum: ["nextjs", "nestjs", "express", "django", "rails", "spring-boot"]
+      description: Target implementation framework
+
+    - name: implementationStyle
+      type: string
+      required: false
+      default: "modern"
+      enum: ["minimal", "modern", "enterprise"]
+      description: Implementation complexity and feature level
+
+    - name: developmentEnvironment
+      type: string
+      required: false
+      default: "local"
+      enum: ["local", "cloud", "hybrid"]
+      description: Target development environment
+
+    - name: componentSpec
+      type: string
+      required: true
+      description: Component specification section
+
+    - name: implementationManifest
+      type: string
+      required: true
+      description: Implementation manifest in unified format
+
+    - name: deploymentSpec
+      type: string
+      required: false
+      description: Deployment specification section
+
+framework_templates:
+  nextjs:
+    structure: |
+      project/
+      ├── src/
+      │   ├── app/              # App Router (Next.js 14+)
+      │   ├── components/       # Reusable UI components
+      │   ├── lib/             # Utility functions and configurations
+      │   └── types/           # TypeScript type definitions
+      ├── public/              # Static assets
+      ├── prisma/              # Database schema and migrations
+      └── package.json
+
+  nestjs:
+    structure: |
+      project/
+      ├── src/
+      │   ├── modules/         # Feature modules
+      │   ├── common/          # Shared utilities and guards
+      │   ├── config/          # Configuration files
+      │   └── main.ts          # Application entry point
+      ├── test/                # End-to-end tests
+      ├── prisma/              # Database schema
+      └── package.json
+
+implementation_patterns:
+  models:
+    nextjs_prisma: |
+      // prisma/schema.prisma
+      model {{ModelName}} {
+        {{#attributes}}
+        {{name}} {{type}} {{modifiers}}
+        {{/attributes}}
+        {{#relationships}}
+        {{name}} {{type}} {{cardinality}}
+        {{/relationships}}
+      }
+
+  controllers:
+    nestjs: |
+      // src/{{module}}/{{name}}.controller.ts
+      @Controller('{{path}}')
+      export class {{Name}}Controller {
+        constructor(private readonly {{service}}: {{Service}}) {}
+
+        {{#operations}}
+        @{{method}}('{{route}}')
+        async {{operation}}({{parameters}}) {
+          return this.{{service}}.{{operation}}({{args}});
+        }
+        {{/operations}}
+      }
+
+  services:
+    generic: |
+      // src/{{module}}/{{name}}.service.ts
+      export class {{Name}}Service {
+        {{#operations}}
+        async {{operation}}({{parameters}}) {
+          {{#steps}}
+          // {{step}}
+          {{/steps}}
+        }
+        {{/operations}}
+      }
+
+configuration_templates:
+  database:
+    postgresql: |
+      # DATABASE_URL for PostgreSQL
+      DATABASE_URL="postgresql://user:password@localhost:5432/{{database_name}}"
+
+  authentication:
+    nextauth: |
+      // src/lib/auth.ts
+      import NextAuth from 'next-auth'
+
+      export const { handlers, auth, signIn, signOut } = NextAuth({
+        providers: [
+          // Configure providers based on manifest
+        ],
+      })
+
+output:
+  deliverables:
+    - project_structure: "Complete directory tree"
+    - implementation_files: "Code templates and scaffolding"
+    - configuration_files: "Framework and deployment configs"
+    - setup_instructions: "Step-by-step implementation guide"
+    - development_workflow: "Best practices and recommendations"
+
+  quality_standards:
+    - typescript_strict: "Strict TypeScript configuration"
+    - error_handling: "Comprehensive error handling patterns"
+    - testing_coverage: "Unit and integration test templates"
+    - security_practices: "Authentication, authorization, validation"
+    - performance_optimization: "Caching, database optimization"
+
+validation:
+  framework_compliance: "Follow framework best practices"
+  specification_fidelity: "Implement exactly what's specified"
+  production_readiness: "Enterprise-grade code quality"
+  maintainability: "Clean, documented, extensible code"

@@ -1,0 +1,77 @@
+name: CustomProvidersDemo
+version: "1.0.0"
+category: view
+description: "Demonstrates v3.4.0 extensible provider support - custom runtimes and languages"
+
+metadata:
+  author: "SpecVerse Team"
+  license: "MIT"
+  tags: [zig, custom-runtime, v3.4.0, extensibility]
+
+compatibility:
+  specverse: "^3.4.0"
+
+capabilities:
+  provides:
+    - "api.rest"
+    - "api.rest.crud"
+  requires:
+    - "storage.database"
+
+# ✨ NEW in v3.4.0: Custom runtime and language!
+# Before v3.4.0, these values had to be in predefined enums.
+# Now you can use ANY technology immediately!
+technology:
+  runtime: "zig"          # Custom runtime - not in v3.3 enum!
+  language: "zig"         # Custom language - emerging systems language
+  framework: "zap"        # Zig web framework
+
+dependencies:
+  runtime:
+    - name: "zap"
+      version: "^0.7.0"
+
+codeTemplates:
+  routes:
+    engine: typescript
+    generator: "templates/zig/routes-generator.ts"
+    outputPattern: "src/routes/{modelName}.zig"
+
+  models:
+    engine: typescript
+    generator: "templates/zig/models-generator.ts"
+    outputPattern: "src/models/{modelName}.zig"
+
+configuration:
+  port: 8080
+  host: "0.0.0.0"
+
+# Additional Examples of Custom Technologies (v3.4.0+)
+#
+# Example 1: Bun runtime (recently added to enum, still works)
+# technology:
+#   runtime: "bun"
+#   language: "typescript"
+#   framework: "elysia"
+#
+# Example 2: Gleam on BEAM VM
+# technology:
+#   runtime: "beam"        # Erlang VM - not in old enum
+#   language: "gleam"      # Functional language
+#   framework: "mist"
+#
+# Example 3: .NET on latest runtime
+# technology:
+#   runtime: "dotnet"      # Not in old enum
+#   language: "csharp"     # Standard language
+#   framework: "aspnet"
+#
+# Example 4: Crystal language
+# technology:
+#   runtime: "crystal"     # Not in old enum
+#   language: "crystal"    # Compiled Ruby-like language
+#   framework: "kemal"
+#
+# Pattern Validation: All values must be kebab-case
+# Valid: "zig", "dotnet", "gleam", "crystal"
+# Invalid: "Zig", "DotNet", ".NET", "1zig"

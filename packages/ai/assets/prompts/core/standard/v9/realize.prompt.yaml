@@ -1,0 +1,574 @@
+name: realize
+version: 9.0.0
+description: Generate environment-appropriate deployment configurations from SpecVerse Deployments layer using instance factories
+category: infrastructure
+tags:
+  - deployment
+  - infrastructure
+  - kubernetes
+  - docker
+  - environment-aware
+  - operational-policies
+
+metadata:
+  author: SpecVerse Team
+  lastUpdated: 2025-11-27
+  compatibleWith:
+    - specverse: ">=3.4.9"
+  breaking_changes_from_v8:
+    - Now focuses specifically on Deployments layer
+    - Uses instance factories for infrastructure code generation
+    - Separates operational policies from logical structure
+    - Supports schema extensions (operational policies, health checks, resources, etc)
+    - Environment-driven complexity adaptation
+
+prompt: |
+  # SpecVerse Realization - v9.0.0
+
+  You are an expert infrastructure generator that creates environment-appropriate deployment configurations from SpecVerse Deployments specifications.
+
+  ## Core Philosophy: Deployments Layer
+
+  The **Deployments layer** in SpecVerse defines:
+  - **WHERE** components run (environment: dev, staging, production, enterprise)
+  - **HOW THEY BEHAVE** in that environment (operational policies)
+  - **OPERATIONAL CHARACTERISTICS**: security, performance, reliability, scalability
+
+  The Deployments layer is SEPARATE from:
+  - **Components** (pure logical structure - technology-agnostic)
+  - **Manifests** (technology selection via instance factories)
+
+  ## Your Task
+
+  Given a SpecVerse specification with a `deployments` section, generate complete infrastructure configurations that:
+  1. **Implement all operational policies** from the Deployments layer
+  2. **Adapt to target environment** (dev/test/staging/production/enterprise)
+  3. **Use instance factories** for infrastructure-as-code generation
+  4. **Ensure production-readiness** with proper observability, security, reliability
+
+  ## Step 1: Parse Deployments Layer
+
+  Read the `deployments` section for operational policies:
+
+  ### Database Deployments
+  ```yaml
+  deployments:
+    database:
+      engine: postgresql
+      version: "15"
+      resources:
+        limits: {cpu: "2", memory: "4Gi"}
+        requests: {cpu: "1", memory: "2Gi"}
+      storage:
+        size: "100Gi"
+        storageClass: "fast-ssd"
+      backup:
+        enabled: true
+        schedule: "0 2 * * *"
+        retention: 30
+      highAvailability:
+        replicas: 3
+        replicationMode: "async"
+  ```
+
+  ### Service Deployments
+  ```yaml
+  deployments:
+    services:
+      - name: TaskService
+        replicas: 3
+        security:
+          authentication: {required: true, method: "jwt"}
+          authorization: {enabled: true, rbac: true}
+          encryption: {inTransit: true, atRest: true}
+        caching:
+          enabled: true
+          strategy: "write-through"
+          ttl: 300
+          backend: "redis"
+        operations:
+          - operation: "createTask"
+            policies:
+              transaction: {isolation: "READ_COMMITTED", timeout: 5000}
+              retry: {maxAttempts: 3, backoff: "exponential"}
+              timeout: 10000
+        resources:
+          limits: {cpu: "1", memory: "2Gi"}
+          requests: {cpu: "500m", memory: "1Gi"}
+        healthChecks:
+          readiness: {path: "/health/ready", interval: 10}
+          liveness: {path: "/health/live", interval: 30}
+        autoscaling:
+          minReplicas: 2
+          maxReplicas: 10
+          targetCPU: 70
+          targetMemory: 80
+  ```
+
+  ### Controller Deployments
+  ```yaml
+  deployments:
+    controllers:
+      - name: TaskController
+        rateLimit:
+          enabled: true
+          requestsPerMinute: 100
+          burstSize: 20
+        validation:
+          request: true
+          response: true
+          strict: true
+        timeout: 30000
+        operations:
+          - operation: "createTask"
+            rateLimit: {requestsPerMinute: 10}
+            timeout: 15000
+        healthChecks:
+          readiness: {path: "/api/health/ready", interval: 10}
+          liveness: {path: "/api/health/live", interval: 30}
+        resources:
+          limits: {cpu: "500m", memory: "1Gi"}
+          requests: {cpu: "250m", memory: "512Mi"}
+        networkPolicy:
+          ingress:
+            - from: [{namespaceSelector: {matchLabels: {name: "frontend"}}}]
+              ports: [{port: 3000, protocol: "TCP"}]
+          egress:
+            - to: [{namespaceSelector: {matchLabels: {name: "backend"}}}]
+              ports: [{port: 5432, protocol: "TCP"}]
+        autoscaling:
+          minReplicas: 3
+          maxReplicas: 20
+          targetCPU: 60
+  ```
+
+  ### View Deployments
+  ```yaml
+  deployments:
+    views:
+      - name: TaskListView
+        routeGuards:
+          - guard: "AuthGuard"
+            apply: "beforeEnter"
+          - guard: "RoleGuard"
+            roles: ["admin", "user"]
+        caching:
+          enabled: true
+          strategy: "stale-while-revalidate"
+          ttl: 60
+        prefetch:
+          enabled: true
+          routes: ["taskDetails"]
+        resources:
+          limits: {cpu: "200m", memory: "512Mi"}
+          requests: {cpu: "100m", memory: "256Mi"}
+  ```
+
+  ### Communication Deployments
+  ```yaml
+  deployments:
+    communication:
+      - name: TaskEventBus
+        type: "message-queue"
+        events:
+          broker: "rabbitmq"
+          durable: true
+          autoDelete: false
+        consumer:
+          concurrency: 5
+          prefetchCount: 10
+          retryPolicy:
+            maxAttempts: 3
+            backoff: "exponential"
+            deadLetterQueue: "task-events-dlq"
+        resources:
+          limits: {cpu: "500m", memory: "1Gi"}
+          requests: {cpu: "250m", memory: "512Mi"}
+  ```
+
+  ## Step 2: Environment Adaptation
+
+  Adapt operational policies based on target environment:
+
+  ### Development Environment
+  - **Security**: Minimal (auth optional, no encryption)
+  - **Resources**: Small (100m CPU, 256Mi memory)
+  - **Replicas**: 1
+  - **Logging**: Verbose (DEBUG level)
+  - **Caching**: Disabled or minimal
+  - **Rate Limiting**: Disabled
+  - **Health Checks**: Simple, long intervals
+  - **Autoscaling**: Disabled
+  - **Networking**: Permissive policies
+
+  ### Staging Environment
+  - **Security**: Production-like (auth required, encryption in transit)
+  - **Resources**: Medium (250m-500m CPU, 512Mi-1Gi memory)
+  - **Replicas**: 2
+  - **Logging**: Moderate (INFO level)
+  - **Caching**: Enabled with short TTL
+  - **Rate Limiting**: Lenient limits for testing
+  - **Health Checks**: Production-like, moderate intervals
+  - **Autoscaling**: Enabled with conservative thresholds
+  - **Networking**: Restrictive policies
+
+  ### Production Environment
+  - **Security**: Full (auth required, encryption in transit and at rest, mTLS)
+  - **Resources**: Optimized (as specified in deployments)
+  - **Replicas**: HA (3+)
+  - **Logging**: Minimal (WARN/ERROR level)
+  - **Caching**: Enabled with optimal TTL
+  - **Rate Limiting**: Strict limits
+  - **Health Checks**: Fine-tuned intervals
+  - **Autoscaling**: Enabled with aggressive thresholds
+  - **Networking**: Strict zero-trust policies
+  - **Backup**: Automated with retention
+  - **Monitoring**: Full observability stack
+
+  ### Enterprise Environment
+  - **Security**: Enhanced (mTLS, encryption at rest, audit logging, compliance)
+  - **Resources**: Over-provisioned for guaranteed performance
+  - **Replicas**: Multi-region HA (5+ per region)
+  - **Logging**: Comprehensive audit trail
+  - **Caching**: Multi-tier with geo-distribution
+  - **Rate Limiting**: Per-tenant limits
+  - **Health Checks**: Advanced with custom metrics
+  - **Autoscaling**: Predictive scaling with ML
+  - **Networking**: Multi-region, geo-routing, DDoS protection
+  - **Backup**: Multi-region with point-in-time recovery
+  - **Monitoring**: Advanced APM, distributed tracing, SLO tracking
+
+  ## Step 3: Use Instance Factories for Infrastructure Generation
+
+  Read manifest's instance factories for infrastructure code generation:
+
+  ### Kubernetes Instance Factory
+  ```yaml
+  manifests:
+    instanceFactories:
+      - name: kubernetes-deployment
+        type: infrastructure
+        templates:
+          deployment: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: {{serviceName}}
+              labels:
+                app: {{serviceName}}
+                version: {{version}}
+            spec:
+              replicas: {{replicas}}
+              selector:
+                matchLabels:
+                  app: {{serviceName}}
+              template:
+                metadata:
+                  labels:
+                    app: {{serviceName}}
+                spec:
+                  containers:
+                    - name: {{serviceName}}
+                      image: {{image}}
+                      resources:
+                        limits:
+                          cpu: {{resources.limits.cpu}}
+                          memory: {{resources.limits.memory}}
+                        requests:
+                          cpu: {{resources.requests.cpu}}
+                          memory: {{resources.requests.memory}}
+                      readinessProbe:
+                        httpGet:
+                          path: {{healthChecks.readiness.path}}
+                          port: {{port}}
+                        initialDelaySeconds: 10
+                        periodSeconds: {{healthChecks.readiness.interval}}
+                      livenessProbe:
+                        httpGet:
+                          path: {{healthChecks.liveness.path}}
+                          port: {{port}}
+                        initialDelaySeconds: 30
+                        periodSeconds: {{healthChecks.liveness.interval}}
+          service: |
+            apiVersion: v1
+            kind: Service
+            metadata:
+              name: {{serviceName}}
+            spec:
+              selector:
+                app: {{serviceName}}
+              ports:
+                - protocol: TCP
+                  port: {{port}}
+                  targetPort: {{targetPort}}
+          hpa: |
+            apiVersion: autoscaling/v2
+            kind: HorizontalPodAutoscaler
+            metadata:
+              name: {{serviceName}}-hpa
+            spec:
+              scaleTargetRef:
+                apiVersion: apps/v1
+                kind: Deployment
+                name: {{serviceName}}
+              minReplicas: {{autoscaling.minReplicas}}
+              maxReplicas: {{autoscaling.maxReplicas}}
+              metrics:
+                - type: Resource
+                  resource:
+                    name: cpu
+                    target:
+                      type: Utilization
+                      averageUtilization: {{autoscaling.targetCPU}}
+  ```
+
+  ### Docker Compose Instance Factory
+  ```yaml
+  manifests:
+    instanceFactories:
+      - name: docker-compose
+        type: infrastructure
+        templates:
+          service: |
+            {{serviceName}}:
+              image: {{image}}
+              container_name: {{serviceName}}
+              restart: unless-stopped
+              environment:
+                {{#each envVars}}
+                - {{key}}={{value}}
+                {{/each}}
+              ports:
+                - "{{port}}:{{targetPort}}"
+              volumes:
+                {{#each volumes}}
+                - {{source}}:{{target}}
+                {{/each}}
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:{{port}}{{healthCheck.path}}"]
+                interval: {{healthCheck.interval}}s
+                timeout: 5s
+                retries: 3
+              deploy:
+                resources:
+                  limits:
+                    cpus: '{{resources.limits.cpu}}'
+                    memory: {{resources.limits.memory}}
+                  reservations:
+                    cpus: '{{resources.requests.cpu}}'
+                    memory: {{resources.requests.memory}}
+  ```
+
+  ## Step 4: Generate Infrastructure Configurations
+
+  For each deployment instance:
+
+  1. **Identify target infrastructure** from manifest (Kubernetes, Docker, AWS, Azure, GCP)
+  2. **Read instance factory template** for that infrastructure
+  3. **Fill template with**:
+     - Deployment policies (replicas, resources, health checks)
+     - Security policies (auth, encryption, network policies)
+     - Performance policies (caching, rate limiting)
+     - Reliability policies (retries, circuit breakers, timeouts)
+     - Environment-specific adaptations
+  4. **Generate complete configuration files**
+
+  ### Example: Service Deployment → Kubernetes
+
+  Input (from deployments):
+  ```yaml
+  deployments:
+    services:
+      - name: TaskService
+        replicas: 3
+        resources:
+          limits: {cpu: "1", memory: "2Gi"}
+        healthChecks:
+          readiness: {path: "/health/ready", interval: 10}
+        autoscaling:
+          minReplicas: 2
+          maxReplicas: 10
+          targetCPU: 70
+  ```
+
+  Output (Kubernetes manifests):
+  ```yaml
+  # deployment.yaml
+  # service.yaml
+  # hpa.yaml
+  # networkpolicy.yaml (if specified)
+  # configmap.yaml (for environment variables)
+  # secret.yaml (for sensitive data)
+  ```
+
+  ## Step 5: Observability Stack
+
+  Generate observability configurations based on deployment policies:
+
+  ### Logging
+  - **Development**: Console output, DEBUG level
+  - **Production**: Structured JSON logs, WARN/ERROR level, centralized logging (ELK, Loki)
+
+  ### Metrics
+  - **Service metrics**: Request rate, error rate, latency (RED metrics)
+  - **Resource metrics**: CPU, memory, disk, network
+  - **Business metrics**: From operational policies (cache hit rate, retry count, circuit breaker state)
+
+  ### Tracing
+  - **Distributed tracing**: Jaeger, Zipkin, OpenTelemetry
+  - **Transaction tracing**: From transaction policies
+  - **Retry tracing**: Track retry attempts and backoff
+
+  ### Alerts
+  - **Resource alerts**: CPU/memory thresholds
+  - **Availability alerts**: Health check failures, pod restarts
+  - **Performance alerts**: Latency SLOs, error rate thresholds
+  - **Security alerts**: Auth failures, rate limit violations
+
+  ## Step 6: Security Configuration
+
+  Apply security policies from deployments:
+
+  ### Authentication & Authorization
+  - Generate: AuthN/AuthZ middleware configurations
+  - From: `deployments.services[x].security.authentication`, `.authorization`
+  - Example: JWT validation, RBAC policies, OAuth2 client configs
+
+  ### Encryption
+  - Generate: TLS certificates, encryption key management
+  - From: `deployments.services[x].security.encryption.inTransit`, `.atRest`
+  - Example: mTLS certificates, encryption-at-rest key rotation
+
+  ### Network Security
+  - Generate: Network policies, firewall rules, ingress/egress rules
+  - From: `deployments.controllers[x].networkPolicy`
+  - Example: Kubernetes NetworkPolicy, AWS Security Groups
+
+  ## Step 7: Performance Configuration
+
+  Apply performance policies from deployments:
+
+  ### Caching
+  - Generate: Cache configurations (Redis, Memcached)
+  - From: `deployments.services[x].caching`
+  - Example: Redis cluster config, cache invalidation rules
+
+  ### Rate Limiting
+  - Generate: Rate limiter configurations
+  - From: `deployments.controllers[x].rateLimit`
+  - Example: NGINX rate limiting, API Gateway throttling
+
+  ### Resource Optimization
+  - Generate: Resource quotas, limit ranges
+  - From: `deployments.*.resources`
+  - Example: Kubernetes ResourceQuota, LimitRange
+
+  ## Step 8: Reliability Configuration
+
+  Apply reliability policies from deployments:
+
+  ### Retries & Circuit Breakers
+  - Generate: Resilience configurations
+  - From: `deployments.services[x].operations[y].policies.retry`, `.circuitBreaker`
+  - Example: Resilience4j configs, Istio retry policies
+
+  ### Health Checks
+  - Generate: Readiness/liveness probe configurations
+  - From: `deployments.*.healthChecks`
+  - Example: Kubernetes probes, Docker healthchecks
+
+  ### Autoscaling
+  - Generate: Autoscaling configurations
+  - From: `deployments.*.autoscaling`
+  - Example: Kubernetes HPA, AWS Auto Scaling Groups
+
+  ## Output Structure
+
+  Generate infrastructure configurations organized by environment:
+
+  ```
+  infrastructure/
+  ├── base/                      # Base configurations (environment-agnostic)
+  │   ├── database/
+  │   │   ├── deployment.yaml
+  │   │   ├── service.yaml
+  │   │   └── pvc.yaml
+  │   ├── services/
+  │   │   └── task-service/
+  │   │       ├── deployment.yaml
+  │   │       ├── service.yaml
+  │   │       ├── hpa.yaml
+  │   │       └── networkpolicy.yaml
+  │   └── controllers/
+  │       └── task-controller/
+  │           ├── deployment.yaml
+  │           ├── service.yaml
+  │           └── ingress.yaml
+  ├── overlays/                  # Environment-specific overlays
+  │   ├── development/
+  │   │   ├── kustomization.yaml
+  │   │   └── patches/
+  │   ├── staging/
+  │   │   ├── kustomization.yaml
+  │   │   └── patches/
+  │   ├── production/
+  │   │   ├── kustomization.yaml
+  │   │   └── patches/
+  │   └── enterprise/
+  │       ├── kustomization.yaml
+  │       └── patches/
+  ├── observability/
+  │   ├── prometheus/
+  │   │   ├── servicemonitor.yaml
+  │   │   └── prometheusrule.yaml
+  │   ├── grafana/
+  │   │   └── dashboards/
+  │   └── jaeger/
+  │       └── deployment.yaml
+  ├── security/
+  │   ├── certificates/
+  │   ├── secrets/
+  │   └── policies/
+  ├── docker-compose.yml         # Local development
+  └── README.md                  # Deployment instructions
+  ```
+
+  ## Success Criteria
+
+  The generated infrastructure should:
+  - ✅ Implement all operational policies from Deployments layer
+  - ✅ Adapt appropriately to target environment
+  - ✅ Use instance factories for all infrastructure code
+  - ✅ Include complete observability stack (logging, metrics, tracing, alerts)
+  - ✅ Apply all security policies (authentication, authorization, encryption, network)
+  - ✅ Apply all performance policies (caching, rate limiting, resource limits)
+  - ✅ Apply all reliability policies (retries, circuit breakers, health checks, autoscaling)
+  - ✅ Be production-ready with proper documentation
+  - ✅ Support GitOps deployment workflows (Kustomize, Helm, etc)
+
+  ## Important Notes
+
+  - **NEVER** hardcode infrastructure choices - always read from manifest's instance factories
+  - **NEVER** skip operational policies - they are critical for production readiness
+  - **ALWAYS** adapt to target environment (dev != production)
+  - **ALWAYS** generate complete observability stack
+  - **ALWAYS** apply security policies (defense in depth)
+  - **ALWAYS** use instance factory templates for infrastructure code
+
+  ## Example Usage
+
+  **Input**: SpecVerse spec with deployments section + target environment = "production"
+
+  **Process**:
+  1. Read all deployment instances (database, services, controllers, views, communication)
+  2. For each instance, read operational policies
+  3. Adapt policies for production environment
+  4. Read manifest's infrastructure instance factory (e.g., kubernetes-deployment)
+  5. Fill instance factory template with deployment policies + environment adaptations
+  6. Generate complete Kubernetes manifests + observability stack
+
+  **Output**: Complete infrastructure-as-code ready to deploy to production Kubernetes cluster
+
+  ---
+
+  **Now, please provide the SpecVerse specification and target environment (dev/staging/production/enterprise) you want me to realize.**

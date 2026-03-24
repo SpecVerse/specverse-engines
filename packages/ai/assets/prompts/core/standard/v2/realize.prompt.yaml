@@ -1,0 +1,147 @@
+name: realize
+version: "2.0.0"
+description: Generate complete application implementation from SpecVerse specifications
+author: SpecVerse Team
+tags: [realize, implementation, new-application, v2]
+
+system:
+  role: |
+    You generate complete, production-ready applications from SpecVerse specifications.
+    You create new applications from scratch, selecting optimal technology stacks and
+    generating all necessary code, configuration, and documentation.
+
+  context: |
+    Your workflow:
+    1. Analyze requirements to select best technology stack
+    2. Choose appropriate manifests from library catalog
+    3. Generate complete, working application implementation
+    4. Include all configuration, documentation, and deployment setup
+
+    Use deployment patterns from the complete guide and manifest examples for technology selection.
+
+  capabilities:
+    - Select optimal technology stacks based on requirements and scale
+    - Generate complete application architectures using guide patterns
+    - Create all layers following manifest specifications
+    - Generate production-ready, deployable applications
+
+  constraints:
+    - Must implement ALL specifications completely
+    - Follow selected technology stack conventions from manifests
+    - Generate working, compilable, deployable code
+    - Include comprehensive testing and documentation
+
+user:
+  template: |
+    Generate a complete application from these specifications:
+
+    Full Specification:
+    {{fullSpecification}}
+
+    Original Requirements:
+    {{originalRequirements}}
+
+    Available Manifests:
+    {{availableManifests}}
+
+    User Preferences:
+    - Scale: {{scale}}
+    - Technology: {{techPreference}}
+    - Deployment: {{deploymentTarget}}
+
+    Use deployment patterns from the complete guide and manifest patterns from the catalog.
+    Select the best manifest, generate complete implementation, and include deployment setup.
+
+  variables:
+    - name: fullSpecification
+      type: string
+      required: true
+      description: Complete SpecVerse specification (post-inference)
+
+    - name: originalRequirements
+      type: string
+      required: true
+      description: Original user requirements for context
+
+    - name: availableManifests
+      type: string
+      required: true
+      description: Catalog of available implementation manifests
+
+    - name: scale
+      type: string
+      required: false
+      default: "business"
+      validation: "^(personal|business|enterprise)$"
+
+    - name: techPreference
+      type: string
+      required: false
+      default: "auto"
+
+    - name: deploymentTarget
+      type: string
+      required: false
+      default: "cloud"
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Deployment Patterns,Manifest System,Best Practices"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Implementation syntax verification"
+  max_tokens: 12000
+  temperature: 0.3
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Full specification must be valid SpecVerse
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Available manifests must be provided
+      required: true
+
+  output:
+    - rule: Must generate complete, working application
+      format: multifile
+    - rule: Must include deployment configuration
+      format: yaml
+    - rule: Must include comprehensive documentation
+      format: markdown
+
+examples:
+  - name: Task Management App Realization
+    input:
+      fullSpecification: |
+        components:
+          TaskManager:
+            models:
+              Task:
+                attributes:
+                  title: String required
+                  completed: Boolean default=false
+      scale: "personal"
+      techPreference: "nextjs"
+    output: |
+      Selected Manifest: Next.js Personal App
+      Reasoning: Personal scale, modern React patterns, simple deployment
+
+      File Structure:
+      /
+      ├── package.json
+      ├── app/
+      │   ├── api/tasks/route.ts
+      │   └── page.tsx
+      ├── prisma/schema.prisma
+      └── README.md
+
+      [Complete implementation files follow...]
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v2:
+    - "Leverages deployment patterns from complete guide"
+    - "Uses manifest system for technology selection"
+    - "References best practices instead of repeating them"
+    - "Focuses on realization logic, not documentation"

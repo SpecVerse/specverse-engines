@@ -1,0 +1,87 @@
+manifests:
+  TaskManagementDevelopment:
+    specVersion: "3.5.0"
+    name: "task-management-development"
+    description: "Complete development environment for task management app"
+    version: "1.0.0"
+    deployment:
+      deploymentSource: "../12-01-task-management-app.specly"
+      deploymentName: "development"
+    defaultMappings:
+      storage: "PostgreSQL15"
+      controller: "PrismaServices"
+      service: "PrismaServices"
+      routing: "FastifyAPI"
+      orm: "PrismaORM"
+      view: "ReactComponents"
+      communication: "EventEmitter"
+    capabilityMappings:
+      - capability: "api.rest"
+        instanceFactory: "FastifyAPI"
+      - capability: "service.controller"
+        instanceFactory: "PrismaServices"
+      - capability: "service.business"
+        instanceFactory: "PrismaServices"
+      - capability: "service.crud"
+        instanceFactory: "PrismaServices"
+      - capability: "storage.database"
+        instanceFactory: "PostgreSQL15"
+      - capability: "orm.schema"
+        instanceFactory: "PrismaORM"
+      - capability: "orm.client"
+        instanceFactory: "PrismaORM"
+      - capability: "ui.components"
+        instanceFactory: "ReactComponents"
+      - capability: "ui.views"
+        instanceFactory: "ReactComponents"
+      - capability: "ui.forms"
+        instanceFactory: "ReactComponents"
+      - capability: "messaging.pubsub"
+        instanceFactory: "EventEmitter"
+      - capability: "messaging.events"
+        instanceFactory: "EventEmitter"
+      - capability: "validation.runtime"
+        instanceFactory: "ZodValidation"
+      - capability: "validation.schema"
+        instanceFactory: "ZodValidation"
+      - capability: "project.scaffold"
+        instanceFactory: "GenericScaffold"
+      - capability: "app.entrypoint"
+        instanceFactory: "GenericApp"
+    configuration:
+      api:
+        framework: "fastify"
+        port: 3000
+        host: "localhost"
+        cors:
+          enabled: true
+          origins:
+            - "http://localhost:5173"
+        rateLimit:
+          enabled: true
+          max: 100
+          timeWindow: "1 minute"
+      database:
+        provider: "postgresql"
+        url: "postgresql://postgres:postgres@localhost:5432/taskmanagement"
+        poolSize: 10
+        migrations:
+          directory: "prisma/migrations"
+      frontend:
+        framework: "react"
+        buildTool: "vite"
+        port: 5173
+        outputDir: "dist/client"
+        publicPath: "/"
+        styling:
+          framework: "tailwindcss"
+        stateManagement:
+          library: "react-query"
+      events:
+        type: "in-memory"
+        maxListeners: 100
+      output:
+        backend: "generated/backend"
+        frontend: "generated/frontend"
+        database: "generated/database"
+        events: "generated/events"

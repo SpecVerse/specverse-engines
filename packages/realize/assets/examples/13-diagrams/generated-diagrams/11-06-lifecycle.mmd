@@ -1,0 +1,27 @@
+stateDiagram-v2
+  %% Model Lifecycles
+
+  %% Order - orderStatus
+
+  [*] --> Order_orderStatus_draft : start
+  Order_orderStatus_draft --> Order_orderStatus_pending_payment
+  Order_orderStatus_pending_payment --> Order_orderStatus_confirmed
+  Order_orderStatus_confirmed --> Order_orderStatus_processing
+  Order_orderStatus_processing --> Order_orderStatus_shipped
+  Order_orderStatus_shipped --> Order_orderStatus_delivered
+
+  %% Product - inventoryStatus
+
+  [*] --> Product_inventoryStatus_active : start
+  Product_inventoryStatus_active --> Product_inventoryStatus_low_stock
+  Product_inventoryStatus_low_stock --> Product_inventoryStatus_out_of_stock
+  Product_inventoryStatus_out_of_stock --> Product_inventoryStatus_backordered
+  Product_inventoryStatus_backordered --> Product_inventoryStatus_active
+
+  %% Shipment - trackingStatus
+
+  [*] --> Shipment_trackingStatus_created : start
+  Shipment_trackingStatus_created --> Shipment_trackingStatus_picked_up
+  Shipment_trackingStatus_picked_up --> Shipment_trackingStatus_in_transit
+  Shipment_trackingStatus_in_transit --> Shipment_trackingStatus_out_for_delivery
+  Shipment_trackingStatus_out_for_delivery --> Shipment_trackingStatus_delivered

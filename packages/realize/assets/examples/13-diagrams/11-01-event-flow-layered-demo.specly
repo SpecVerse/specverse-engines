@@ -1,0 +1,443 @@
+components:
+  EcommercePlatform:
+    version: "3.2.0"
+    description: "Example 11-09: Event flow layered diagram - 5-layer architecture with dual event bus pattern"
+
+    export:
+      models: [Order, Product, Payment, Customer, Shipment]
+      controllers: [OrderController, ProductController, CustomerController]
+      services: [PaymentService, InventoryService, ShippingService, NotificationService, AnalyticsService, LoyaltyService]
+      views: [OrderDashboard, ProductCatalog, CustomerProfile, TrackingPage, CheckoutFlow, AdminAnalytics]
+      events: [
+        OrderPlaced, PaymentConfirmed, OrderShipped, OrderCompleted, OrderCancelled,
+        StockReserved, LowStockDetected, PriceChanged, StockReplenished,
+        PaymentProcessed, PaymentFailed, RefundProcessed,
+        CustomerRegistered, PointsAwarded, ProfileUpdated,
+        ShipmentCreated, TrackingUpdated, ShipmentDelivered,
+        OrderCreatedNotification, PaymentSuccessNotification, ShippingNotification
+      ]
+
+    models:
+      Order:
+        description: "Customer order with complete workflow"
+        attributes:
+          id: UUID required
+          customerId: UUID required
+          status: String required
+          totalAmount: Money required
+
+      Product:
+        description: "Product with inventory management"
+        attributes:
+          id: UUID required
+          name: String required
+          stockQuantity: Integer required
+          price: Money required
+
+      Payment:
+        description: "Payment transaction"
+        attributes:
+          id: UUID required
+          orderId: UUID required
+          amount: Money required
+          status: String required
+
+      Customer:
+        description: "Customer account"
+        attributes:
+          id: UUID required
+          email: Email required
+          loyaltyPoints: Integer
+
+      Shipment:
+        description: "Shipment tracking"
+        attributes:
+          id: UUID required
+          orderId: UUID required
+          trackingNumber: String
+          status: String required
+
+    controllers:
+      OrderController:
+        description: "Order management - subscribes to domain events, publishes app events"
+        model: Order
+        actions:
+          handleOrderPlaced:
+            description: "Handle order placed domain event"
+            parameters:
+              orderId: UUID required
+            returns: String
+            publishes: [OrderCreatedNotification]
+
+          handlePaymentConfirmed:
+            description: "Handle payment confirmed domain event"
+            parameters:
+              orderId: UUID required
+            returns: String
+            publishes: [PaymentSuccessNotification]
+
+          handleOrderShipped:
+            description: "Handle order shipped domain event"
+            parameters:
+              orderId: UUID required
+            returns: String
+            publishes: [ShippingNotification]
+
+      ProductController:
+        description: "Product management - subscribes to domain events, publishes app events"
+        model: Product
+        actions:
+          handleStockReserved:
+            description: "Handle stock reserved domain event"
+            parameters:
+              productId: UUID required
+            returns: String
+            publishes: [InventoryUpdated]
+
+          handlePriceChanged:
+            description: "Handle price changed domain event"
+            parameters:
+              productId: UUID required
+            returns: String
+            publishes: [PriceUpdateNotification]
+
+      CustomerController:
+        description: "Customer management - subscribes to domain events, publishes app events"
+        model: Customer
+        actions:
+          handleCustomerRegistered:
+            description: "Handle customer registered domain event"
+            parameters:
+              customerId: UUID required
+            returns: String
+            publishes: [WelcomeScreenShown]
+
+          handlePointsAwarded:
+            description: "Handle points awarded domain event"
+            parameters:
+              customerId: UUID required
+            returns: String
+            publishes: [PointsDisplayUpdated]
+
+    services:
+      PaymentService:
+        description: "Process payments - subscribes to domain events, publishes app events"
+        subscribes_to:
+          OrderPlaced: processPayment
+
+        operations:
+          processPayment:
+            description: "Process payment for order"
+            parameters:
+              orderId: UUID required
+              amount: Money required
+            returns: String
+            publishes: [PaymentProcessed, PaymentFailed]
+
+          handlePaymentProcessed:
+            description: "Handle successful payment"
+            parameters:
+              paymentId: UUID required
+            returns: String
+            publishes: [PaymentConfirmedNotification]
+
+      InventoryService:
+        description: "Manage inventory - subscribes to domain events, publishes app events"
+        subscribes_to:
+          PaymentConfirmed: reserveStock
+
+        operations:
+          reserveStock:
+            description: "Reserve stock for order"
+            parameters:
+              orderId: UUID required
+            returns: Boolean
+            publishes: [StockReserved, LowStockDetected]
+
+          monitorStockLevels:
+            description: "Monitor and alert on stock levels"
+            parameters:
+              productId: UUID required
+            returns: String
+            publishes: [StockMonitoringAlert]
+
+      ShippingService:
+        description: "Coordinate shipping - subscribes to domain events, publishes app events"
+        subscribes_to:
+          StockReserved: createShipment
+
+        operations:
+          createShipment:
+            description: "Create shipment for order"
+            parameters:
+              orderId: UUID required
+            returns: String
+            publishes: [ShipmentCreated]
+
+          updateTracking:
+            description: "Update shipment tracking"
+            parameters:
+              shipmentId: UUID required
+            returns: String
+            publishes: [TrackingUpdated]
+
+      NotificationService:
+        description: "Send notifications - subscribes to domain events, publishes app events"
+        subscribes_to:
+          OrderPlaced: sendOrderConfirmation
+          OrderShipped: sendShippingUpdate
+
+        operations:
+          sendOrderConfirmation:
+            description: "Send order confirmation"
+            parameters:
+              orderId: UUID required
+            returns: String
+            publishes: [EmailSent]
+
+          sendShippingUpdate:
+            description: "Send shipping notification"
+            parameters:
+              shipmentId: UUID required
+            returns: String
+            publishes: [ShippingEmailSent]
+
+      AnalyticsService:
+        description: "Track metrics - subscribes to all domain events, publishes app events"
+        subscribes_to:
+          OrderPlaced: trackOrderMetrics
+          OrderCompleted: trackOrderMetrics
+
+        operations:
+          trackOrderMetrics:
+            description: "Track order analytics"
+            parameters:
+              orderId: UUID required
+            returns: String
+            publishes: [MetricsUpdated]
+
+          trackInventoryMetrics:
+            description: "Track inventory analytics"
+            parameters:
+              productId: UUID required
+            returns: String
+            publishes: [InventoryInsightsUpdated]
+
+      LoyaltyService:
+        description: "Manage loyalty program - subscribes to domain events, publishes app events"
+        subscribes_to:
+          OrderCompleted: awardPoints
+
+        operations:
+          awardPoints:
+            description: "Award loyalty points"
+            parameters:
+              customerId: UUID required
+              orderId: UUID required
+            returns: Integer
+            publishes: [PointsAwarded]
+
+    events:
+      # Domain Events (Layer 2)
+      OrderPlaced:
+        description: "Order has been placed (domain event)"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          totalAmount: Number required
+
+      PaymentConfirmed:
+        description: "Payment confirmed (domain event)"
+        attributes:
+          orderId: UUID required
+          paymentId: UUID required
+
+      OrderShipped:
+        description: "Order shipped (domain event)"
+        attributes:
+          orderId: UUID required
+          shipmentId: UUID required
+
+      OrderCompleted:
+        description: "Order completed (domain event)"
+        attributes:
+          orderId: UUID required
+
+      OrderCancelled:
+        description: "Order cancelled (domain event)"
+        attributes:
+          orderId: UUID required
+          reason: String required
+
+      StockReserved:
+        description: "Stock reserved (domain event)"
+        attributes:
+          productId: UUID required
+          quantity: Integer required
+
+      LowStockDetected:
+        description: "Low stock detected (domain event)"
+        attributes:
+          productId: UUID required
+          currentQuantity: Integer required
+
+      PriceChanged:
+        description: "Price changed (domain event)"
+        attributes:
+          productId: UUID required
+          oldPrice: Money required
+          newPrice: Money required
+
+      StockReplenished:
+        description: "Stock replenished (domain event)"
+        attributes:
+          productId: UUID required
+          quantity: Integer required
+
+      PaymentProcessed:
+        description: "Payment processed (domain event)"
+        attributes:
+          paymentId: UUID required
+          orderId: UUID required
+
+      PaymentFailed:
+        description: "Payment failed (domain event)"
+        attributes:
+          paymentId: UUID required
+          reason: String required
+
+      RefundProcessed:
+        description: "Refund processed (domain event)"
+        attributes:
+          paymentId: UUID required
+          amount: Money required
+
+      CustomerRegistered:
+        description: "Customer registered (domain event)"
+        attributes:
+          customerId: UUID required
+          email: Email required
+
+      PointsAwarded:
+        description: "Loyalty points awarded (domain event)"
+        attributes:
+          customerId: UUID required
+          points: Integer required
+
+      ProfileUpdated:
+        description: "Customer profile updated (domain event)"
+        attributes:
+          customerId: UUID required
+
+      ShipmentCreated:
+        description: "Shipment created (domain event)"
+        attributes:
+          shipmentId: UUID required
+          orderId: UUID required
+
+      TrackingUpdated:
+        description: "Tracking updated (domain event)"
+        attributes:
+          shipmentId: UUID required
+          status: String required
+
+      ShipmentDelivered:
+        description: "Shipment delivered (domain event)"
+        attributes:
+          shipmentId: UUID required
+
+      # Application Events (Layer 4)
+      OrderCreatedNotification:
+        description: "Order created UI notification (app event)"
+        attributes:
+          orderId: UUID required
+          message: String required
+
+      PaymentSuccessNotification:
+        description: "Payment success UI notification (app event)"
+        attributes:
+          orderId: UUID required
+          message: String required
+
+      ShippingNotification:
+        description: "Shipping UI notification (app event)"
+        attributes:
+          orderId: UUID required
+          trackingNumber: String required
+
+      InventoryUpdated:
+        description: "Inventory UI update (app event)"
+        attributes:
+          productId: UUID required
+
+      PriceUpdateNotification:
+        description: "Price update UI notification (app event)"
+        attributes:
+          productId: UUID required
+
+      WelcomeScreenShown:
+        description: "Welcome screen UI event (app event)"
+        attributes:
+          customerId: UUID required
+
+      PointsDisplayUpdated:
+        description: "Points display UI update (app event)"
+        attributes:
+          customerId: UUID required
+          points: Integer required
+
+      PaymentConfirmedNotification:
+        description: "Payment confirmed UI notification (app event)"
+        attributes:
+          paymentId: UUID required
+
+      EmailSent:
+        description: "Email sent UI confirmation (app event)"
+        attributes:
+          recipient: Email required
+
+      ShippingEmailSent:
+        description: "Shipping email sent UI confirmation (app event)"
+        attributes:
+          orderId: UUID required
+
+      MetricsUpdated:
+        description: "Analytics metrics updated (app event)"
+        attributes:
+          metricType: String required
+
+      InventoryInsightsUpdated:
+        description: "Inventory insights updated (app event)"
+        attributes:
+          productId: UUID required
+
+      StockMonitoringAlert:
+        description: "Stock monitoring alert (app event)"
+        attributes:
+          productId: UUID required
+          alertLevel: String required
+
+    views:
+      OrderDashboard:
+        description: "Order dashboard view - Layer 5 (subscribes to app events)"
+        type: "dashboard"
+
+      ProductCatalog:
+        description: "Product catalog view - Layer 5 (subscribes to app events)"
+        type: "catalog"
+
+      CustomerProfile:
+        description: "Customer profile view - Layer 5 (subscribes to app events)"
+        type: "profile"
+
+      TrackingPage:
+        description: "Order tracking view - Layer 5 (subscribes to app events)"
+        type: "tracking"
+
+      CheckoutFlow:
+        description: "Checkout flow view - Layer 5 (subscribes to app events)"
+        type: "checkout"
+
+      AdminAnalytics:
+        description: "Admin analytics view - Layer 5 (subscribes to app events)"
+        type: "analytics"

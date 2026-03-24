@@ -1,0 +1,58 @@
+# SpecVerse v3.3 Implementation Manifest - Frontend Only
+# Generates standalone React frontend that connects to external API
+
+manifests:
+  {{projectNameKebab}}Implementation:
+    specVersion: "3.3.0"
+    name: "{{projectNameKebab}}-frontend"
+    version: "1.0.0"
+    description: "Frontend application for {{projectName}}"
+
+    # v3.3: Deployment reference
+    deployment:
+      deploymentSource: "../specs/main.specly"
+      deploymentName: "development"
+
+    # v3.3: Configuration for standalone frontend
+    configuration:
+      outputStructure: "standalone"
+      frontendDir: "."
+      
+      # External API connection (configured at runtime)
+      apiBaseUrl: "${VITE_API_BASE_URL}"
+      apiPrefix: "/api"
+
+      # Development server
+      vitePort: 5173
+      viteHost: "localhost"
+
+    # v3.3: Frontend-only capability mappings
+    capabilityMappings:
+      # React Application
+      - capability: "app.frontend"
+        instanceFactory: "ReactApp"
+        configuration:
+          outputStructure: "standalone"
+          frontendDir: "."
+          apiBaseUrl: "${VITE_API_BASE_URL}"
+
+      # UI Components
+      - capability: "ui.components"
+        instanceFactory: "ReactComponents"
+        configuration:
+          outputStructure: "standalone"
+          frontendDir: "."
+
+      # UI Views
+      - capability: "ui.views"
+        instanceFactory: "ReactComponents"
+        configuration:
+          outputStructure: "standalone"
+          frontendDir: "."
+
+      # Project Scaffolding
+      - capability: "project.scaffold"
+        instanceFactory: "GenericScaffold"
+        configuration:
+          outputStructure: "standalone"
+          includeReadme: true

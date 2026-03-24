@@ -1,0 +1,161 @@
+# Example 11-05: Component Dependencies Diagram Demonstration
+#
+# This example demonstrates component dependency visualization showing
+# how different services interact through event-based communication.
+#
+# Component Dependencies Diagrams are ideal for:
+# - Understanding service interactions
+# - Documenting event-driven architectures
+# - Showing service dependencies
+# - Identifying coupling points
+# - Planning system architecture
+
+components:
+  ELearningPlatform:
+    version: "3.2.0"
+    description: "Example 11-05: E-Learning platform with event-driven architecture"
+
+    models:
+      User:
+        attributes:
+          id: UUID required
+          email: String required unique
+          passwordHash: String required
+          role: String required
+          isActive: Boolean required default=true
+
+      Course:
+        attributes:
+          id: UUID required
+          title: String required
+          description: String
+          instructorId: UUID required
+          publishedAt: DateTime
+
+      Enrollment:
+        attributes:
+          id: UUID required
+          courseId: UUID required
+          studentId: UUID required
+          enrolledAt: DateTime required
+
+      Progress:
+        attributes:
+          id: UUID required
+          studentId: UUID required
+          courseId: UUID required
+          completionPercentage: Number required
+          lastAccessedAt: DateTime
+
+      Notification:
+        attributes:
+          id: UUID required
+          userId: UUID required
+          message: String required
+          sentAt: DateTime required
+          read: Boolean required default=false
+
+    controllers:
+      AuthController:
+        model: User
+        cured:
+          create: {}
+          retrieve: {}
+        actions:
+          login:
+            publishes: [UserLoggedIn]
+
+      CourseController:
+        model: Course
+        cured:
+          create: {}
+          retrieve: {}
+        actions:
+          publishCourse:
+            publishes: [CoursePublished]
+
+    services:
+      AuthenticationService:
+        operations:
+          validateCredentials:
+            publishes: [CredentialsValidated]
+
+      EnrollmentService:
+        subscribes_to:
+          UserLoggedIn: checkEnrollments
+        operations:
+          enrollStudent:
+            publishes: [StudentEnrolled]
+          checkEnrollments:
+            description: "Check user enrollments on login"
+
+      ProgressService:
+        subscribes_to:
+          StudentEnrolled: initializeProgress
+          CoursePublished: updateAvailableCourses
+        operations:
+          initializeProgress:
+            description: "Initialize progress tracking for new enrollment"
+          updateAvailableCourses:
+            description: "Update available courses list"
+          trackCompletion:
+            publishes: [CourseCompleted]
+
+      NotificationService:
+        subscribes_to:
+          StudentEnrolled: sendEnrollmentConfirmation
+          CourseCompleted: sendCompletionCertificate
+          CoursePublished: notifyInterestedStudents
+        operations:
+          sendEnrollmentConfirmation:
+            description: "Send enrollment confirmation email"
+          sendCompletionCertificate:
+            description: "Send course completion certificate"
+          notifyInterestedStudents:
+            description: "Notify students about new courses"
+
+      AnalyticsService:
+        subscribes_to:
+          CourseCompleted: trackCompletion
+          StudentEnrolled: trackEnrollment
+          UserLoggedIn: trackUserActivity
+        operations:
+          trackCompletion:
+            description: "Track course completion metrics"
+          trackEnrollment:
+            description: "Track enrollment metrics"
+          trackUserActivity:
+            description: "Track user activity metrics"
+
+    events:
+      UserLoggedIn:
+        attributes:
+          userId: UUID required
+          loginAt: DateTime required
+
+      CredentialsValidated:
+        attributes:
+          userId: UUID required
+
+      CoursePublished:
+        attributes:
+          courseId: UUID required
+          publishedAt: DateTime required
+
+      StudentEnrolled:
+        attributes:
+          courseId: UUID required
+          studentId: UUID required
+          enrolledAt: DateTime required
+
+      CourseCompleted:
+        attributes:
+          studentId: UUID required
+          courseId: UUID required
+          completedAt: DateTime required
+
+      NotificationSent:
+        attributes:
+          notificationId: UUID required
+          userId: UUID required
+          sentAt: DateTime required

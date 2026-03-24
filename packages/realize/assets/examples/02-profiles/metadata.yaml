@@ -1,0 +1,67 @@
+# Profiles Examples Metadata
+category: "profiles"
+title: "SpecVerse Profile System"
+description: "Master SpecVerse's powerful ProfileAttachment system for flexible model composition"
+targetAudience: "intermediate"
+estimatedTime: "2-3 hours"
+
+learningObjectives:
+  - "Understand unified model architecture where any model can be a profile"
+  - "Master ProfileAttachment criteria and conditional logic"
+  - "Implement runtime profile composition patterns"
+  - "Create context-aware behaviors that access parent models"
+  - "Design reusable profiles for cross-cutting concerns"
+
+examples:
+  - id: "02-01-using-profiles"
+    title: "Basic Profile Usage"
+    description: "Introduction to ProfileAttachment with simple digital and physical product profiles"
+    concepts: ["profile-attachment", "model-types", "conditions", "profile-behaviors"]
+    prerequisites: ["01-01-basic-model", "01-03-model-with-behaviors"]
+    difficulty: "intermediate"
+    estimatedTime: "60 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Create profiles using ProfileAttachment"
+      - "Understand ModelTypes and Conditions criteria"
+      - "Implement profile-specific behaviors"
+      - "See how profiles extend base models"
+    specverseFeatures: ["ProfileAttachment", "Unified Model Architecture", "Conditional Logic"]
+    businessDomain: "e-commerce"
+    realWorldUseCase: "Product variants, feature flags, add-on capabilities"
+
+  - id: "02-02-profile-attachment"
+    title: "Advanced Profile Scenarios"
+    description: "Complex profile composition with multiple profiles, audit trails, and cross-entity patterns"
+    concepts: ["multiple-profiles", "audit-patterns", "conditional-attachment", "profile-interactions", "cross-entity"]
+    prerequisites: ["02-01-using-profiles", "01-04-models-with-relations"]
+    difficulty: "intermediate"
+    estimatedTime: "90 minutes"
+    formats: ["specly", "yaml"]
+    learningObjectives:
+      - "Attach multiple profiles to same model instance"
+      - "Implement audit trails with AuditProfile"
+      - "Use date-based conditional attachment"
+      - "Create profiles that work across different model types"
+      - "Handle profile interaction patterns"
+    specverseFeatures: ["Multi-Profile Composition", "Audit Patterns", "Cross-Entity Profiles"]
+    businessDomain: "enterprise"
+    realWorldUseCase: "Compliance tracking, temporary features, role-based extensions"
+
+nextSteps:
+  - category: "03-architecture"
+    description: "Apply profile knowledge to system architecture with controllers and services"
+    reason: "Profiles enable flexible architectures - learn how they integrate with system design"
+  - category: "04-domains"
+    description: "See profiles in action with real-world domain examples"
+    reason: "Observe how profiles solve complex business requirements in practice"
+
+validationCommands:
+  - "specverse validate 02-profiles/02-01-using-profiles.specly"
+  - "specverse validate 02-profiles/02-02-profile-attachments.specly"
+  - "specverse validate 02-profiles/02-02-profile-attachment.yaml"
+
+# Key teaching progression:
+# 1. Basic ProfileAttachment concept and syntax
+# 2. Complex scenarios with multiple profiles and interactions
+# This builds from simple composition to advanced enterprise patterns

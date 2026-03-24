@@ -1,0 +1,242 @@
+components:
+  CompleteEventFlowExample:
+    version: "2.0.0"
+    description: "Example 03-05: Demonstrates complete event subscription system across all constructs"
+    
+    export:
+      models: [Product, Order]
+      controllers: [InventoryController, OrderController]
+      services: [PaymentService, InventoryService, ShippingService, NotificationService, CompensationService]
+      events: [StockUpdated, OrderCreated, OrderPlaced, PaymentProcessed, PaymentFailed, InventoryReserved, InsufficientStock, ShipmentPrepared, CustomerNotified, OrderCancelled, RefundInitiated, BackorderCreated, SupplierNotified]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Product:
+        description: "Product with inventory tracking"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required
+          stock: Integer default=0
+      
+      Order:
+        description: "Customer order with lifecycle"
+        attributes:
+          id: UUID required
+          customerId: UUID required
+          total: Money required
+          status: String required values=["pending", "confirmed", "shipped", "delivered", "cancelled"]
+    
+    controllers:
+      InventoryController:
+        description: "Automated inventory management"
+        model: Product
+        actions:
+          autoReorder:
+            description: "Automatically reorder low stock items"
+            parameters:
+              productId: UUID required
+            returns: String
+            requires: ["Product exists"]
+            ensures: ["Reorder request created"]
+            publishes: [BackorderCreated]
+      
+      OrderController:
+        description: "Order management"
+        model: Order
+        actions:
+          createOrder:
+            description: "Create new order"
+            parameters:
+              customerId: UUID required
+              items: String required
+            returns: Order
+            ensures: ["Order created"]
+            publishes: [OrderCreated]
+    
+    services:
+      PaymentService:
+        description: "Process payments and handle financial transactions"
+        operations:
+          processPayment:
+            description: "Process payment for order"
+            parameters:
+              orderId: UUID required
+              amount: Money required
+              paymentMethod: String required
+            returns: String
+            requires: ["Order exists", "Payment method is valid"]
+            ensures: ["Payment is processed"]
+            publishes: [PaymentProcessed, PaymentFailed]
+      
+      InventoryService:
+        description: "Manage inventory and stock reservations"
+        operations:
+          reserveItems:
+            description: "Reserve inventory for order"
+            parameters:
+              orderId: UUID required
+              items: String required
+            returns: Boolean
+            requires: ["Order exists", "Sufficient stock available"]
+            ensures: ["Stock is reserved or backorder created"]
+            publishes: [InventoryReserved, InsufficientStock]
+      
+      ShippingService:
+        description: "Prepare and coordinate shipments"
+        operations:
+          prepareShipment:
+            description: "Prepare shipment for order"
+            parameters:
+              orderId: UUID required
+              shippingAddress: String required
+            returns: String
+            requires: ["Order is confirmed", "Inventory is reserved"]
+            ensures: ["Shipment is prepared"]
+            publishes: [ShipmentPrepared]
+      
+      NotificationService:
+        description: "Send notifications across channels"
+        operations:
+          sendConfirmation:
+            description: "Send order confirmation to customer"
+            parameters:
+              orderId: UUID required
+              customerEmail: String required
+            returns: Boolean
+            requires: ["Order exists", "Customer email is valid"]
+            ensures: ["Confirmation is sent"]
+            publishes: [CustomerNotified]
+      
+      CompensationService:
+        description: "Handle failure compensation and rollbacks"
+        operations:
+          handlePaymentFailure:
+            description: "Compensate for payment failures"
+            parameters:
+              orderId: UUID required
+              failureReason: String required
+            returns: Boolean
+            requires: ["Order exists", "Payment failure occurred"]
+            ensures: ["Compensation actions taken"]
+            publishes: [OrderCancelled, RefundInitiated]
+    
+    events:
+      StockUpdated:
+        description: "Product stock level changed"
+        attributes:
+          productId: UUID required
+          newStock: Integer required
+          previousStock: Integer required
+          reason: String required
+          timestamp: DateTime required
+      
+      OrderCreated:
+        description: "New order created"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          total: Money required
+          itemCount: Integer required
+          createdAt: DateTime required
+      
+      OrderPlaced:
+        description: "Order placed for processing"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          total: Money required
+          placedAt: DateTime required
+      
+      PaymentProcessed:
+        description: "Payment successfully processed"
+        attributes:
+          paymentId: UUID required
+          orderId: UUID required
+          amount: Money required
+          method: String required
+          processedAt: DateTime required
+      
+      PaymentFailed:
+        description: "Payment processing failed"
+        attributes:
+          paymentId: UUID required
+          orderId: UUID required
+          amount: Money required
+          failureReason: String required
+          failedAt: DateTime required
+      
+      InventoryReserved:
+        description: "Inventory successfully reserved"
+        attributes:
+          orderId: UUID required
+          productId: UUID required
+          quantity: Integer required
+          reservedAt: DateTime required
+      
+      InsufficientStock:
+        description: "Insufficient inventory available"
+        attributes:
+          orderId: UUID required
+          productId: UUID required
+          requestedQuantity: Integer required
+          availableQuantity: Integer required
+          checkedAt: DateTime required
+      
+      ShipmentPrepared:
+        description: "Shipment prepared for delivery"
+        attributes:
+          shipmentId: UUID required
+          orderId: UUID required
+          trackingNumber: String required
+          carrier: String required
+          preparedAt: DateTime required
+      
+      CustomerNotified:
+        description: "Customer notification sent"
+        attributes:
+          notificationId: UUID required
+          orderId: UUID required
+          customerId: UUID required
+          channel: String required
+          sentAt: DateTime required
+      
+      OrderCancelled:
+        description: "Order has been cancelled"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          reason: String required
+          cancelledAt: DateTime required
+      
+      RefundInitiated:
+        description: "Refund process started"
+        attributes:
+          refundId: UUID required
+          orderId: UUID required
+          amount: Money required
+          reason: String required
+          initiatedAt: DateTime required
+      
+      BackorderCreated:
+        description: "Backorder created for out of stock items"
+        attributes:
+          backorderId: UUID required
+          productId: UUID required
+          quantity: Integer required
+          customerId: UUID required
+          createdAt: DateTime required
+      
+      SupplierNotified:
+        description: "Supplier notified of inventory needs"
+        attributes:
+          notificationId: UUID required
+          supplierId: UUID required
+          productId: UUID required
+          quantityNeeded: Integer required
+          notifiedAt: DateTime required
+
+deployments: {}

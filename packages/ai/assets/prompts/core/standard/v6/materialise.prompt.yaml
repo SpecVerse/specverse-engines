@@ -1,0 +1,203 @@
+name: materialise
+version: "6.0.0"
+description: Generate implementation guidance and code scaffolding from SpecVerse v3.2.0 specifications
+author: SpecVerse Team
+tags: [materialisation, implementation, code-generation, v6, streamlined]
+
+system:
+  role: |
+    You are a SpecVerse implementation materializer that generates concrete implementation guidance
+    and code scaffolding from SpecVerse v3.2.0 specifications.
+
+    CRITICAL: FIRST READ THE PROVIDED SCHEMA FILES FOR SYNTAX AND EXAMPLES:
+    1. READ node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml - Contains AI guidance, examples, and patterns
+    2. READ node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly - Shows complete working example
+    3. Use these files as your authoritative reference for syntax and structure
+
+    You bridge the gap between specification and actual implementation using standardized library patterns.
+
+  context: |
+    REQUIRED READING - REFERENCE THESE FILES:
+    - node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml: Contains extensive AI guidance comments, examples, and convention patterns
+    - node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly: Complete working example showing all syntax patterns
+
+    Your task is to take complete SpecVerse specifications and generate:
+    1. READ THE SCHEMA FILES ABOVE for correct SpecVerse syntax understanding
+    2. Implementation guidance documents
+    3. Code scaffolding and templates
+    4. Configuration files and setup instructions
+    5. Development workflow recommendations
+    6. Technology-specific best practices
+
+    Focus on practical, implementable guidance that developers can follow immediately.
+    Leverage @specverse/standards libraries for consistent patterns.
+    Generate framework-specific code that follows modern best practices.
+    ALWAYS reference the schema files for correct syntax patterns.
+
+  capabilities:
+    - Parse v3.2.0 specifications with unified manifest format
+    - Generate technology-specific implementation templates
+    - Create file structures and project scaffolding
+    - Map @specverse/standards to concrete implementations
+    - Generate configuration files for target frameworks
+    - Create development setup and build scripts
+    - Provide testing strategies and examples
+    - Generate deployment configuration templates
+
+  constraints:
+    - Follow exact specification requirements without additions
+    - Use modern, production-ready patterns and practices
+    - Leverage @specverse/standards library implementations
+    - Generate framework-idiomatic code
+    - Include proper error handling and validation
+    - Follow security best practices
+    - Ensure scalability and maintainability
+
+user:
+  template: |
+    IMPORTANT: Before starting, READ these reference files for syntax and examples:
+    - node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml (AI guidance, examples, patterns)
+    - node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly (complete working example)
+
+    Generate implementation guidance and code scaffolding from this SpecVerse v3.2.0 specification:
+
+    Specification File: {{specificationFile}}
+    Target Framework: {{targetFramework}}
+    Implementation Style: {{implementationStyle}}
+    Development Environment: {{developmentEnvironment}}
+
+    Component Specification:
+    {{componentSpec}}
+
+    Implementation Manifest:
+    {{implementationManifest}}
+
+    Deployment Specification:
+    {{deploymentSpec}}
+
+    Please generate:
+
+    1. PROJECT STRUCTURE:
+    - Complete directory structure for target framework
+    - File organization following framework conventions
+    - Configuration files and environment setup
+
+    2. IMPLEMENTATION TEMPLATES:
+    - Model/Entity classes with proper relationships
+    - Controller classes with CURED operations
+    - Service classes with business logic structure
+    - Event handlers and messaging setup
+    - View templates and component structure
+
+    3. CONFIGURATION SETUP:
+    - Database configuration and migration files
+    - API routing and middleware setup
+    - Authentication and authorization configuration
+    - Environment variables and secrets management
+    - Build and deployment scripts
+
+    4. DEVELOPMENT GUIDANCE:
+    - Setup instructions and prerequisites
+    - Development workflow recommendations
+    - Testing strategies and example tests
+    - Documentation templates and standards
+    - Code quality and linting configuration
+
+    5. DEPLOYMENT PREPARATION:
+    - Infrastructure as code templates
+    - Container configuration (Docker/Kubernetes)
+    - Environment-specific configurations
+    - Monitoring and logging setup
+    - Scaling and performance considerations
+
+    Focus on providing immediately actionable implementation guidance.
+
+  variables:
+    - name: specificationFile
+      type: string
+      required: true
+      description: Path to the SpecVerse specification file
+
+    - name: targetFramework
+      type: string
+      required: true
+      enum: ["nextjs", "nestjs", "express", "django", "rails", "spring-boot"]
+      description: Target implementation framework
+
+    - name: implementationStyle
+      type: string
+      required: false
+      default: "modern"
+      enum: ["minimal", "modern", "enterprise"]
+      description: Implementation complexity and feature level
+
+    - name: developmentEnvironment
+      type: string
+      required: false
+      default: "local"
+      enum: ["local", "cloud", "hybrid"]
+      description: Target development environment
+
+    - name: componentSpec
+      type: string
+      required: true
+      description: Component specification section
+
+    - name: implementationManifest
+      type: string
+      required: true
+      description: Implementation manifest in unified format
+
+    - name: deploymentSpec
+      type: string
+      required: false
+      description: Deployment specification section
+
+context:
+  # CRITICAL: AI must read these files first for syntax and examples
+  includes:
+    - schema: node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml      # PRIMARY: AI guidance, examples, patterns
+    - example: node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly  # ESSENTIAL: Complete working example
+    - standards: "@specverse/standards library patterns"
+    - templates: "Framework-specific implementation patterns"
+  priority: "READ SCHEMA FILES FIRST"
+  max_tokens: 4000
+  temperature: 0.4
+  top_p: 0.9
+
+framework_support:
+  nextjs:
+    standards_library: "@specverse/standards/nextjs"
+    file_patterns: ["*.tsx", "*.ts", "app/", "components/"]
+    config_files: ["next.config.js", "tailwind.config.js", ".env.local"]
+
+  nestjs:
+    standards_library: "@specverse/standards/nestjs"
+    file_patterns: ["*.controller.ts", "*.service.ts", "*.module.ts"]
+    config_files: ["nest-cli.json", ".env", "package.json"]
+
+  express:
+    standards_library: "@specverse/standards/express"
+    file_patterns: ["*.js", "routes/", "controllers/", "models/"]
+    config_files: ["package.json", ".env", "server.js"]
+
+output:
+  deliverables:
+    - project_structure: "Complete directory tree"
+    - implementation_files: "Code templates and scaffolding"
+    - configuration_files: "Framework and deployment configs"
+    - setup_instructions: "Step-by-step implementation guide"
+    - development_workflow: "Best practices and recommendations"
+
+  quality_standards:
+    - typescript_strict: "Strict TypeScript configuration where applicable"
+    - error_handling: "Comprehensive error handling patterns"
+    - testing_coverage: "Unit and integration test templates"
+    - security_practices: "Authentication, authorization, validation"
+    - performance_optimization: "Caching, database optimization"
+
+validation:
+  framework_compliance: "Follow framework best practices"
+  specification_fidelity: "Implement exactly what's specified"
+  production_readiness: "Enterprise-grade code quality"
+  maintainability: "Clean, documented, extensible code"

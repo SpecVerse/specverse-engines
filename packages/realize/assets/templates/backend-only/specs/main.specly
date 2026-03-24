@@ -1,0 +1,67 @@
+# SpecVerse Backend-Only API
+# A REST API service without frontend - perfect for microservices and API-first development
+#
+# To use:
+# 1. Run: npm run realize:all
+# 2. Run: cd generated/code && npm install
+# 3. Run: npm run db:generate && npm run db:push
+# 4. Run: npm run dev
+# 5. Test: curl http://localhost:3000/api/products
+
+components:
+  {{componentName}}:
+    version: "1.0.0"
+    description: "{{projectName}} - Backend API Service"
+    tags: ["backend", "api", "microservice"]
+
+    models:
+      Product:
+        description: "Product in the catalog"
+
+        metadata:
+          id: uuid
+          audit: true
+
+        attributes:
+          name: String required min=1 max=200
+          description: Text
+          price: Decimal required min=0
+          sku: String required unique
+          inStock: Boolean default=true
+          category: String values=["Electronics", "Clothing", "Books", "Home", "Other"] default="Other"
+
+    controllers:
+      ProductController:
+        model: Product
+        description: "REST API for product management"
+
+        cured:
+          create: {}
+          retrieve: {}
+          update: {}
+          validate: {}
+          evolve: {}
+          delete: {}
+
+deployments:
+  development:
+    version: "1.0.0"
+    description: "{{projectName}} development environment"
+    environment: "development"
+
+    instances:
+      controllers:
+        apiServer:
+          component: {{componentName}}
+          namespace: api
+          scale: 1
+          advertises: [api.*]
+          uses: [database.*]
+
+      storage:
+        mainDB:
+          component: {{componentName}}
+          namespace: data
+          type: relational
+          scale: 1
+          advertises: [persistence.*]

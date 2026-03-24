@@ -1,0 +1,191 @@
+components:
+  CustomTaskApp:
+    version: "3.3.0"
+    description: "Demonstrates v3.4.0 Level 3: Explicit component override for full control"
+
+    models:
+      Task:
+        attributes:
+          title: String required
+          description: Text
+          status: String values=[todo,in_progress,done] default=todo
+          priority: String values=[low,medium,high] default=medium
+          dueDate: DateTime
+          completed: Boolean default=false
+          createdAt: DateTime auto=now
+
+        relationships:
+          assignee: belongsTo User
+
+      User:
+        attributes:
+          name: String required
+          email: Email required unique
+
+    # Level 3: Explicit Component Override - Full Control
+    views:
+      # Custom view with explicit uiComponents
+      CustomTaskView:
+        type: custom                       # ← Custom type (not inferred)
+        model: Task
+        description: "Fully customized task view with explicit component definitions"
+
+        # User provides complete uiComponents - NO INFERENCE
+        uiComponents:
+          # Custom header with specific styling
+          pageHeader:
+            type: header
+            properties:
+              title: "My Custom Task View"
+              subtitle: "Fully controlled component layout"
+              showBackButton: true
+              backgroundColor: "#1976d2"
+              textColor: "#ffffff"
+
+          # Custom search with specific behavior
+          customSearch:
+            type: input
+            properties:
+              placeholder: "Search by title or description..."
+              variant: outlined
+              fullWidth: true
+              icon: search
+              debounce: 300
+
+          # Custom filter panel with specific filters
+          advancedFilters:
+            type: filterPanel
+            properties:
+              collapsible: true
+              defaultExpanded: false
+              position: sidebar
+              filters:
+                - field: status
+                  label: "Task Status"
+                  type: select
+                  options: [todo, in_progress, done]
+                  multiple: true
+                - field: priority
+                  label: "Priority Level"
+                  type: select
+                  options: [low, medium, high]
+                - field: assignee
+                  label: "Assigned To"
+                  type: autocomplete
+                  model: User
+                  searchable: true
+                - field: dueDateRange
+                  label: "Due Date Range"
+                  type: datepicker
+                  range: true
+
+          # Custom table with specific columns and behavior
+          taskDataTable:
+            type: table
+            properties:
+              model: Task
+              columns:
+                - field: title
+                  label: "Task Title"
+                  sortable: true
+                  width: 300
+                  bold: true
+                - field: status
+                  label: "Status"
+                  sortable: true
+                  width: 120
+                  renderAs: badge
+                  colorMap:
+                    todo: gray
+                    in_progress: blue
+                    done: green
+                - field: priority
+                  label: "Priority"
+                  sortable: true
+                  width: 100
+                  renderAs: badge
+                  colorMap:
+                    low: green
+                    medium: orange
+                    high: red
+                - field: assignee
+                  label: "Assignee"
+                  width: 150
+                  renderAs: avatar
+                - field: dueDate
+                  label: "Due Date"
+                  sortable: true
+                  width: 150
+                  format: "MMM DD, YYYY"
+              selectable: true
+              multiSelect: true
+              showPagination: true
+              pageSize: 25
+              pageSizeOptions: [10, 25, 50, 100]
+              dense: false
+              hover: true
+              stickyHeader: true
+
+          # Custom actions with specific buttons
+          actionButtons:
+            type: button-group
+            properties:
+              orientation: horizontal
+              spacing: 2
+              buttons:
+                - label: "Create New Task"
+                  icon: add
+                  variant: contained
+                  color: primary
+                  action: createTask
+                - label: "Bulk Edit"
+                  icon: edit
+                  variant: outlined
+                  color: secondary
+                  action: bulkEdit
+                  requiresSelection: true
+                - label: "Export to CSV"
+                  icon: download
+                  variant: text
+                  color: default
+                  action: exportCSV
+                - label: "Refresh"
+                  icon: refresh
+                  variant: text
+                  color: default
+                  action: refresh
+
+          # Custom status breakdown with charts
+          statusBreakdown:
+            type: card
+            properties:
+              title: "Status Distribution"
+              elevation: 2
+              padding: 3
+
+          statusChart:
+            type: chart
+            properties:
+              chartType: donut
+              dataSource: "Task.status"
+              colors: ["#9e9e9e", "#2196f3", "#4caf50"]
+              showLegend: true
+              showLabels: true
+              height: 300
+
+          # Custom alert for overdue tasks
+          overdueAlert:
+            type: alert
+            properties:
+              severity: warning
+              title: "Overdue Tasks"
+              message: "{count(Task.dueDate<now AND status!='done')} tasks are overdue"
+              showIcon: true
+              dismissible: false
+              variant: filled
+
+      # Mix of auto-generated and custom
+      # TaskListView, TaskDetailView, TaskFormView will STILL be auto-generated!
+      # This demonstrates you can have both automatic AND explicit views
+
+deployments: {}

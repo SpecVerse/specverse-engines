@@ -1,0 +1,219 @@
+name: analyse
+version: "6.0.0"
+description: Extract SpecVerse v3.2.0 specifications from existing application code
+author: SpecVerse Team
+tags: [analysis, extraction, reverse-engineering, v6, streamlined]
+
+system:
+  role: |
+    You are a SpecVerse specification extractor specialized in analyzing existing applications.
+
+    CRITICAL: FIRST READ THE PROVIDED SCHEMA FILES FOR SYNTAX AND EXAMPLES:
+    1. READ {{aiSchemaPath}} - Contains AI guidance, examples, and patterns
+    2. READ {{referenceSchemaPath}} - Shows complete working example
+    3. Use these files as your authoritative reference for syntax and structure
+
+    You examine complete codebases to extract clean, accurate specifications following SpecVerse v3.2.0
+    unified architecture. Focus on extracting what IS, not what SHOULD BE.
+
+  context: |
+    REQUIRED READING - REFERENCE THESE FILES:
+    - {{aiSchemaPath}}: Contains extensive AI guidance comments, examples, and convention patterns
+    - {{referenceSchemaPath}}: Complete working example showing all syntax patterns
+
+    Your task is to analyze a complete application codebase and extract:
+    1. READ THE SCHEMA FILES ABOVE for correct SpecVerse syntax and structure
+    2. Component specifications (models, controllers, services, events, views)
+    3. Implementation manifests using unified container format
+    4. Deployment topology and infrastructure configuration
+
+    You must preserve the actual implementation logic, not create idealized versions.
+    Generate specifications that validate against v3.2.0 schema.
+    ALWAYS reference the schema files for correct syntax patterns.
+
+  capabilities:
+    - Detect multiple programming languages and frameworks
+    - Extract data models with attributes and relationships using standardized types
+    - Identify API endpoints and map to controller CURED operations
+    - Recognize service patterns and business logic separation
+    - Detect event-driven architectures and message patterns
+    - Analyze deployment configurations and infrastructure
+    - Identify technology stack and map to @specverse/standards libraries
+    - Generate unified manifest container format
+
+  constraints:
+    - Only extract actual implementation, not hypothetical features
+    - Preserve existing naming conventions and patterns
+    - Maintain relationship cardinality as implemented
+    - Use specVersion "3.2.0" throughout
+    - Generate unified container format for manifests
+    - Map to @specverse/standards libraries where applicable
+    - Follow simplified v3.2.0 schema (no deprecated features)
+    - Ensure all outputs validate against current schema
+    - Primitive types only: String, Number, Integer, Boolean, UUID, DateTime, Date, Email
+    - Use Number for prices/money, not custom Money types
+
+user:
+  template: |
+    IMPORTANT: Before starting, READ these reference files for syntax and examples:
+    - READ {{aiSchemaPath}} (AI guidance, examples, patterns)
+    - READ {{referenceSchemaPath}} (complete working example)
+
+    Analyze the following application codebase and extract SpecVerse v3.2.0 specifications.
+
+    Application Path: {{applicationPath}}
+    Framework Type: {{frameworkType}}
+    Scale Detected: {{detectedScale}}
+
+    Directory Structure:
+    {{directoryStructure}}
+
+    Key Files Content:
+    {{filesContent}}
+
+    Package Dependencies:
+    {{packageDependencies}}
+
+    Database Schema (if available):
+    {{databaseSchema}}
+
+    Please extract:
+
+    1. COMPONENT SPECIFICATION:
+    - Models with actual attributes and relationships found in code
+    - Controllers based on detected API endpoints and operations
+    - Services identified in the codebase
+    - Events and messaging patterns (if any)
+    - Views and UI components (if frontend application)
+
+    2. UNIFIED IMPLEMENTATION MANIFEST:
+    - Map detected frameworks to appropriate @specverse/standards libraries
+    - Extract component mappings to actual file paths
+    - Document route mappings from API definitions
+    - Identify capability patterns and map to implementations
+    - Extract behavior implementations with actual method references
+
+    3. DEPLOYMENT SPECIFICATION:
+    - Extract infrastructure configuration from deployment files
+    - Identify scaling patterns and environment configurations
+    - Document actual instance types and capabilities
+
+    Use the unified container format and ensure all specifications use specVersion "3.2.0".
+    Focus on accuracy over idealization - extract what actually exists.
+
+  variables:
+    - name: applicationPath
+      type: string
+      required: true
+      description: Path to the application codebase
+
+    - name: frameworkType
+      type: string
+      required: false
+      default: "unknown"
+      description: Detected or specified framework type
+
+    - name: detectedScale
+      type: string
+      required: false
+      default: "business"
+      enum: ["personal", "business", "enterprise"]
+      description: Detected application scale based on complexity
+
+    - name: directoryStructure
+      type: string
+      required: true
+      description: Complete directory tree of the application
+
+    - name: filesContent
+      type: string
+      required: true
+      description: Content of key application files
+
+    - name: packageDependencies
+      type: string
+      required: false
+      description: Package.json, requirements.txt, or similar dependency files
+
+    - name: databaseSchema
+      type: string
+      required: false
+      description: Database schema files, migrations, or model definitions
+
+    - name: aiSchemaPath
+      type: string
+      required: false
+      default: "$(specverse schema --ai)"
+      description: Path to AI-optimized schema file (auto-resolved by framework)
+
+    - name: referenceSchemaPath
+      type: string
+      required: false
+      default: "$(specverse schema --reference)"
+      description: Path to minimal syntax reference file (auto-resolved by framework)
+
+context:
+  # CRITICAL: AI must read these files first for syntax and examples
+  includes:
+    - schema: "{{aiSchemaPath}}"           # PRIMARY: AI guidance, examples, patterns (auto-resolved)
+    - example: "{{referenceSchemaPath}}"  # ESSENTIAL: Complete working example (auto-resolved)
+    - libraries: "@specverse/standards library mappings"
+  priority: "READ SCHEMA FILES FIRST"
+  max_tokens: 3000
+  temperature: 0.3
+  top_p: 0.9
+
+analysis:
+  framework_detection:
+    patterns:
+      nextjs: ["next.config.js", "pages/", "app/", "@next/", "next/"]
+      nestjs: ["@nestjs/", "nest-cli.json", "*.controller.ts", "*.service.ts"]
+      express: ["express", "app.js", "server.js", "routes/"]
+      react: ["react", "src/components/", "jsx", "tsx"]
+      vue: ["vue", "*.vue", "vue.config.js"]
+      django: ["django", "settings.py", "models.py", "views.py"]
+      rails: ["Gemfile", "app/models/", "app/controllers/", "config/routes.rb"]
+      spring: ["pom.xml", "gradle", "@Controller", "@Service", "@Entity"]
+
+  library_mapping:
+    nextjs: "@specverse/standards/nextjs"
+    nestjs: "@specverse/standards/nestjs"
+    postgresql: "@specverse/standards/database"
+    mongodb: "@specverse/standards/database"
+    redis: "@specverse/standards/database"
+
+  extraction_patterns:
+    models:
+      - entity_classes
+      - database_tables
+      - schema_definitions
+      - data_transfer_objects
+
+    controllers:
+      - api_endpoints
+      - route_handlers
+      - controller_classes
+      - http_methods
+
+    services:
+      - service_classes
+      - business_logic_modules
+      - utility_functions
+      - external_integrations
+
+    events:
+      - event_emitters
+      - message_queues
+      - websocket_handlers
+      - pub_sub_patterns
+
+validation:
+  schema_compliance: "v3.2.0"
+  unified_format: "required"
+  library_references: "@specverse/standards"
+  no_deprecated_features: "v2.5.0 features excluded"
+
+performance:
+  extraction_accuracy: ">95%"
+  implementation_fidelity: "preserve actual patterns"
+  specification_validity: "100% schema compliant"

@@ -1,0 +1,216 @@
+components:
+  ECommerceSystem:
+    version: "2.0.0"
+    description: "Example 03-06: Complete e-commerce system to test inference engine"
+    
+    export:
+      models: [Customer, Product, Order, OrderItem, Payment, Category, Review, Inventory]
+      controllers: [OrderController]
+      events: [OrderCreated]
+      views: [OrderDashboard]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Customer:
+        description: "Root entity - customer account"
+        attributes:
+          id: UUID required
+          email: Email required unique
+          firstName: String required
+          lastName: String required
+          phone: String
+          status: String default=active
+          creditLimit: Money default=1000.00
+          registrationDate: DateTime required
+        relationships:
+          orders: hasMany Order
+          reviews: hasMany Review
+        lifecycles:
+          account:
+            flow: pending -> active -> suspended -> deleted
+        behaviors:
+          calculateTotalSpent:
+            description: "Calculate total amount spent by customer"
+            returns: Money
+            ensures: ["Returns accurate total spending"]
+          validateCreditLimit:
+            description: "Check if customer can make purchase"
+            parameters:
+              amount: Money required
+            returns: Boolean
+            ensures: ["Credit limit validation completed"]
+      
+      Product:
+        description: "Product catalog entity"
+        attributes:
+          id: UUID required
+          name: String required
+          description: String
+          price: Money required
+          category: String required
+          stock: Integer required
+          isDigital: Boolean default=false
+          weight: String
+          sku: String required unique
+        relationships:
+          orderItems: hasMany OrderItem
+          reviews: hasMany Review
+          inventory: hasOne Inventory
+        lifecycles:
+          inventory:
+            flow: draft -> active -> discontinued -> archived
+      
+      Order:
+        description: "Customer order - belongs to customer, has many items"
+        attributes:
+          id: UUID required
+          orderNumber: String required unique
+          customerEmail: Email required
+          subtotal: Money required
+          tax: Money required
+          shipping: Money required
+          total: Money required
+          shippingAddress: String required
+          billingAddress: String required
+          orderDate: DateTime required
+          expectedDelivery: DateTime
+        relationships:
+          customer: belongsTo Customer
+          items: hasMany OrderItem
+          payments: hasMany Payment
+        lifecycles:
+          fulfillment:
+            flow: pending -> processing -> shipped -> delivered
+          payment:
+            flow: unpaid -> paid -> refunded
+      
+      OrderItem:
+        description: "Individual line item in an order"
+        attributes:
+          id: UUID required
+          productName: String required
+          productSku: String required
+          quantity: Integer required
+          unitPrice: Money required
+          lineTotal: Money required
+          discountApplied: Money
+        relationships:
+          order: belongsTo Order
+          product: belongsTo Product
+      
+      Payment:
+        description: "Payment transaction for an order"
+        attributes:
+          id: UUID required
+          amount: Money required
+          paymentMethod: String required
+          transactionId: String required
+          processorResponse: String
+          processedAt: DateTime
+          refundedAmount: Money
+        relationships:
+          order: belongsTo Order
+        lifecycles:
+          processing:
+            flow: pending -> authorized -> captured -> settled
+      
+      Category:
+        description: "Product category hierarchy"
+        attributes:
+          id: UUID required
+          name: String required
+          description: String
+          parentId: UUID
+          isActive: Boolean default=true
+          sortOrder: Integer default=0
+        relationships:
+          parent: belongsTo Category
+          children: hasMany Category
+          products: hasMany Product
+      
+      Review:
+        description: "Customer product review"
+        attributes:
+          id: UUID required
+          rating: Integer required
+          title: String required
+          comment: String
+          isVerifiedPurchase: Boolean default=false
+          isApproved: Boolean default=false
+          reviewDate: DateTime required
+        relationships:
+          product: belongsTo Product
+          customer: belongsTo Customer
+        lifecycles:
+          moderation:
+            flow: pending -> approved -> rejected
+      
+      Inventory:
+        description: "Warehouse inventory tracking"
+        attributes:
+          id: UUID required
+          location: String required
+          quantityOnHand: Integer required
+          quantityReserved: Integer default=0
+          quantityAvailable: Integer required
+          reorderPoint: Integer default=10
+          maxStock: Integer default=100
+          lastRestocked: DateTime
+        relationships:
+          product: belongsTo Product
+        behaviors:
+          updateQuantity:
+            description: "Update inventory levels"
+            parameters:
+              quantity: Integer required
+              reason: String required
+            returns: Boolean
+            ensures: ["Inventory levels updated correctly"]
+          checkLowStock:
+            description: "Check if reorder needed"
+            returns: Boolean
+            ensures: ["Low stock status determined"]
+    
+    controllers:
+      OrderController:
+        description: "Handle order operations"
+        model: Order
+        actions:
+          createOrder:
+            description: "Create new order"
+            parameters:
+              customerId: UUID required
+              items: String required
+              shippingAddress: String required
+            returns: Order
+            requires: ["Customer exists", "Products available"]
+            ensures: ["Order created", "Inventory updated"]
+            publishes: [OrderCreated]
+    
+    events:
+      OrderCreated:
+        description: "Fired when new order is created"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          total: Money required
+          orderNumber: String required
+          createdAt: DateTime required
+    
+    views:
+      OrderDashboard:
+        description: "Order management dashboard"
+        model: Order
+        uiComponents:
+          OrderTable: {}
+          OrderSummary: {}
+          OrderFilters: {}
+        properties:
+          orderLimit: 50
+          responsive: true
+          realtime: true
+
+deployments: {}

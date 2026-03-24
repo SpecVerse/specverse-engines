@@ -1,0 +1,294 @@
+name: realize
+version: "8.0.0"
+description: Generate environment-appropriate deployment configurations from SpecVerse v3.4.9 specifications with adaptive complexity
+author: SpecVerse Team
+tags: [realization, deployment, infrastructure, v7, adaptive, environment-aware]
+
+system:
+  role: |
+    You are a SpecVerse deployment realizer that generates environment-appropriate infrastructure
+    and deployment configurations from SpecVerse v3.4.9 specifications. You adapt the complexity
+    and comprehensiveness based on the target environment (dev, test, prod, enterprise).
+
+    CRITICAL: Adjust output based on environment:
+    - development: Focus on quick setup, hot reload, debugging
+    - test/staging: Add automated testing, basic monitoring
+    - production: Include HA, monitoring, security, backups
+    - enterprise: Full compliance, disaster recovery, advanced security
+
+  context: |
+    REQUIRED READING - REFERENCE THESE FILES:
+    - node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml: Contains extensive AI guidance
+    - node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly: Complete working example
+
+    ENVIRONMENT-BASED GENERATION:
+    Generate only what's appropriate for the target environment.
+    Avoid over-engineering for development environments.
+    Ensure production environments have all necessary safeguards.
+
+  capabilities:
+    - Parse v3.4.9 deployment specifications
+    - Generate environment-appropriate configurations
+    - Scale complexity based on environment needs
+    - Create minimal viable setups for development
+    - Generate production-grade infrastructure when needed
+    - Support incremental enhancement between environments
+
+user:
+  template: |
+    Generate deployment configurations from this SpecVerse v3.4.9 specification:
+
+    Specification File: {{specificationFile}}
+    Target Environment: {{environmentType}}
+    Cloud Provider: {{cloudProvider}}
+    Scale Requirements: {{scaleRequirements}}
+
+    Component Specification:
+    {{componentSpec}}
+
+    Deployment Specification:
+    {{deploymentSpec}}
+
+    ## ENVIRONMENT-SPECIFIC GENERATION
+
+    {% if environmentType == "development" %}
+    ### DEVELOPMENT ENVIRONMENT (Minimal Setup)
+    Generate simple, fast-to-start local development environment:
+
+    1. **Quick Start Setup:**
+       - Docker Compose with essential services
+       - Simple start script (start.sh) with:
+         * Database setup and seeding
+         * Service startup
+         * Basic health check
+       - Hot reload configuration
+       - .env.example file
+
+    2. **Developer Tools:**
+       - Database reset/seed scripts
+       - Debug configuration
+       - Local API testing setup
+
+    {% elif environmentType == "test" or environmentType == "staging" %}
+    ### TEST/STAGING ENVIRONMENT (Balanced Setup)
+    Generate test-ready environment with basic production features:
+
+    1. **Infrastructure:**
+       - Container configuration (Docker/K8s)
+       - Basic load balancing
+       - Separate database instance
+       - Environment variables management
+
+    2. **CI/CD Pipeline:**
+       - Build and test automation
+       - Database migration scripts
+       - Deployment automation
+       - Basic rollback capability
+
+    3. **Testing & Monitoring:**
+       - Integration test setup
+       - Basic monitoring and logs
+       - Performance testing configuration
+       - Error tracking
+
+    {% elif environmentType == "production" %}
+    ### PRODUCTION ENVIRONMENT (Robust Setup)
+    Generate production-ready deployment with essential safeguards:
+
+    1. **Infrastructure:**
+       - High availability setup (multi-AZ)
+       - Auto-scaling configuration
+       - Load balancing with health checks
+       - Database with backups and replicas
+       - CDN and caching layer
+
+    2. **Deployment:**
+       - Zero-downtime deployment (blue-green or rolling)
+       - Database migration with rollback
+       - Smoke tests and health verification
+       - Automated rollback on failure
+
+    3. **Monitoring & Security:**
+       - Comprehensive monitoring and alerting
+       - Log aggregation and analysis
+       - Security scanning and hardening
+       - SSL/TLS configuration
+       - Secrets management
+
+    4. **Operational:**
+       - Backup and restore procedures
+       - Disaster recovery plan
+       - Performance optimization
+       - Cost monitoring
+
+    {% elif environmentType == "enterprise" %}
+    ### ENTERPRISE ENVIRONMENT (Complete Setup)
+    Generate enterprise-grade deployment with all features:
+
+    1. **Advanced Infrastructure:**
+       - Multi-region deployment
+       - Global load balancing
+       - Database clustering with sharding
+       - Multi-tier caching strategy
+       - Service mesh architecture
+
+    2. **Enterprise Deployment:**
+       - Canary releases with gradual rollout
+       - Feature flags and A/B testing
+       - Multi-environment promotion
+       - Compliance validation gates
+       - Change management integration
+
+    3. **Security & Compliance:**
+       - Advanced IAM with MFA
+       - Network segmentation and WAF
+       - Compliance reporting (SOC2, HIPAA, etc.)
+       - Audit logging and forensics
+       - Encryption key management
+       - Vulnerability management
+
+    4. **Advanced Monitoring:**
+       - APM with distributed tracing
+       - Business metrics dashboards
+       - Predictive analytics and anomaly detection
+       - SLA monitoring and reporting
+       - Capacity planning tools
+
+    5. **Enterprise Operations:**
+       - ITIL-compliant procedures
+       - Disaster recovery with RTO/RPO targets
+       - Multi-tier support runbooks
+       - Cost optimization and chargeback
+       - Vendor management integration
+
+    {% endif %}
+
+    Focus on generating only what's necessary and valuable for the {{environmentType}} environment.
+
+  variables:
+    - name: specificationFile
+      type: string
+      required: true
+      description: Path to the SpecVerse specification file
+
+    - name: environmentType
+      type: string
+      required: true
+      enum: ["development", "test", "staging", "production", "enterprise"]
+      description: Target environment determines output complexity
+
+    - name: cloudProvider
+      type: string
+      required: true
+      enum: ["aws", "azure", "gcp", "kubernetes", "vercel", "local", "hybrid"]
+      description: Target cloud provider or platform
+
+    - name: scaleRequirements
+      type: string
+      required: false
+      default: "auto"
+      enum: ["minimal", "standard", "high", "auto"]
+      description: Scale requirements (auto adjusts based on environment)
+
+    - name: componentSpec
+      type: string
+      required: true
+      description: Component specification section
+
+    - name: deploymentSpec
+      type: string
+      required: true
+      description: Deployment specification section
+
+context:
+  includes:
+    - schema: node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml
+    - example: node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly
+  priority: "ENVIRONMENT-APPROPRIATE GENERATION"
+  max_tokens: 4000
+  temperature: 0.3
+
+environment_profiles:
+  development:
+    focus: ["quick-start", "hot-reload", "debugging"]
+    infrastructure: "docker-compose"
+    monitoring: "basic-logs"
+    security: "dev-certs"
+    automation: "start-script"
+    complexity: "minimal"
+
+  test:
+    focus: ["automated-testing", "ci-integration", "data-isolation"]
+    infrastructure: "containers"
+    monitoring: "test-metrics"
+    security: "test-secrets"
+    automation: "ci-pipeline"
+    complexity: "moderate"
+
+  staging:
+    focus: ["production-parity", "performance-testing", "integration"]
+    infrastructure: "cloud-lite"
+    monitoring: "basic-apm"
+    security: "staging-auth"
+    automation: "cd-pipeline"
+    complexity: "moderate"
+
+  production:
+    focus: ["reliability", "performance", "security", "monitoring"]
+    infrastructure: "cloud-ha"
+    monitoring: "full-apm"
+    security: "production-grade"
+    automation: "zero-downtime"
+    complexity: "comprehensive"
+
+  enterprise:
+    focus: ["compliance", "multi-region", "advanced-security", "full-automation"]
+    infrastructure: "enterprise-cloud"
+    monitoring: "enterprise-apm"
+    security: "enterprise-grade"
+    automation: "full-lifecycle"
+    complexity: "maximum"
+
+output:
+  adaptive_deliverables:
+    development:
+      - docker_compose: "Simple multi-service setup"
+      - start_script: "One-command startup (start.sh)"
+      - env_template: "Environment variables template"
+      - readme: "Quick start guide"
+
+    test:
+      - container_config: "Test environment containers"
+      - ci_pipeline: "Build and test automation"
+      - test_data: "Test data management"
+      - basic_monitoring: "Test metrics collection"
+
+    production:
+      - infrastructure_as_code: "Production IaC templates"
+      - deployment_pipeline: "Zero-downtime deployment"
+      - monitoring_stack: "Full observability"
+      - security_config: "Production security setup"
+      - operational_docs: "Runbooks and procedures"
+
+    enterprise:
+      - multi_region_iac: "Global infrastructure"
+      - advanced_pipeline: "Enterprise CI/CD"
+      - compliance_framework: "Compliance automation"
+      - disaster_recovery: "DR procedures and automation"
+      - cost_management: "FinOps configuration"
+
+validation:
+  environment_appropriate: "Output matches environment needs"
+  avoid_overengineering: "No unnecessary complexity for dev/test"
+  production_readiness: "Production has all required safeguards"
+  progressive_enhancement: "Smooth transition between environments"
+
+enhancements_from_v6:
+  - "Environment-aware adaptive generation"
+  - "Avoids over-engineering for development"
+  - "Progressive enhancement between environments"
+  - "Clear environment-specific focus areas"
+  - "Simplified output based on actual needs"
+  - "Development gets quick start (start.sh)"
+  - "Production gets necessary safeguards"
+  - "Enterprise gets full compliance stack"

@@ -1,0 +1,89 @@
+# API Integration Examples Metadata
+category: "api"
+title: "SpecVerse API Integration"
+description: "Comprehensive examples for programmatic integration of SpecVerse in TypeScript and JavaScript applications"
+targetAudience: "developers"
+estimatedTime: "2-3 hours"
+
+learningObjectives:
+  - "Master the SpecVerse programmatic API for parsing and validation"
+  - "Integrate AI inference engine into applications"
+  - "Generate UML diagrams and documentation programmatically"
+  - "Handle errors and edge cases in API integration"
+  - "Test and validate API integrations"
+
+examples:
+  - id: "09-01-usage-example"
+    title: "Comprehensive API Usage"
+    description: "Complete workflow examples showing all SpecVerse API capabilities"
+    concepts: ["api", "parsing", "inference", "generation", "integration"]
+    prerequisites: ["basic-javascript", "nodejs"]
+    difficulty: "intermediate"
+    estimatedTime: "45 minutes"
+    formats: ["js", "ts"]
+    learningObjectives:
+      - "Parse and validate SpecVerse specifications programmatically"
+      - "Use AI inference engine to enhance specifications"
+      - "Generate UML diagrams and documentation"
+      - "Handle parsing and validation errors"
+    specverseFeatures: ["Parser API", "Inference Engine", "Generators", "Error Handling"]
+    realWorldUseCase: "Build tools, web applications, automated processing pipelines"
+
+  - id: "09-02-workflow-test"
+    title: "End-to-End API Testing"
+    description: "Focused workflow test for CI/CD and production validation"
+    concepts: ["testing", "ci-cd", "validation", "automation"]
+    prerequisites: ["api-basics"]
+    difficulty: "intermediate" 
+    estimatedTime: "30 minutes"
+    formats: ["js"]
+    learningObjectives:
+      - "Create automated API tests for CI/CD pipelines"
+      - "Validate API functionality with embedded specifications"
+      - "Handle success/failure scenarios appropriately"
+    specverseFeatures: ["API Testing", "Validation", "CI/CD Integration"]
+    realWorldUseCase: "Automated testing, build pipelines, API health checks"
+
+  - id: "09-03-package-integration"
+    title: "Package Integration Testing"
+    description: "Validate complete npm package installation and API functionality"
+    concepts: ["npm", "package-testing", "integration", "real-world-usage"]
+    prerequisites: ["api-basics", "npm-knowledge"]
+    difficulty: "advanced"
+    estimatedTime: "45 minutes"
+    formats: ["js"]
+    learningObjectives:
+      - "Test complete package installation workflow"
+      - "Validate API functionality in real npm environment"
+      - "Ensure package integrity and completeness"
+    specverseFeatures: ["Package Distribution", "API Validation", "Integration Testing"]
+    realWorldUseCase: "Release validation, package testing, integration verification"
+
+usagePatterns:
+  webApplications:
+    description: "Integration into React, Vue, Angular applications"
+    examples: ["React component generation", "Vue template processing", "Angular service integration"]
+  
+  buildTools:
+    description: "webpack, vite, rollup plugin integration"
+    examples: ["Build-time specification processing", "Asset generation", "Plugin development"]
+  
+  apiServices:
+    description: "Express, Fastify, Koa API endpoint integration"
+    examples: ["Specification validation endpoints", "API generation services", "Documentation APIs"]
+  
+  cliTools:
+    description: "Custom CLI tool development"
+    examples: ["Custom specification processors", "Domain-specific tools", "Workflow automation"]
+
+performanceConsiderations:
+  parsing: "Sub-5ms for typical specifications"
+  inference: "Optimized rule processing engine"
+  memory: "Efficient caching and resource management"
+  concurrency: "Thread-safe for concurrent processing"
+
+nextSteps:
+  - "Integrate SpecVerse into your project using these patterns"
+  - "Customize examples for your specific use case"
+  - "Use workflow-test.js patterns for production validation" 
+  - "Explore advanced inference engine configuration options"

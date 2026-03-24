@@ -1,0 +1,65 @@
+graph LR
+  %% Manifest Mapping
+
+  subgraph capabilities_layer["🎯 CAPABILITIES"]
+    direction TB
+    cap_0{{"0<br>(1 impl)"}}
+    cap_1{{"1<br>(1 impl)"}}
+    cap_2{{"2<br>(1 impl)"}}
+    cap_3{{"3<br>(1 impl)"}}
+    cap_4{{"4<br>(1 impl)"}}
+    cap_5{{"5<br>(1 impl)"}}
+    cap_6{{"6<br>(1 impl)"}}
+    cap_7{{"7<br>(1 impl)"}}
+    cap_8{{"8<br>(1 impl)"}}
+    cap_9{{"9<br>(1 impl)"}}
+    cap_10{{"10<br>(1 impl)"}}
+  end
+
+  impl_EcommerceProductionManifest_Database("EcommerceProductionManifest.Database")
+  impl_EcommerceProductionManifest_Database("EcommerceProductionManifest.Database")
+  impl_EcommerceProductionManifest_SearchEngine("EcommerceProductionManifest.SearchEngine")
+  impl_EcommerceProductionManifest_PaymentGateway("EcommerceProductionManifest.PaymentGateway")
+  impl_EcommerceProductionManifest_EmailService("EcommerceProductionManifest.EmailService")
+  impl_EcommerceProductionManifest_Cache("EcommerceProductionManifest.Cache")
+  impl_EcommerceProductionManifest_ContainerRuntime("EcommerceProductionManifest.ContainerRuntime")
+  impl_EcommerceProductionManifest_Orchestrator("EcommerceProductionManifest.Orchestrator")
+  impl_EcommerceProductionManifest_Monitoring("EcommerceProductionManifest.Monitoring")
+  impl_EcommerceProductionManifest_Logging("EcommerceProductionManifest.Logging")
+  impl_EcommerceProductionManifest_TestFramework("EcommerceProductionManifest.TestFramework")
+
+
+  %% Relationships
+  cap_0 -->|"binds to"| impl_EcommerceProductionManifest_Database
+  cap_1 -->|"binds to"| impl_EcommerceProductionManifest_Database
+  cap_2 -->|"binds to"| impl_EcommerceProductionManifest_SearchEngine
+  cap_3 -->|"binds to"| impl_EcommerceProductionManifest_PaymentGateway
+  cap_4 -->|"binds to"| impl_EcommerceProductionManifest_EmailService
+  cap_5 -->|"binds to"| impl_EcommerceProductionManifest_Cache
+  cap_6 -->|"binds to"| impl_EcommerceProductionManifest_ContainerRuntime
+  cap_7 -->|"binds to"| impl_EcommerceProductionManifest_Orchestrator
+  cap_8 -->|"binds to"| impl_EcommerceProductionManifest_Monitoring
+  cap_9 -->|"binds to"| impl_EcommerceProductionManifest_Logging
+  cap_10 -->|"binds to"| impl_EcommerceProductionManifest_TestFramework
+
+  style cap_0 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_Database fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_1 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style cap_2 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_SearchEngine fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_3 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_PaymentGateway fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_4 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_EmailService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_5 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_Cache fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_6 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_ContainerRuntime fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_7 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_Orchestrator fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_8 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_Monitoring fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_9 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_Logging fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style cap_10 fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+  style impl_EcommerceProductionManifest_TestFramework fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000

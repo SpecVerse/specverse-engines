@@ -26,8 +26,9 @@ export { createCodeGenerator } from './engines/code-generator.js';
 // ============================================================================
 
 import type { RealizeEngine, EngineInfo, GeneratedOutput } from '@specverse/types';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, copyFileSync } from 'fs';
 import { dirname, join, basename } from 'path';
+import { fileURLToPath } from 'url';
 import { createDefaultLibrary } from './library/library.js';
 import { createResolver } from './library/resolver.js';
 import { createCodeGenerator } from './engines/code-generator.js';
@@ -306,12 +307,103 @@ class SpecVerseRealizeEngine implements RealizeEngine {
       if (frontendFiles.length) console.log(`   ✅ Frontend application: ${frontendFiles.join(', ')}`);
     }
 
+    // 10. Ship assets (templates, examples, schema) from engine packages
+    try {
+      const assetsCopied = await this.copyAssets(outputDir);
+      if (assetsCopied.length > 0) {
+        console.log(`   ✅ Assets: ${assetsCopied.join(', ')}`);
+      }
+    } catch { /* assets are optional */ }
+
     console.log(`\n✅ All code generated in: ${outputDir}`);
     if (errors.length) {
       console.warn(`⚠️  ${errors.length} warning(s) during generation`);
     }
 
     return { files, errors };
+  }
+
+  /**
+   * Copy static assets (templates, examples, schema) from engine packages
+   * into the output directory so the generated project is self-contained.
+   */
+  private async copyAssets(outputDir: string): Promise<string[]> {
+    const copied: string[] = [];
+
+    const copyDir = (src: string, dest: string, label: string) => {
+      if (!existsSync(src)) return;
+      if (!existsSync(dest)) mkdirSync(dest, { recursive: true });
+      const copyRecursive = (s: string, d: string) => {
+        for (const entry of readdirSync(s)) {
+          const srcPath = join(s, entry);
+          const destPath = join(d, entry);
+          if (statSync(srcPath).isDirectory()) {
+            if (!existsSync(destPath)) mkdirSync(destPath, { recursive: true });
+            copyRecursive(srcPath, destPath);
+          } else {
+            copyFileSync(srcPath, destPath);
+          }
+        }
+      };
+      copyRecursive(src, dest);
+      copied.push(label);
+    };
+
+    // Find engine package asset directories via node_modules or relative paths
+    const realizeAssets = this.resolvePackageAssets('@specverse/engine-realize', 'assets');
+    const aiAssets = this.resolvePackageAssets('@specverse/engine-ai', 'assets');
+
+    if (realizeAssets) {
+      copyDir(join(realizeAssets, 'templates'), join(outputDir, 'templates'), 'templates');
+      copyDir(join(realizeAssets, 'examples'), join(outputDir, 'examples'), 'examples');
+    }
+
+    if (aiAssets) {
+      copyDir(join(aiAssets, 'prompts'), join(outputDir, 'prompts'), 'prompts');
+    }
+
+    // Copy composed schema if available
+    const thisDir = dirname(fileURLToPath(import.meta.url));
+    const schemaCandidates = [
+      join(thisDir, '..', 'schema', 'SPECVERSE-SCHEMA.json'),
+      join(thisDir, '../..', 'schema', 'SPECVERSE-SCHEMA.json'),
+      join(thisDir, '..', '..', '..', 'schema', 'SPECVERSE-SCHEMA.json'),
+    ];
+    for (const schemaFile of schemaCandidates) {
+      if (existsSync(schemaFile)) {
+        const destSchema = join(outputDir, 'backend', 'schema');
+        if (!existsSync(destSchema)) mkdirSync(destSchema, { recursive: true });
+        copyFileSync(schemaFile, join(destSchema, 'SPECVERSE-SCHEMA.json'));
+        copied.push('schema');
+        break;
+      }
+    }
+
+    return copied;
+  }
+
+  private resolvePackageAssets(packageName: string, subdir: string): string | null {
+    const thisDir = dirname(fileURLToPath(import.meta.url));
+    const isSelf = packageName === '@specverse/engine-realize';
+    const candidates: string[] = [];
+
+    if (isSelf) {
+      // For our own package, look relative to this file
+      candidates.push(join(thisDir, '..', subdir));
+      candidates.push(join(thisDir, '../..', subdir));
+    }
+
+    // Try via node_modules (workspace layout and npm install)
+    for (let i = 2; i <= 5; i++) {
+      const up = Array(i).fill('..').join('/');
+      candidates.push(join(thisDir, up, 'node_modules', ...packageName.split('/'), subdir));
+    }
+    candidates.push(join(process.cwd(), 'node_modules', ...packageName.split('/'), subdir));
+
+    for (const candidate of candidates) {
+      if (existsSync(candidate)) return candidate;
+    }
+    return null;
   }
 }
 

@@ -1,0 +1,247 @@
+name: materialise
+version: "3.0.0"
+description: Generate clean implementation from extracted three-layer specifications for comparison
+author: SpecVerse Team
+tags: [materialise, comparison, clean-implementation, v3, three-layer]
+
+system:
+  role: |
+    You generate complete NEW implementations from extracted three-layer specifications.
+    You create fresh, clean implementations using:
+    1. COMPONENT SPEC: For logical architecture (WHAT)
+    2. MANIFEST SPEC: For technology patterns (HOW)
+    3. DEPLOYMENT SPEC: For runtime configuration (WHERE)
+
+    These implementations enable comparison with original codebases to identify
+    differences, technical debt, and migration opportunities.
+
+  context: |
+    THREE-LAYER IMPLEMENTATION PRINCIPLE:
+
+    FROM COMPONENT SPEC:
+    - Implement all models with exact attributes
+    - Create controllers with specified CURED operations
+    - Implement services with documented operations
+    - Follow behavior steps as implementation guide
+    - Wire up events and communication patterns
+
+    FROM MANIFEST SPEC:
+    - Use specified technology stack exactly
+    - Follow documented API patterns
+    - Implement database schemas as mapped
+    - Apply error handling patterns
+    - Use specified file structures
+
+    FROM DEPLOYMENT SPEC:
+    - Configure for target environment
+    - Set up scaling parameters
+    - Configure infrastructure services
+    - Implement monitoring and logging
+
+    Generate "clean room" implementation for:
+    1. Comparison with original code to identify differences
+    2. Migration recommendations and refactoring strategies
+    3. Technical debt analysis and improvement suggestions
+
+  capabilities:
+    - Generate complete clean implementations from three-layer specs
+    - Follow framework best practices from manifest patterns
+    - Create production-quality, maintainable code
+    - Generate comprehensive comparison reports
+    - Implement detailed behavior steps as actual code
+    - Map logical specs to technical implementations
+
+  constraints:
+    - Generate NEW code, not modifications to existing
+    - Follow manifest technology patterns exactly
+    - Implement ALL specifications completely
+    - Use behavior steps as implementation guide
+    - Maintain separation of concerns per layer
+    - Include all technical details from manifest
+
+user:
+  template: |
+    Generate a clean implementation from these extracted three-layer specifications:
+
+    COMPONENT SPECIFICATION (Logical):
+    {{componentSpec}}
+
+    MANIFEST SPECIFICATION (Technical):
+    {{manifestSpec}}
+
+    DEPLOYMENT SPECIFICATION (Operational):
+    {{deploymentSpec}}
+
+    Original Application Path: {{originalPath}}
+
+    IMPLEMENTATION REQUIREMENTS:
+    1. Follow the component spec for WHAT to build
+    2. Use the manifest spec for HOW to build it
+    3. Configure per deployment spec for WHERE to run it
+
+    BEHAVIOR IMPLEMENTATION:
+    Transform behavior steps into actual code. For example:
+    Behavior steps:
+      - "Query bookings WHERE room_id = target"
+      - "Check if new.check_in < existing.check_out"
+
+    Should become code like:
+      const conflicts = await db.query(
+        'SELECT * FROM bookings WHERE room_id = $1 AND check_in < $3 AND check_out > $2',
+        [roomId, checkIn, checkOut]
+      );
+
+    Generate complete implementation and comparison report.
+
+  variables:
+    - name: componentSpec
+      type: string
+      required: true
+      description: SpecVerse component specification with models and behaviors
+
+    - name: manifestSpec
+      type: string
+      required: true
+      description: Complete manifest with technology mappings and patterns
+
+    - name: deploymentSpec
+      type: string
+      required: false
+      description: SpecVerse deployment specification
+
+    - name: originalPath
+      type: string
+      required: true
+      description: Path to original application for comparison
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Best Practices,Manifest System,Deployment Patterns"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Clean implementation patterns"
+  max_tokens: 15000
+  temperature: 0.2
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Component specification must be valid SpecVerse
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Manifest must specify technology stack
+      required: true
+    - rule: Manifest must include implementation patterns
+      required: true
+
+  output:
+    - rule: Must generate complete, working implementation
+      format: multifile
+    - rule: Must include comprehensive comparison report
+      format: markdown
+    - rule: Must highlight technical debt and improvements
+      format: structured
+    - rule: Must implement behavior steps as actual code
+      required: true
+
+examples:
+  - name: Guesthouse Booking System
+    input:
+      componentSpec: |
+        components:
+          GuesthouseSystem:
+            models:
+              Booking:
+                attributes:
+                  id: Integer required unique auto=serial
+                  room_id: Integer required
+                  guest_name: String required
+                  check_in: Date required
+                  check_out: Date required
+                behaviors:
+                  validateConflicts:
+                    steps:
+                      - "Query bookings for same room"
+                      - "Check if dates overlap"
+                      - "Return conflict status"
+
+      manifestSpec: |
+        manifest:
+          technology_stack:
+            backend:
+              framework: "Next.js 14"
+              api: "App Router"
+              database: "PostgreSQL"
+
+          business_logic_implementation:
+            conflict_detection:
+              sql: "SELECT * FROM bookings WHERE room_id = $1 AND check_in < $3 AND check_out > $2"
+
+          data_mappings:
+            Booking:
+              table: "bookings"
+              columns:
+                id: "SERIAL PRIMARY KEY"
+                room_id: "INTEGER REFERENCES rooms(id)"
+
+    output: |
+      === CLEAN IMPLEMENTATION ===
+
+      /app/api/bookings/route.ts:
+      ```typescript
+      // Generated from behavior: validateConflicts
+      async function validateConflicts(roomId: number, checkIn: Date, checkOut: Date) {
+        // Step 1: Query bookings for same room
+        const result = await db.query(
+          // Step 2: Check if dates overlap (from manifest SQL)
+          'SELECT * FROM bookings WHERE room_id = $1 AND check_in < $3 AND check_out > $2',
+          [roomId, checkIn, checkOut]
+        );
+
+        // Step 3: Return conflict status
+        return result.rows.length > 0;
+      }
+      ```
+
+      /prisma/schema.prisma:
+      ```prisma
+      model Booking {
+        id         Int      @id @default(autoincrement())
+        room_id    Int
+        guest_name String
+        check_in   DateTime @db.Date
+        check_out  DateTime @db.Date
+        room       Room     @relation(fields: [room_id], references: [id])
+      }
+      ```
+
+      === COMPARISON REPORT ===
+
+      ## Architecture Comparison
+      - **Original**: Mixed validation logic across files
+      - **Clean**: Centralized in service layer per behavior specs
+      - **Improvement**: 40% reduction in code complexity
+
+      ## Technical Debt Identified
+      1. **Original**: Direct SQL in route handlers
+         **Clean**: Separated data access layer
+         **Migration**: Extract to repository pattern
+
+      2. **Original**: No timezone handling
+         **Clean**: Consistent UTC storage
+         **Migration**: Add timezone conversion layer
+
+      ## Key Differences
+      - Clean implementation follows behavior steps exactly
+      - Manifest SQL patterns consistently applied
+      - Better separation of concerns per three-layer architecture
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v3:
+    - "Three-layer architecture awareness"
+    - "Behavior steps transformed to actual code"
+    - "Manifest patterns strictly followed"
+    - "Clear mapping from logical to technical"
+    - "Comprehensive comparison with original"
+    - "Technical debt analysis included"

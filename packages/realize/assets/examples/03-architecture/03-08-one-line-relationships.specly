@@ -1,0 +1,244 @@
+components:
+  OneLineRelationshipsDemo:
+    version: "2.0.0"
+    description: "Example 03-08: Demonstrates comprehensive relationship patterns in SpecVerse v3.2"
+    
+    export:
+      models: [Customer, Order, OrderItem, Product, Category, CustomerProfile, Address, Payment, ProductVariant, Review, Tag, Coupon, Offer, CustomerPreference, OrderCoupon, CustomerOfferAssignment, ProductBundle]
+      events: [OrderConfirmed, OrderShipped]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Customer:
+        description: "Customer with various relationship formats"
+        attributes:
+          id: UUID required
+          name: String required
+          email: Email required unique
+          createdAt: DateTime required
+          status: String default=active
+        relationships:
+          orders: hasMany Order
+          profile: hasOne CustomerProfile
+          orderHistory: hasMany Order
+          primaryAddress: hasOne Address
+          preferences: hasMany CustomerPreference
+          referredBy: belongsTo Customer
+          reviews: hasMany Review
+        behaviors:
+          calculateLifetimeValue:
+            description: "Calculate total value across all orders"
+            requires: ["orders collection is available"]
+            returns: Money
+            ensures: ["Returns sum of all completed order totals"]
+      
+      Order:
+        description: "Customer order with one-line relationships"
+        attributes:
+          id: UUID required
+          orderNumber: String required unique
+          orderDate: DateTime required
+          total: Money required
+          status: String required values=["pending", "confirmed", "shipped", "delivered", "cancelled"]
+        relationships:
+          customer: belongsTo Customer
+          items: hasMany OrderItem
+          payment: hasOne Payment
+          appliedCoupons: hasMany OrderCoupon
+      
+      OrderItem:
+        description: "Individual item in an order"
+        attributes:
+          id: UUID required
+          quantity: Integer required
+          unitPrice: Money required
+          lineTotal: Money required
+          productName: String required
+        relationships:
+          order: belongsTo Order
+          product: belongsTo Product
+      
+      Product:
+        description: "Product with complex relationship patterns"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required
+          description: String
+          inStock: Boolean default=true
+          sku: String required unique
+        relationships:
+          category: belongsTo Category
+          variants: hasMany ProductVariant
+          reviews: hasMany Review
+          tags: manyToMany Tag
+          orderItems: hasMany OrderItem
+      
+      Category:
+        description: "Hierarchical product category"
+        attributes:
+          id: UUID required
+          name: String required
+          description: String
+          isActive: Boolean default=true
+        relationships:
+          parent: belongsTo Category
+          children: hasMany Category
+          products: hasMany Product
+      
+      CustomerProfile:
+        description: "Extended customer information"
+        attributes:
+          id: UUID required
+          bio: String
+          preferences: String
+          customerId: UUID required
+        relationships:
+          customer: belongsTo Customer
+      
+      Address:
+        description: "Customer address information"
+        attributes:
+          id: UUID required
+          street: String required
+          city: String required
+          country: String required
+          isDefault: Boolean default=false
+          customerId: UUID required
+        relationships:
+          customer: belongsTo Customer
+      
+      Payment:
+        description: "Payment information for orders"
+        attributes:
+          id: UUID required
+          amount: Money required
+          method: String required values=["card", "paypal", "bank_transfer"]
+          processedAt: DateTime required
+          orderId: UUID required
+        relationships:
+          order: belongsTo Order
+      
+      ProductVariant:
+        description: "Product variant (size, color, etc.)"
+        attributes:
+          id: UUID required
+          sku: String required unique
+          name: String required
+          price: Money required
+          productId: UUID required
+        relationships:
+          product: belongsTo Product
+      
+      Review:
+        description: "Product review by customer"
+        attributes:
+          id: UUID required
+          rating: Integer required min=1 max=5
+          comment: String
+          createdAt: DateTime required
+          productId: UUID required
+          customerId: UUID required
+        relationships:
+          product: belongsTo Product
+          customer: belongsTo Customer
+      
+      Tag:
+        description: "Product categorization tags"
+        attributes:
+          id: UUID required
+          name: String required unique
+          color: String default=blue
+        relationships:
+          products: manyToMany Product
+      
+      Coupon:
+        description: "Discount coupon"
+        attributes:
+          id: UUID required
+          code: String required unique
+          discount: Money required
+          expiresAt: DateTime required
+          isActive: Boolean default=true
+        relationships:
+          orders: hasMany OrderCoupon
+      
+      Offer:
+        description: "Special promotional offer"
+        attributes:
+          id: UUID required
+          title: String required
+          description: String required
+          validUntil: DateTime required
+          isActive: Boolean default=true
+        relationships:
+          customers: hasMany CustomerOfferAssignment
+      
+      CustomerPreference:
+        description: "Customer product preferences"
+        attributes:
+          customerId: UUID required
+          productId: UUID required
+          preference: Integer required min=1 max=10
+          createdAt: DateTime required
+        relationships:
+          customer: belongsTo Customer
+          product: belongsTo Product
+      
+      OrderCoupon:
+        description: "Coupon applied to order"
+        attributes:
+          orderId: UUID required
+          couponId: UUID required
+          appliedAt: DateTime required
+          discountAmount: Money required
+        relationships:
+          order: belongsTo Order
+          coupon: belongsTo Coupon
+      
+      CustomerOfferAssignment:
+        description: "Special offer assigned to customer"
+        attributes:
+          customerId: UUID required
+          offerId: UUID required
+          assignedAt: DateTime required
+          notified: Boolean default=false
+          accepted: Boolean default=false
+        relationships:
+          customer: belongsTo Customer
+          offer: belongsTo Offer
+      
+      ProductBundle:
+        description: "Product bundling relationship"
+        attributes:
+          productId: UUID required
+          bundledProductId: UUID required
+          quantity: Integer required min=1
+          discountPercent: Integer default=0
+        relationships:
+          product: belongsTo Product
+          bundledProduct: belongsTo Product
+    
+    events:
+      OrderConfirmed:
+        description: "Order has been confirmed"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          orderNumber: String required
+          total: Money required
+          confirmedAt: DateTime required
+      
+      OrderShipped:
+        description: "Order has been shipped"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          trackingNumber: String required
+          carrier: String required
+          shippedAt: DateTime required
+
+deployments: {}

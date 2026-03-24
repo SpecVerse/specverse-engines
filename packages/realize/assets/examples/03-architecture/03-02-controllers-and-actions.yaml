@@ -1,0 +1,474 @@
+components:
+  ControllersAndActions:
+    version: 3.2.0
+    description: "Example 03-02: Controllers and actions for API design"
+    import:
+      - file: ../common/common-definitions.yaml
+        select:
+          - UUID
+          - Money
+          - DateTime
+    export:
+      models:
+        - Product
+        - Order
+        - OrderItem
+      controllers:
+        - ProductController
+        - OrderController
+      events:
+        - ProductCreated
+        - ProductUpdated
+        - ProductDeleted
+        - OrderCreated
+        - OrderConfirmed
+    models:
+      Product:
+        description: Product available for purchase
+        attributes:
+          id:
+            name: id
+            type: UUID
+            required: true
+            unique: false
+          name:
+            name: name
+            type: String
+            required: true
+            unique: false
+          price:
+            name: price
+            type: Money
+            required: true
+            unique: false
+            min: 0
+          stock:
+            name: stock
+            type: Integer
+            required: false
+            unique: false
+            default: "0"
+          category:
+            name: category
+            type: String
+            required: true
+            unique: false
+        behaviors:
+          attachProfile:
+            description: Attach a profile to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile exists and is compatible with this model
+            ensures:
+              - Profile is attached
+              - Profile attributes are available
+          detachProfile:
+            description: Detach a profile from this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile is currently attached
+            ensures:
+              - Profile is detached
+              - Profile attributes are no longer available
+          hasProfile:
+            description: Check if a profile is attached to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+      Order:
+        description: Customer order
+        attributes:
+          id:
+            name: id
+            type: UUID
+            required: true
+            unique: false
+          customerId:
+            name: customerId
+            type: UUID
+            required: true
+            unique: false
+          total:
+            name: total
+            type: Money
+            required: true
+            unique: false
+          status:
+            name: status
+            type: String
+            required: true
+            unique: false
+        relationships:
+          items:
+            name: items
+            type: hasMany
+            target: OrderItem
+        behaviors:
+          attachProfile:
+            description: Attach a profile to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile exists and is compatible with this model
+            ensures:
+              - Profile is attached
+              - Profile attributes are available
+          detachProfile:
+            description: Detach a profile from this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile is currently attached
+            ensures:
+              - Profile is detached
+              - Profile attributes are no longer available
+          hasProfile:
+            description: Check if a profile is attached to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+      OrderItem:
+        description: Individual item in an order
+        attributes:
+          id:
+            name: id
+            type: UUID
+            required: true
+            unique: false
+          productId:
+            name: productId
+            type: UUID
+            required: true
+            unique: false
+          quantity:
+            name: quantity
+            type: Integer
+            required: true
+            unique: false
+            min: 1
+          unitPrice:
+            name: unitPrice
+            type: Money
+            required: true
+            unique: false
+          lineTotal:
+            name: lineTotal
+            type: Money
+            required: true
+            unique: false
+        behaviors:
+          attachProfile:
+            description: Attach a profile to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile exists and is compatible with this model
+            ensures:
+              - Profile is attached
+              - Profile attributes are available
+          detachProfile:
+            description: Detach a profile from this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile is currently attached
+            ensures:
+              - Profile is detached
+              - Profile attributes are no longer available
+          hasProfile:
+            description: Check if a profile is attached to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+    controllers:
+      ProductController:
+        model: Product
+        description: Manage product operations
+        actions:
+          createProduct:
+            parameters:
+              name:
+                name: name
+                type: String
+                required: true
+                unique: false
+              price:
+                name: price
+                type: Money
+                required: true
+                unique: false
+              category:
+                name: category
+                type: String
+                required: true
+                unique: false
+            description: Create a new product
+            returns: Product
+            requires:
+              - name is not empty
+              - price > 0
+              - category is valid
+            ensures:
+              - Product created with unique ID
+              - Stock initialized to 0
+            publishes:
+              - ProductCreated
+          updateProduct:
+            parameters:
+              id:
+                name: id
+                type: UUID
+                required: true
+                unique: false
+              name:
+                name: name
+                type: String
+                required: false
+                unique: false
+              price:
+                name: price
+                type: Money
+                required: false
+                unique: false
+              category:
+                name: category
+                type: String
+                required: false
+                unique: false
+            description: Update existing product
+            returns: Product
+            requires:
+              - Product with ID exists
+              - price > 0 if specified
+            ensures:
+              - Product attributes updated
+              - Version timestamp updated
+            publishes:
+              - ProductUpdated
+          getProduct:
+            parameters:
+              id:
+                name: id
+                type: UUID
+                required: true
+                unique: false
+            description: Get single product by ID
+            returns: Product
+            requires:
+              - Product with ID exists
+            ensures:
+              - Returns complete product details
+          deleteProduct:
+            parameters:
+              id:
+                name: id
+                type: UUID
+                required: true
+                unique: false
+            description: Delete a product
+            returns: Boolean
+            requires:
+              - Product with ID exists
+              - No active orders reference this product
+            ensures:
+              - Product marked as deleted
+            publishes:
+              - ProductDeleted
+      OrderController:
+        model: Order
+        description: Manage order lifecycle
+        actions:
+          createOrder:
+            parameters:
+              customerId:
+                name: customerId
+                type: UUID
+                required: true
+                unique: false
+              items:
+                name: items
+                type: String
+                required: true
+                unique: false
+            description: Create a new order
+            returns: Order
+            requires:
+              - Customer exists
+              - All products available
+              - Sufficient stock
+            ensures:
+              - Order created
+              - Stock reserved
+              - Total calculated
+            publishes:
+              - OrderCreated
+          confirmOrder:
+            parameters:
+              id:
+                name: id
+                type: UUID
+                required: true
+                unique: false
+              paymentInfo:
+                name: paymentInfo
+                type: String
+                required: true
+                unique: false
+            description: Confirm order and process payment
+            returns: Order
+            requires:
+              - Order exists
+              - Order is pending
+              - Payment is valid
+            ensures:
+              - Order confirmed
+              - Payment processed
+              - Inventory updated
+            publishes:
+              - OrderConfirmed
+    events:
+      ProductCreated:
+        description: New product was added to catalog
+        attributes:
+          productId:
+            name: productId
+            type: UUID
+            required: true
+            unique: false
+          name:
+            name: name
+            type: String
+            required: true
+            unique: false
+          category:
+            name: category
+            type: String
+            required: true
+            unique: false
+          price:
+            name: price
+            type: Money
+            required: true
+            unique: false
+      ProductUpdated:
+        description: Product information was modified
+        attributes:
+          productId:
+            name: productId
+            type: UUID
+            required: true
+            unique: false
+          changes:
+            name: changes
+            type: String
+            required: true
+            unique: false
+          previousValues:
+            name: previousValues
+            type: String
+            required: true
+            unique: false
+      ProductDeleted:
+        description: Product was removed from catalog
+        attributes:
+          productId:
+            name: productId
+            type: UUID
+            required: true
+            unique: false
+          deletedAt:
+            name: deletedAt
+            type: DateTime
+            required: true
+            unique: false
+          reason:
+            name: reason
+            type: String
+            required: true
+            unique: false
+      OrderCreated:
+        description: New order was placed by customer
+        attributes:
+          orderId:
+            name: orderId
+            type: UUID
+            required: true
+            unique: false
+          customerId:
+            name: customerId
+            type: UUID
+            required: true
+            unique: false
+          total:
+            name: total
+            type: Money
+            required: true
+            unique: false
+          itemCount:
+            name: itemCount
+            type: Integer
+            required: true
+            unique: false
+      OrderConfirmed:
+        description: Order was confirmed and payment processed
+        attributes:
+          orderId:
+            name: orderId
+            type: UUID
+            required: true
+            unique: false
+          confirmationNumber:
+            name: confirmationNumber
+            type: String
+            required: true
+            unique: false
+          paymentId:
+            name: paymentId
+            type: UUID
+            required: true
+            unique: false
+deployments: {}

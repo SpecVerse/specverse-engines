@@ -1,0 +1,194 @@
+metadata:
+  component: SpecVerseFundamentals
+  version: 1.0.0
+  description: 'Example 01-01: Basic model definition with attributes'
+  tags: []
+imports:
+  - from: '@specverse/primitives'
+    select:
+      - Money
+exports: []
+models:
+  - name: Product
+    attributes:
+      - name: id
+        type: UUID
+        constraints:
+          required: true
+          unique: false
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+          format: uuid
+        dbMapping:
+          columnName: id
+          columnType: UUID
+          index: false
+          nullable: false
+        validation:
+          rules:
+            - required
+        metadata:
+          encrypted: false
+          audit: false
+      - name: name
+        type: String
+        constraints:
+          required: true
+          unique: false
+        dbMapping:
+          columnName: name
+          columnType: VARCHAR(255)
+          index: false
+          nullable: false
+        validation:
+          rules:
+            - required
+        metadata:
+          encrypted: false
+          audit: false
+      - name: summary
+        type: String
+        constraints:
+          required: false
+          unique: false
+        dbMapping:
+          columnName: summary
+          columnType: VARCHAR(255)
+          index: false
+          nullable: true
+        validation:
+          rules: []
+        metadata:
+          encrypted: false
+          audit: false
+      - name: price
+        type: Money
+        constraints:
+          required: true
+          unique: false
+        dbMapping:
+          columnName: price
+          columnType: VARCHAR(255)
+          index: false
+          nullable: false
+        validation:
+          rules:
+            - required
+        metadata:
+          encrypted: false
+          audit: false
+      - name: inStock
+        type: Boolean
+        constraints:
+          required: false
+          unique: false
+        dbMapping:
+          columnName: in_stock
+          columnType: BOOLEAN
+          index: false
+          nullable: true
+          defaultValue: 'true'
+        validation:
+          rules: []
+        metadata:
+          encrypted: false
+          audit: false
+      - name: category
+        type: String
+        constraints:
+          required: true
+          unique: false
+        dbMapping:
+          columnName: category
+          columnType: VARCHAR(255)
+          index: false
+          nullable: false
+        validation:
+          rules:
+            - required
+        metadata:
+          encrypted: false
+          audit: false
+      - name: contactEmail
+        type: Email
+        constraints:
+          required: false
+          unique: false
+          pattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+          format: email
+        dbMapping:
+          columnName: contact_email
+          columnType: VARCHAR(255)
+          index: false
+          nullable: true
+        validation:
+          rules:
+            - email
+        metadata:
+          encrypted: false
+          audit: false
+    relationships: []
+    behaviors:
+      - name: attachProfile
+        signature: 'attachProfile(profileName: String): Promise<Boolean>'
+        implementation:
+          preconditions:
+            - Profile exists and is compatible with this model
+          postconditions:
+            - Profile is attached
+            - Profile attributes are available
+          sideEffects: []
+          steps: []
+          transactional: true
+        metadata:
+          async: true
+          cacheable: false
+          idempotent: false
+      - name: detachProfile
+        signature: 'detachProfile(profileName: String): Promise<Boolean>'
+        implementation:
+          preconditions:
+            - Profile is currently attached
+          postconditions:
+            - Profile is detached
+            - Profile attributes are no longer available
+          sideEffects: []
+          steps: []
+          transactional: true
+        metadata:
+          async: true
+          cacheable: false
+          idempotent: false
+      - name: hasProfile
+        signature: 'hasProfile(profileName: String): Promise<Boolean>'
+        implementation:
+          preconditions: []
+          postconditions: []
+          sideEffects: []
+          steps: []
+          transactional: false
+        metadata:
+          async: true
+          cacheable: false
+          idempotent: false
+    lifecycle:
+      states: []
+      transitions: {}
+      currentStateField: state
+    dbMapping:
+      tableName: products
+      indexes: []
+controllers: []
+services: []
+views: []
+events: []
+infrastructure:
+  database:
+    type: postgresql
+    migrations: true
+    seedData: false
+  messaging:
+    type: rabbitmq
+    queues: []
+  caching:
+    type: redis
+    ttl: 3600

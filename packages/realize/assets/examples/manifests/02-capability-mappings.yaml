@@ -1,0 +1,55 @@
+# SpecVerse v3.3 Manifest - Capability Mappings Example
+#
+# This manifest demonstrates capability-based mapping with pattern matching.
+# Different capabilities can be mapped to different instance factories.
+#
+# Resolution: Matches capability patterns with wildcard support.
+
+specVersion: "3.3.0"
+name: "capability-based-manifest"
+description: "API with specialized factories for different capability patterns"
+version: "1.0.0"
+
+deployment:
+  deploymentSource: "./blog-api.specly"
+  deploymentName: "production"
+
+# Default factories (used when no capability match found)
+defaultMappings:
+  controller: "FastifyPrismaAPI"
+  storage: "PostgreSQL15"
+
+# Capability-based mappings (medium priority)
+# Overrides defaults when capability pattern matches
+capabilityMappings:
+  # REST API endpoints use Fastify
+  - capability: "api.rest"
+    instanceFactory: "FastifyPrismaAPI"
+    version: "^1.0.0"
+
+  # WebSocket capabilities use specialized factory
+  - capability: "api.websocket"
+    instanceFactory: "FastifyWebSocketAPI"
+    version: "^1.0.0"
+
+  # Reporting endpoints get specialized configuration
+  - capability: "api.rest.reports"
+    instanceFactory: "ReportingAPI"
+    configuration:
+      caching: true
+      timeout: 60000
+
+  # Database storage uses PostgreSQL
+  - capability: "storage.database"
+    instanceFactory: "PostgreSQL15"
+
+  # Cache capabilities use Redis
+  - capability: "storage.cache"
+    instanceFactory: "Redis7"
+
+  # Validation uses Zod
+  - capability: "validation.runtime"
+    instanceFactory: "ZodValidation"
+
+configuration:
+  environment: "production"

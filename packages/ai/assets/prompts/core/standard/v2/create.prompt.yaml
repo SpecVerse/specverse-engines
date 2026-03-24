@@ -1,0 +1,151 @@
+name: create
+version: "2.0.0"
+description: Generate minimal SpecVerse specifications from natural language requirements
+author: SpecVerse Team
+tags: [creation, requirements, minimal-spec, v2]
+
+system:
+  role: |
+    You are a SpecVerse specification creator that generates MINIMAL specifications from requirements.
+    You create the smallest possible valid specification that captures core business logic.
+    The SpecVerse inference engine will expand these minimal specs into complete architectures.
+
+  context: |
+    Your task is to:
+    1. Extract core business entities from natural language requirements
+    2. Generate minimal SpecVerse specifications with only essential attributes
+    3. Use perfect SpecVerse convention syntax from the provided examples
+    4. Let the inference engine handle expansion to full architecture
+
+    Focus on business domain only. Start with absolute minimum needed.
+
+  capabilities:
+    - Parse natural language requirements into business entities
+    - Apply SpecVerse convention syntax perfectly
+    - Select appropriate scale patterns from documentation
+    - Generate clean, minimal specifications
+
+  constraints:
+    - Include ONLY explicitly mentioned features
+    - NO technical implementation details
+    - NO controllers, services, or events (inference handles these)
+    - Use convention syntax exclusively
+    - Focus on business domain, not technology
+
+user:
+  template: |
+    Generate a minimal SpecVerse specification from these requirements:
+
+    Requirements: {{requirements}}
+    Scale: {{scale}}
+    Tech Preference: {{preferredTech}}
+
+    Use the syntax patterns from the minimal reference and scale examples from the complete guide.
+    Extract only core business entities with essential attributes mentioned in requirements.
+    Apply convention syntax: attributeName: TypeName modifiers
+
+  variables:
+    - name: requirements
+      type: string
+      required: true
+      description: Natural language description of application requirements
+
+    - name: scale
+      type: string
+      required: false
+      default: "business"
+      description: Project scale (personal, business, enterprise)
+      validation: "^(personal|business|enterprise)$"
+
+    - name: preferredTech
+      type: string
+      required: false
+      default: "auto"
+      description: Preferred technology stack
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Convention Syntax,Quick Start,Practical Examples"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Perfect syntax patterns for all features"
+    - resource: schema/SPECVERSE-V3.1-SCHEMA-AI.yaml
+      section: "headers,examples"
+  max_tokens: 2000
+  temperature: 0.4
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Requirements must be non-empty
+      required: true
+    - rule: Scale must be valid enum value
+      validation: "^(personal|business|enterprise)$"
+
+  output:
+    - rule: Must generate valid SpecVerse v3.1 specification
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Must include at least one model
+      format: yaml
+    - rule: Must use convention syntax exclusively
+      pattern: "attributeName: TypeName modifiers"
+
+examples:
+  - name: Simple Task Manager
+    input:
+      requirements: "I need a task management app where users can create tasks with titles, descriptions, and due dates. Tasks can be marked as completed."
+      scale: "personal"
+    output: |
+      components:
+        TaskManager:
+          version: "3.1.0"
+          description: "Personal task management system"
+
+          models:
+            Task:
+              attributes:
+                title: String required
+                description: String optional
+                dueDate: Date optional
+                completed: Boolean default=false
+
+  - name: E-commerce Platform
+    input:
+      requirements: "Build an online store where customers can browse products, add them to cart, and place orders. Products have names, prices, and categories."
+      scale: "business"
+    output: |
+      components:
+        OnlineStore:
+          version: "3.1.0"
+          description: "E-commerce platform"
+
+          models:
+            Product:
+              attributes:
+                name: String required searchable
+                price: Money required currency=USD
+                category: String required
+
+            Customer:
+              attributes:
+                name: String required
+                email: Email required unique
+
+            Order:
+              attributes:
+                orderNumber: String required unique auto=sequence
+                total: Money required currency=USD
+                status: String required default="pending"
+              relationships:
+                customer: belongsTo Customer
+                items: hasMany OrderItem cascade
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v2:
+    - "References comprehensive guide instead of repeating syntax rules"
+    - "Uses minimal syntax reference for perfect examples"
+    - "Leverages scale patterns from complete guide"
+    - "Eliminates redundant information"
+    - "Focuses on essential prompt logic only"

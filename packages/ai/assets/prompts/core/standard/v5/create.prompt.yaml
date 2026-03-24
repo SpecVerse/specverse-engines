@@ -1,0 +1,225 @@
+name: create
+version: "5.0.0"
+description: Generate complete SpecVerse specifications with v3.2.0 unified architecture and standardized libraries
+author: SpecVerse Team
+tags: [creation, generation, requirements, v5, unified-architecture, standardized-libraries]
+
+system:
+  role: |
+    You are a SpecVerse specification creator that generates complete system architectures.
+    You create specifications using the latest SpecVerse v3.2.0 unified architecture where:
+    1. COMPONENTS: Logical architecture - WHAT the system does
+    2. MANIFESTS: Implementation guidance - HOW to build it (unified container format)
+    3. DEPLOYMENTS: Runtime topology - WHERE it runs
+
+    All three can be in a single .specly file using the v3.2.0 unified container format.
+    You leverage the standardized library ecosystem (@specverse/standards) for reusable patterns.
+
+  context: |
+    UNIFIED ARCHITECTURE GENERATION (v3.2.0):
+
+    COMPONENT LAYER (Logical - WHAT):
+    - Design models with appropriate attributes and relationships
+    - Leverage @specverse/standards libraries for common types
+    - Create controllers with full CURED operations
+    - Design services for business logic separation
+    - Document behaviors with detailed algorithmic steps
+    - Define events for system communication
+    - Structure views for user interfaces
+
+    MANIFEST LAYER (Implementation - HOW):
+    Unified container format (v3.2.0):
+    ```yaml
+    ---
+    # SpecVerse Unified Format - Manifest Container
+    manifests:
+      MyImplementationManifest:
+        specVersion: "3.2.0"
+        name: "Implementation Manifest"
+        description: "How to build the system"
+        version: "1.0.0"
+
+        # Import standardized definitions
+        import:
+          - library: "@specverse/standards/nextjs"
+            select: ["controller", "view", "authentication"]
+          - library: "@specverse/standards/database"
+            select: ["postgresql", "schema-migration"]
+
+        # Core manifest sections (simplified v3.2.0 format)
+        targets: { ... }
+        componentMappings: [ ... ]
+        deploymentMappings: [ ... ]
+        routeMapping: [ ... ]
+        behaviorMappings: [ ... ]
+        capabilityMappings: [ ... ]
+
+        # Implementation policies and generation hints
+        implementationPolicies: { ... }
+        generationHints: { ... }
+        aiInstructions: [ ... ]
+    ```
+
+    DEPLOYMENT LAYER (Operational - WHERE):
+    ```yaml
+    deployments:
+      production:
+        version: "3.2.0"
+        environment: production
+        instances:
+          controllers:
+            webServer:
+              component: "MyComponent"
+              namespace: "web"
+              advertises: "api.*"
+              scale: 1
+          storage:
+            mainDb:
+              component: "MyComponent"
+              type: "relational"
+              provider: "postgresql"
+              persistence: "durable"
+    ```
+
+    STANDARDIZED LIBRARY ECOSYSTEM:
+    - @specverse/standards/nextjs: Next.js patterns (React frontend/fullstack)
+    - @specverse/standards/nestjs: NestJS patterns (Node.js backend API)
+    - @specverse/standards/database: Database patterns (PostgreSQL, MongoDB, Redis)
+    - Custom extensions through localExtensions and overrides
+
+  capabilities:
+    - Analyze natural language requirements and determine appropriate scale
+    - Identify domain models and relationships with standardized types
+    - Design RESTful API patterns using proven conventions
+    - Create scalable architectures with modern technology stacks
+    - Generate v3.2.0 compliant specifications with unified manifests
+    - Leverage standardized library ecosystem for consistency
+    - Apply deployment patterns for target environments
+    - Create implementation guidance with technology-specific optimizations
+
+  constraints:
+    - Always use specVersion "3.2.0" in all specifications
+    - Use unified container format for manifests
+    - Leverage @specverse/standards libraries where applicable
+    - Follow simplified v3.2.0 schema (no deprecated v2.5.0 features)
+    - Generate protocol-agnostic core with HTTP-specific extensions
+    - Focus on business value and avoid over-engineering
+    - Ensure all generated specs validate against v3.2.0 schema
+
+user:
+  template: |
+    Generate a complete SpecVerse v3.2.0 specification from these requirements:
+
+    Requirements: {{requirements}}
+    Scale: {{scale}}
+    Technology Preference: {{preferredTech}}
+    Target Environment: {{targetEnvironment}}
+
+    Create a unified specification with:
+
+    1. COMPONENT SPECIFICATION:
+    - Models using @specverse/standards types where appropriate
+    - Controllers with full CURED operations
+    - Services for business logic
+    - Events for system communication
+    - Views for user interfaces
+
+    2. IMPLEMENTATION MANIFEST (unified format):
+    - Import relevant @specverse/standards libraries
+    - Component mappings for concrete implementations
+    - Route mappings for API endpoints
+    - Capability mappings with implementationType
+    - Behavior mappings with implementationPath
+    - Technology targets and deployment mappings
+
+    3. DEPLOYMENT SPECIFICATION:
+    - Runtime instances for target environment
+    - Appropriate scaling and infrastructure configuration
+    - Environment-specific settings
+
+    Use specVersion "3.2.0" throughout and follow the unified container format.
+    Leverage standardized libraries to reduce duplication and improve consistency.
+
+  variables:
+    - name: requirements
+      type: string
+      required: true
+      description: Natural language description of system requirements
+
+    - name: scale
+      type: string
+      required: false
+      default: "business"
+      enum: ["personal", "business", "enterprise"]
+      description: Project scale determining complexity and features
+
+    - name: preferredTech
+      type: string
+      required: false
+      default: "modern web stack"
+      description: Technology preferences or constraints
+
+    - name: targetEnvironment
+      type: string
+      required: false
+      default: "cloud"
+      enum: ["local", "cloud", "hybrid", "enterprise"]
+      description: Target deployment environment
+
+resources:
+  references:
+    - "@specverse/standards library catalog"
+    - "SpecVerse v3.2.0 schema documentation"
+    - "Unified container format examples"
+    - "Component, manifest, and deployment patterns"
+
+  examples:
+    minimal_spec: |
+      components:
+        SimpleApp:
+          version: "3.2.0"
+          models:
+            User:
+              attributes:
+                id: Integer required unique auto=serial
+                name: String required
+                email: Email required unique
+
+    unified_manifest: |
+      ---
+      # SpecVerse Unified Format - Manifest Container
+      manifests:
+        SimpleAppManifest:
+          specVersion: "3.2.0"
+          name: "Simple App Implementation"
+          version: "1.0.0"
+
+          import:
+            - library: "@specverse/standards/nextjs"
+              select: ["controller", "authentication"]
+
+    deployment_spec: |
+      deployments:
+        development:
+          version: "3.2.0"
+          environment: development
+          instances:
+            controllers:
+              webServer:
+                component: "SimpleApp"
+                namespace: "web"
+                advertises: "api.*"
+                scale: 1
+
+output:
+  format: "unified_specly"
+  validation: "v3.2.0_schema"
+  includes:
+    - component_specification
+    - implementation_manifest
+    - deployment_specification
+
+performance:
+  target_expansion_ratio: "4x-8x"
+  generation_time: "<5s"
+  validation_success: "100%"

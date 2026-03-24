@@ -1,0 +1,73 @@
+# SpecVerse Hello World
+# The simplest possible full-stack application
+#
+# This spec generates:
+# - A backend API that returns "Hello World"
+# - A frontend view that displays it
+#
+# To use:
+# 1. Run: npm run realize:all
+# 2. Run: npm install && npm run db:push && npm run dev
+# 3. Visit: http://localhost:3000
+
+components:
+  {{componentName}}:
+    version: "1.0.0"
+    description: "Hello World - The simplest SpecVerse application"
+    tags: ["hello-world", "starter", "minimal"]
+
+    # Simple greeting message model (no database needed for this example)
+    models:
+      Greeting:
+        description: "A simple greeting message"
+
+        metadata:
+          id: uuid
+          audit: true
+
+        attributes:
+          message: String required default="Hello World"
+          language: String default="en" values=["en", "es", "fr", "de"]
+
+    # Controller that serves the greeting
+    controllers:
+      GreetingController:
+        model: Greeting
+        description: "Serves greeting messages"
+
+        cured:
+          retrieve: {}
+
+    # View that displays the greeting
+    views:
+      HomePage:
+        description: "Displays the Hello World greeting"
+        route: /
+        subscribes_to: []
+        displays:
+          - model: Greeting
+            operation: list
+
+# Simple deployment configuration
+deployments:
+  development:
+    version: "1.0.0"
+    description: "Hello World development environment"
+    environment: "development"
+
+    instances:
+      controllers:
+        apiServer:
+          component: {{componentName}}
+          namespace: api
+          scale: 1
+          advertises: [api.*]
+          uses: [database.*]
+
+      storage:
+        mainDB:
+          component: {{componentName}}
+          namespace: data
+          type: relational
+          scale: 1
+          advertises: [persistence.*]

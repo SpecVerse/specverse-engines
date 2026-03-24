@@ -1,0 +1,127 @@
+graph TB
+  %% System Architecture
+
+  subgraph services_layer["🔧 SERVICE LAYER"]
+    direction LR
+    AccountService("AccountService
+Operations: openAccount, closeAccount, freezeAccount, unfreezeAccount, getBalance, updateBalance, transferFunds")
+    TransactionService("TransactionService
+Operations: createTransaction, processTransaction, reverseTransaction, processTransfer, validateTransaction
+Subscribes: FundsTransferred")
+    FraudDetectionService("FraudDetectionService
+Operations: analyzeTransaction, analyzeNewAccount, calculateRiskScore, checkVelocity, checkLocation
+Subscribes: TransactionCreated, AccountOpened")
+    NotificationService("NotificationService
+Operations: sendTransactionNotification, sendFraudAlert, sendAccountAlert, sendBalanceNotification, sendEmail, sendSMS
+Subscribes: TransactionProcessed, FraudAlertCreated, AccountFrozen, BalanceUpdated")
+    AuditService("AuditService
+Operations: logAccountEvent, logTransactionEvent, logFraudEvent, logUserAction, queryAuditLog
+Subscribes: AccountOpened, AccountClosed, TransactionProcessed, FraudAlertCreated")
+    ComplianceService("ComplianceService
+Operations: checkCompliance, verifyKYC, reportSuspiciousActivity, checkSanctions
+Subscribes: TransactionProcessed, AccountOpened")
+    ReportingService("ReportingService
+Operations: updateMetrics, updateAuditMetrics, generateDailyReport, generateMonthlyReport, getTransactionStats
+Subscribes: TransactionProcessed, AuditLogCreated")
+    BalanceReconciliationService("BalanceReconciliationService
+Operations: reconcileBalance, detectDiscrepancies, fixDiscrepancy, scheduledReconciliation
+Subscribes: TransactionProcessed, TransactionReversed")
+  end
+
+  subgraph models_layer["📦 DATA MODELS"]
+    direction LR
+    model_Account("Account
+0, 1, 2...")
+    model_Transaction("Transaction
+0, 1, 2...")
+    model_Customer("Customer
+0, 1, 2...")
+    model_FraudAlert("FraudAlert
+0, 1, 2...")
+    model_AuditLog("AuditLog
+0, 1, 2...")
+  end
+
+
+  %% Relationships
+  AccountService -->|"uses"| model_Account
+  AccountService -->|"uses"| model_Transaction
+  AccountService -->|"uses"| model_Customer
+  AccountService -->|"uses"| model_FraudAlert
+  AccountService -->|"uses"| model_AuditLog
+  TransactionService -->|"uses"| model_Account
+  TransactionService -->|"uses"| model_Transaction
+  TransactionService -->|"uses"| model_Customer
+  TransactionService -->|"uses"| model_FraudAlert
+  TransactionService -->|"uses"| model_AuditLog
+  FraudDetectionService -->|"uses"| model_Account
+  FraudDetectionService -->|"uses"| model_Transaction
+  FraudDetectionService -->|"uses"| model_Customer
+  FraudDetectionService -->|"uses"| model_FraudAlert
+  FraudDetectionService -->|"uses"| model_AuditLog
+  NotificationService -->|"uses"| model_Account
+  NotificationService -->|"uses"| model_Transaction
+  NotificationService -->|"uses"| model_Customer
+  NotificationService -->|"uses"| model_FraudAlert
+  NotificationService -->|"uses"| model_AuditLog
+  AuditService -->|"uses"| model_Account
+  AuditService -->|"uses"| model_Transaction
+  AuditService -->|"uses"| model_Customer
+  AuditService -->|"uses"| model_FraudAlert
+  AuditService -->|"uses"| model_AuditLog
+  ComplianceService -->|"uses"| model_Account
+  ComplianceService -->|"uses"| model_Transaction
+  ComplianceService -->|"uses"| model_Customer
+  ComplianceService -->|"uses"| model_FraudAlert
+  ComplianceService -->|"uses"| model_AuditLog
+  ReportingService -->|"uses"| model_Account
+  ReportingService -->|"uses"| model_Transaction
+  ReportingService -->|"uses"| model_Customer
+  ReportingService -->|"uses"| model_FraudAlert
+  ReportingService -->|"uses"| model_AuditLog
+  BalanceReconciliationService -->|"uses"| model_Account
+  BalanceReconciliationService -->|"uses"| model_Transaction
+  BalanceReconciliationService -->|"uses"| model_Customer
+  BalanceReconciliationService -->|"uses"| model_FraudAlert
+  BalanceReconciliationService -->|"uses"| model_AuditLog
+  AccountService -.->|"AccountOpened"| FraudDetectionService
+  AccountService -.->|"AccountOpened"| AuditService
+  AccountService -.->|"AccountOpened"| ComplianceService
+  AccountService -.->|"AccountClosed"| AuditService
+  AccountService -.->|"AccountFrozen"| NotificationService
+  AccountService -.->|"BalanceUpdated"| NotificationService
+  AccountService -.->|"FundsTransferred"| TransactionService
+  TransactionService -.->|"TransactionCreated"| FraudDetectionService
+  TransactionService -.->|"TransactionProcessed"| NotificationService
+  TransactionService -.->|"TransactionProcessed"| AuditService
+  TransactionService -.->|"TransactionProcessed"| ComplianceService
+  TransactionService -.->|"TransactionProcessed"| ReportingService
+  TransactionService -.->|"TransactionProcessed"| BalanceReconciliationService
+  TransactionService -.->|"TransactionReversed"| BalanceReconciliationService
+  TransactionService -.->|"TransactionProcessed"| NotificationService
+  TransactionService -.->|"TransactionProcessed"| AuditService
+  TransactionService -.->|"TransactionProcessed"| ComplianceService
+  TransactionService -.->|"TransactionProcessed"| ReportingService
+  TransactionService -.->|"TransactionProcessed"| BalanceReconciliationService
+  FraudDetectionService -.->|"FraudAlertCreated"| NotificationService
+  FraudDetectionService -.->|"FraudAlertCreated"| AuditService
+  FraudDetectionService -.->|"FraudAlertCreated"| NotificationService
+  FraudDetectionService -.->|"FraudAlertCreated"| AuditService
+  AuditService -.->|"AuditLogCreated"| ReportingService
+  AuditService -.->|"AuditLogCreated"| ReportingService
+  AuditService -.->|"AuditLogCreated"| ReportingService
+  AuditService -.->|"AuditLogCreated"| ReportingService
+
+  style AccountService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style TransactionService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style FraudDetectionService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style NotificationService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style AuditService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style ComplianceService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style ReportingService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style BalanceReconciliationService fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style model_Account fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+  style model_Transaction fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+  style model_Customer fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+  style model_FraudAlert fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+  style model_AuditLog fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000

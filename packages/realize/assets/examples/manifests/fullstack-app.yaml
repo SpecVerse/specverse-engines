@@ -1,0 +1,44 @@
+manifests:
+  FullStackApp:
+    specVersion: "3.5.0"
+    name: "fullstack-app-implementation"
+    description: "Full-stack application with React frontend, Fastify API, and event-driven architecture"
+    version: "1.0.0"
+    deployment:
+      deploymentSource: "./blog-api.specly"
+      deploymentName: "production"
+    defaultMappings:
+      storage: "PostgreSQL15"
+      controller: "FastifyAPI"
+      service: "PrismaORM"
+      view: "ReactComponents"
+      communication: "EventEmitter"
+    capabilityMappings:
+      - capability: "api.rest"
+        instanceFactory: "FastifyAPI"
+      - capability: "api.rest.crud"
+        instanceFactory: "FastifyAPI"
+      - capability: "storage.database"
+        instanceFactory: "PostgreSQL15"
+      - capability: "ui.components"
+        instanceFactory: "ReactComponents"
+      - capability: "ui.views"
+        instanceFactory: "ReactComponents"
+      - capability: "ui.forms"
+        instanceFactory: "ReactComponents"
+      - capability: "messaging.pubsub"
+        instanceFactory: "EventEmitter"
+      - capability: "messaging.events"
+        instanceFactory: "EventEmitter"
+      - capability: "validation.runtime"
+        instanceFactory: "ZodValidation"
+    configuration:
+      frontend:
+        buildTool: "vite"
+        outputDir: "dist/client"
+        publicPath: "/app"
+      backend:
+        outputDir: "dist/server"
+        port: 3000
+      events:
+        mode: "development"

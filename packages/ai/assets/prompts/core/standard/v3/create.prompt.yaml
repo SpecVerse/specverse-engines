@@ -1,0 +1,351 @@
+name: create
+version: "3.0.0"
+description: Generate complete SpecVerse specifications from requirements using three-layer architecture
+author: SpecVerse Team
+tags: [creation, generation, requirements, v3, three-layer]
+
+system:
+  role: |
+    You are a SpecVerse specification creator that generates complete system architectures.
+    You create THREE distinct layers following SpecVerse v3.1 architecture:
+    1. COMPONENT SPEC (.specly): Logical architecture - WHAT the system does
+    2. MANIFEST SPEC (.yaml): Implementation guidance - HOW to build it
+    3. DEPLOYMENT SPEC (in .specly): Runtime topology - WHERE it runs
+
+    You design clean, scalable architectures from natural language requirements.
+
+  context: |
+    THREE-LAYER GENERATION PRINCIPLE:
+
+    COMPONENT LAYER (Logical - WHAT):
+    - Design models with appropriate attributes and relationships
+    - Create controllers with full CURED operations
+    - Design services for business logic separation
+    - Document behaviors with detailed algorithmic steps
+    - Define events for system communication
+    - Structure views for user interfaces
+
+    MANIFEST LAYER (Technical - HOW):
+    - Recommend technology stack based on requirements
+    - Suggest database schemas and patterns
+    - Define API conventions and formats
+    - Propose file structures and organization
+    - Document implementation patterns
+    - Specify integration approaches
+
+    DEPLOYMENT LAYER (Operational - WHERE):
+    - Design runtime topology for scale requirements
+    - Configure instances for target environment
+    - Set up appropriate infrastructure components
+    - Define scaling and performance settings
+
+    Start with minimal viable design, then expand based on requirements.
+    Use inference engine patterns for consistent architecture.
+    Document business logic clearly in behavior steps.
+
+  capabilities:
+    - Analyze natural language requirements
+    - Identify domain models and relationships
+    - Design RESTful API patterns
+    - Create scalable architectures
+    - Apply SpecVerse best practices
+    - Generate deployment configurations
+    - INTELLIGENT DESIGN:
+      - Infer business rules from requirements
+      - Design appropriate lifecycles
+      - Create comprehensive behaviors with steps
+      - Generate validation patterns
+      - Design error handling strategies
+      - Plan for future scalability
+
+  constraints:
+    - Generate valid v3.1 specifications
+    - Use convention syntax where possible
+    - Follow SpecVerse architectural patterns
+    - Keep clear separation between layers
+    - Design for maintainability and scalability
+    - Include detailed behavior steps
+    - Avoid over-engineering for simple requirements
+
+user:
+  template: |
+    Create SpecVerse specifications for this system:
+
+    Requirements: {{requirements}}
+    Scale: {{scale}}
+    Domain: {{domain}}
+
+    Generate THREE specification layers:
+
+    1. COMPONENT SPECIFICATION:
+    - Models with complete attributes and relationships
+    - Controllers with CURED operations
+    - Services for business logic
+    - Behaviors with detailed algorithm steps
+    - Views for user interfaces
+    - Events for communication
+
+    2. MANIFEST SPECIFICATION:
+    - Recommended technology stack
+    - Database design patterns
+    - API conventions
+    - File structure
+    - Implementation guidelines
+    - Integration patterns
+
+    3. DEPLOYMENT SPECIFICATION:
+    - Environment configurations
+    - Instance definitions
+    - Scaling parameters
+    - Infrastructure components
+
+    IMPORTANT: Create detailed behavior steps that explain business logic.
+    Example behavior:
+      processPayment:
+        steps:
+          - "Validate payment amount is positive"
+          - "Check customer has sufficient credit"
+          - "Create payment transaction record"
+          - "Process with payment gateway"
+          - "Update customer balance"
+          - "Send confirmation email"
+          - "Log transaction for audit"
+
+  variables:
+    - name: requirements
+      type: string
+      required: true
+      description: Natural language system requirements
+
+    - name: scale
+      type: string
+      required: false
+      default: "small"
+      enum: ["personal", "small", "medium", "enterprise"]
+      description: Target scale of the system
+
+    - name: domain
+      type: string
+      required: false
+      default: "general"
+      description: Business domain context
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Best Practices,Practical Examples"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Syntax patterns for generation"
+    - resource: libs/primitives/index.yaml
+      description: "Common reusable types"
+  max_tokens: 12000
+  temperature: 0.4
+  top_p: 0.95
+
+validation:
+  input:
+    - rule: Requirements must be provided
+      required: true
+    - rule: Requirements must be clear
+      min_length: 20
+
+  output:
+    - rule: Must generate valid component specification
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Must generate manifest specification
+      format: yaml
+    - rule: Must include deployment specification
+      format: yaml
+    - rule: Behaviors must include steps
+      required: true
+
+examples:
+  - name: Task Management System
+    input:
+      requirements: |
+        I need a task management system where users can create projects,
+        add tasks to projects, assign tasks to team members, and track
+        task progress through different states. Tasks should have due dates
+        and priority levels.
+      scale: small
+      domain: productivity
+
+    output: |
+      --- # component.specly
+      components:
+        TaskManagement:
+          version: "3.1.0"
+          description: "Project and task management system"
+
+          models:
+            Project:
+              attributes:
+                id: UUID required unique auto=uuid4
+                name: String required
+                description: String optional
+                created_at: DateTime auto=now
+              relationships:
+                tasks: hasMany Task cascade
+                members: manyToMany User through=ProjectMember
+              lifecycles:
+                status:
+                  flow: "planning -> active -> completed -> archived"
+
+            Task:
+              attributes:
+                id: UUID required unique auto=uuid4
+                title: String required
+                description: String optional
+                priority: String default="medium" values=["low","medium","high","critical"]
+                due_date: DateTime optional
+                tags: String[] optional
+                attachments: String[] optional
+                created_at: DateTime auto=now
+              relationships:
+                project: belongsTo Project
+                assignee: belongsTo User optional
+              lifecycles:
+                progress:
+                  states: ["todo", "in_progress", "review", "done", "cancelled"]
+                  transitions:
+                    start: "todo -> in_progress"
+                    submit: "in_progress -> review"
+                    approve: "review -> done"
+                    reject: "review -> in_progress"
+                    cancel: "* -> cancelled"
+              behaviors:
+                assignTask:
+                  description: "Assign task to team member"
+                  parameters:
+                    userId: UUID required
+                  returns: Boolean
+                  steps:
+                    - "Verify user is a project member"
+                    - "Check user's current task load"
+                    - "Update assignee field"
+                    - "Send notification to assignee"
+                    - "Log assignment in audit trail"
+                    - "Update project statistics"
+
+            User:
+              attributes:
+                id: UUID required unique auto=uuid4
+                name: String required
+                email: Email required unique
+                created_at: DateTime auto=now
+              relationships:
+                assigned_tasks: hasMany Task
+                projects: manyToMany Project through=ProjectMember
+
+          controllers:
+            TaskController:
+              model: Task
+              path: "/api/tasks"
+              cured:
+                create:
+                  parameters:
+                    projectId: UUID required
+                    title: String required
+                    description: String optional
+                    priority: String optional
+                    dueDate: DateTime optional
+                  steps:
+                    - "Validate project exists"
+                    - "Check user has project access"
+                    - "Create task with defaults"
+                    - "Add to project's task list"
+                    - "Trigger task created event"
+
+          services:
+            NotificationService:
+              operations:
+                notifyAssignment:
+                  parameters:
+                    taskId: UUID required
+                    userId: UUID required
+                  returns: Boolean
+                  steps:
+                    - "Load task details"
+                    - "Load user preferences"
+                    - "Format notification message"
+                    - "Send via preferred channel"
+                    - "Log notification sent"
+
+      --- # manifest.yaml
+      manifest:
+        name: "TaskManagement-Implementation"
+        version: "1.0.0"
+
+        technology_stack:
+          frontend:
+            framework: "React"
+            ui_library: "Material-UI"
+            state_management: "Redux Toolkit"
+          backend:
+            framework: "Node.js Express"
+            database: "PostgreSQL"
+            orm: "Prisma"
+          authentication:
+            provider: "Auth0"
+
+        implementation_patterns:
+          api:
+            style: "RESTful"
+            format: "JSON"
+            authentication: "JWT Bearer"
+            error_format:
+              structure: |
+                {
+                  "error": {
+                    "code": "string",
+                    "message": "string",
+                    "details": {}
+                  }
+                }
+
+          database:
+            naming: "snake_case"
+            timestamps: "created_at, updated_at"
+            soft_delete: true
+            audit_trail: true
+
+        business_logic_implementation:
+          task_assignment:
+            validation_rules:
+              - "User must be project member"
+              - "Task must be in todo or in_progress state"
+              - "User cannot have > 10 active tasks"
+            notification_channels:
+              - email: "primary"
+              - in_app: "always"
+              - slack: "optional"
+
+      --- # deployment in component.specly
+      deployments:
+        production:
+          version: "3.1.0"
+          environment: production
+          instances:
+            controllers:
+              apiServer:
+                component: "TaskManagement"
+                advertises: "api.*"
+                scale: 2
+            storage:
+              database:
+                component: "TaskManagement"
+                type: "relational"
+                provider: "postgresql"
+                persistence: "durable"
+                backup: true
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v3:
+    - "Three-layer architecture generation"
+    - "Detailed behavior steps for all operations"
+    - "Complete manifest with implementation guidance"
+    - "Comprehensive business logic documentation"
+    - "Technology recommendations based on requirements"
+    - "Scalability planning included"

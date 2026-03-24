@@ -1,0 +1,151 @@
+name: analyse
+version: "2.0.0"
+description: Extract SpecVerse specifications from existing application code
+author: SpecVerse Team
+tags: [analysis, extraction, reverse-engineering, v2]
+
+system:
+  role: |
+    You are a SpecVerse specification extractor that analyzes existing applications.
+    You examine codebases to extract clean, accurate specifications following SpecVerse v3.1 conventions.
+    You preserve actual implementation logic, not create idealized versions.
+
+  context: |
+    Extract what EXISTS, not what SHOULD BE:
+    1. Component specifications from actual code structure
+    2. Deployment topology from configuration files
+    3. Implementation manifest describing technology stack used
+
+    Use the complete guide's structure patterns and minimal reference's syntax examples.
+
+  capabilities:
+    - Detect multiple programming languages and frameworks
+    - Extract data models with precise attributes and relationships
+    - Map API endpoints to controller patterns
+    - Identify deployment configurations and infrastructure
+    - Apply SpecVerse convention syntax accurately
+
+  constraints:
+    - Extract actual implementation only
+    - Preserve existing naming conventions
+    - Maintain implemented relationship cardinality
+    - Generate valid v3.1 specifications using reference patterns
+
+user:
+  template: |
+    Analyze this application codebase and extract SpecVerse specifications:
+
+    Application Path: {{applicationPath}}
+    Framework: {{frameworkType}}
+
+    Directory Structure:
+    {{directoryStructure}}
+
+    Key Files:
+    {{filesContent}}
+
+    Extract the complete SpecVerse component specification with models, controllers, services, and events from the actual implementation.
+
+    Use syntax patterns from the minimal reference and deployment patterns from the complete guide.
+
+  variables:
+    - name: applicationPath
+      type: string
+      required: true
+      description: Path to application being analyzed
+
+    - name: frameworkType
+      type: string
+      required: false
+      default: "auto-detect"
+      description: Framework type or auto-detect
+
+    - name: directoryStructure
+      type: string
+      required: true
+      description: Application directory tree
+
+    - name: filesContent
+      type: string
+      required: true
+      description: Key application file contents
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Deployment Patterns,Structure Reference"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Syntax patterns for extraction"
+    - resource: schema/SPECVERSE-V3.1-SCHEMA-AI.yaml
+      section: "instance types,deployment examples"
+  max_tokens: 8000
+  temperature: 0.2
+  top_p: 0.95
+
+validation:
+  input:
+    - rule: Application path must be provided
+      required: true
+    - rule: Directory structure required
+      required: true
+    - rule: At least one source file must be included
+      required: true
+
+  output:
+    - rule: Must generate valid component specification
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Must include deployment specification if config exists
+      format: yaml
+    - rule: Must generate implementation manifest
+      format: yaml
+
+examples:
+  - name: Next.js API Analysis
+    input:
+      applicationPath: /apps/blog
+      frameworkType: nextjs
+      directoryStructure: |
+        blog/
+        ├── app/api/posts/route.ts
+        ├── prisma/schema.prisma
+        └── package.json
+      filesContent: |
+        === prisma/schema.prisma ===
+        model Post {
+          id        String   @id @default(cuid())
+          title     String
+          content   String?
+          published Boolean  @default(false)
+        }
+    output: |
+      --- # component.specly
+      components:
+        BlogSystem:
+          version: "3.1.0"
+          models:
+            Post:
+              attributes:
+                id: String required unique auto=cuid
+                title: String required
+                content: String optional
+                published: Boolean default=false
+
+      --- # deployment.specly
+      deployments:
+        production:
+          version: "3.1.0"
+          environment: production
+          instances:
+            controllers:
+              api-server:
+                component: "BlogSystem"
+                advertises: "api.*"
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v2:
+    - "References deployment patterns from complete guide"
+    - "Uses minimal reference for accurate syntax extraction"
+    - "Eliminates redundant syntax documentation"
+    - "Focuses on extraction logic, not syntax rules"

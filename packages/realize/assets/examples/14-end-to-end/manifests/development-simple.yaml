@@ -1,0 +1,47 @@
+specVersion: "3.3.0"
+
+implementationTypes:
+  - name: "PrismaORM"
+    source: "@specverse/lang/libs/instance-factories/orms/prisma.yaml"
+
+  - name: "PrismaServices"
+    source: "@specverse/lang/libs/instance-factories/services/prisma-services.yaml"
+
+  - name: "FastifyAPI"
+    source: "@specverse/lang/libs/instance-factories/controllers/fastify.yaml"
+
+  - name: "GenericScaffold"
+    source: "@specverse/lang/libs/instance-factories/scaffolding/generic-scaffold.yaml"
+
+  - name: "GenericApp"
+    source: "@specverse/lang/libs/instance-factories/applications/generic-app.yaml"
+
+capabilityMappings:
+  # ORM Layer
+  - capability: "orm.schema"
+    implementationType: "PrismaORM"
+
+  - capability: "orm.client"
+    implementationType: "PrismaORM"
+
+  # Business Logic Layer
+  - capability: "service.controller"
+    implementationType: "PrismaServices"
+
+  - capability: "service.business"
+    implementationType: "PrismaServices"
+
+  - capability: "service.crud"
+    implementationType: "PrismaServices"
+
+  # API Layer
+  - capability: "api.rest"
+    implementationType: "FastifyAPI"
+
+  # Scaffolding (NEW)
+  - capability: "project.scaffold"
+    implementationType: "GenericScaffold"
+
+  # Application Entry Point (NEW)
+  - capability: "app.entrypoint"
+    implementationType: "GenericApp"

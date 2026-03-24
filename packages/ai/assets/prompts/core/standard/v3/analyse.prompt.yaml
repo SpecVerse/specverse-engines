@@ -1,0 +1,309 @@
+name: analyse
+version: "3.0.0"
+description: Extract complete SpecVerse specifications from existing application code with three-layer architecture
+author: SpecVerse Team
+tags: [analysis, extraction, reverse-engineering, v3, three-layer]
+
+system:
+  role: |
+    You are a SpecVerse specification extractor that analyzes existing applications.
+    You extract THREE distinct layers following SpecVerse v3.1 architecture:
+    1. COMPONENT SPEC (.specly): Logical architecture - WHAT the system does
+    2. MANIFEST SPEC (.yaml): Implementation details - HOW it's built
+    3. DEPLOYMENT SPEC (in .specly): Runtime topology - WHERE it runs
+
+    You preserve actual implementation logic with precise detail at each layer.
+
+  context: |
+    THREE-LAYER EXTRACTION PRINCIPLE:
+
+    COMPONENT LAYER (Logical - WHAT):
+    - Models with attributes and relationships
+    - Controllers with CURED operations
+    - Services with business operations
+    - Behaviors with detailed steps (algorithms in plain language)
+    - Events and their payloads
+    - Views and their structure
+    - Array syntax supported: String[], Integer[], Boolean[] etc.
+
+    MANIFEST LAYER (Technical - HOW):
+    - Technology stack and frameworks
+    - Database schemas and migrations
+    - API patterns and formats
+    - Code mappings and file structures
+    - Implementation-specific algorithms
+    - Error handling patterns
+    - External integrations
+
+    DEPLOYMENT LAYER (Operational - WHERE):
+    - Runtime instances and configuration
+    - Infrastructure components
+    - Scaling and performance settings
+    - Environment-specific settings
+
+    Extract what EXISTS, not what SHOULD BE.
+    Use detailed behavior steps to capture business logic.
+    Document actual technical patterns in manifests.
+
+  capabilities:
+    - Detect multiple programming languages and frameworks
+    - Extract data models with precise attributes and relationships
+    - Map API endpoints to controller patterns
+    - Identify deployment configurations and infrastructure
+    - Apply SpecVerse convention syntax accurately
+    - DEEP EXTRACTION:
+      - Analyze function bodies for algorithm steps
+      - Extract SQL queries and database operations
+      - Capture validation rules and patterns
+      - Document state transitions completely
+      - Extract configuration and constants
+      - Identify error handling patterns
+
+  constraints:
+    - Extract actual implementation only
+    - Preserve existing naming conventions
+    - Maintain implemented relationship cardinality
+    - Generate valid v3.1 specifications using reference patterns
+    - Keep clear separation between three layers
+    - Use behavior steps for logic documentation
+    - Place technical details in manifests only
+
+user:
+  template: |
+    Analyze this application codebase and extract complete SpecVerse specifications:
+
+    Application Path: {{applicationPath}}
+    Framework: {{frameworkType}}
+
+    Directory Structure:
+    {{directoryStructure}}
+
+    Key Files:
+    {{filesContent}}
+
+    Extract THREE specification layers:
+
+    1. COMPONENT SPECIFICATION:
+    - Models, Controllers, Services, Views, Events
+    - Use behavior 'steps' to document algorithms
+    - Keep it logical, not technical
+
+    2. MANIFEST SPECIFICATION:
+    - Technology mappings
+    - Database schemas
+    - API formats and patterns
+    - Implementation details
+    - Code-to-spec mappings
+
+    3. DEPLOYMENT SPECIFICATION:
+    - Runtime instances
+    - Environment configurations
+    - Infrastructure components
+
+    IMPORTANT: Extract actual algorithms into behavior steps, not just "validates X".
+    Example: Instead of "validates conflicts", extract:
+      steps:
+        - "Query bookings WHERE room_id = target"
+        - "Check if new.check_in < existing.check_out"
+        - "Check if new.check_out > existing.check_in"
+        - "Return true if both conditions match"
+
+  variables:
+    - name: applicationPath
+      type: string
+      required: true
+      description: Path to application being analyzed
+
+    - name: frameworkType
+      type: string
+      required: false
+      default: "auto-detect"
+      description: Framework type or auto-detect
+
+    - name: directoryStructure
+      type: string
+      required: true
+      description: Application directory tree
+
+    - name: filesContent
+      type: string
+      required: true
+      description: Key application file contents
+
+context:
+  includes:
+    - resource: schema/SPECVERSE-COMPLETE-GUIDE.md
+      section: "Deployment Patterns,Structure Reference,Best Practices"
+    - resource: schema/MINIMAL-SYNTAX-REFERENCE.specly
+      description: "Syntax patterns for extraction"
+    - resource: schema/SPECVERSE-V3.1-SCHEMA-AI.yaml
+      section: "instance types,deployment examples"
+  max_tokens: 12000
+  temperature: 0.2
+  top_p: 0.95
+
+validation:
+  input:
+    - rule: Application path must be provided
+      required: true
+    - rule: Directory structure required
+      required: true
+    - rule: At least one source file must be included
+      required: true
+
+  output:
+    - rule: Must generate valid component specification
+      validator: schema/SPECVERSE-SCHEMA.json
+    - rule: Must include deployment specification if config exists
+      format: yaml
+    - rule: Must generate complete implementation manifest
+      format: yaml
+      required_sections:
+        - technology_stack
+        - implementation_patterns
+        - business_logic_implementation
+        - data_mappings
+
+examples:
+  - name: Next.js Guesthouse Analysis
+    input:
+      applicationPath: /apps/guesthouse
+      frameworkType: nextjs
+      directoryStructure: |
+        guesthouse/
+        ├── app/api/bookings/route.ts
+        ├── app/api/rooms/route.ts
+        ├── lib/db.ts
+        ├── schema.sql
+        └── package.json
+      filesContent: |
+        === schema.sql ===
+        CREATE TABLE bookings (
+          id SERIAL PRIMARY KEY,
+          room_id INTEGER REFERENCES rooms(id),
+          guest_name VARCHAR(255) NOT NULL,
+          check_in DATE NOT NULL,
+          check_out DATE NOT NULL
+        );
+
+        === lib/db.ts ===
+        export async function checkConflicts(roomId, checkIn, checkOut) {
+          const result = await query(
+            'SELECT * FROM bookings WHERE room_id = $1 AND check_in < $3 AND check_out > $2',
+            [roomId, checkIn, checkOut]
+          );
+          return result.rows.length > 0;
+        }
+
+    output: |
+      --- # component.specly
+      components:
+        GuesthouseSystem:
+          version: "3.1.0"
+          models:
+            Booking:
+              attributes:
+                id: Integer required unique auto=serial
+                room_id: Integer required
+                guest_name: String required
+                check_in: Date required
+                check_out: Date required
+                tags: String[] optional
+                amenities: String[] optional
+              relationships:
+                room: belongsTo Room
+              behaviors:
+                checkConflicts:
+                  description: "Check for booking overlaps"
+                  parameters:
+                    roomId: Integer required
+                    checkIn: Date required
+                    checkOut: Date required
+                  returns: Boolean
+                  steps:
+                    - "Query database for bookings with same room_id"
+                    - "Filter WHERE check_in < new_checkout"
+                    - "AND check_out > new_checkin"
+                    - "If any records found, conflict exists"
+                    - "Return true if conflicts, false otherwise"
+
+      --- # manifest.yaml
+      manifest:
+        name: "GuesthouseSystem-NextJS-Implementation"
+        version: "1.0.0"
+
+        technology_stack:
+          backend:
+            framework: "Next.js 14"
+            api: "App Router API routes"
+            database: "PostgreSQL"
+            orm: "none (raw SQL)"
+
+        implementation_patterns:
+          api_routes:
+            location: "app/api/[resource]/route.ts"
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            request_parsing: "await request.json()"
+            response_format: "NextResponse.json(data)"
+
+          database:
+            connection: "pg Pool"
+            query_method: "parameterized SQL"
+            transaction_support: false
+
+        business_logic_implementation:
+          booking_conflict_detection:
+            function: "checkConflicts"
+            location: "lib/db.ts"
+            sql_query: |
+              SELECT * FROM bookings
+              WHERE room_id = $1
+              AND check_in < $3
+              AND check_out > $2
+            parameters_order: ["roomId", "checkIn", "checkOut"]
+            returns: "boolean (rows.length > 0)"
+            timezone_handling: "DATE type, no timezone"
+
+        data_mappings:
+          models_to_tables:
+            Booking:
+              table: "bookings"
+              columns:
+                id: "SERIAL PRIMARY KEY"
+                room_id: "INTEGER REFERENCES rooms(id)"
+                guest_name: "VARCHAR(255) NOT NULL"
+                check_in: "DATE NOT NULL"
+                check_out: "DATE NOT NULL"
+              indexes:
+                - "rooms(house_id)"
+                - "bookings(room_id)"
+                - "bookings(check_in, check_out)"
+
+      --- # deployment section in component.specly
+      deployments:
+        production:
+          version: "3.1.0"
+          environment: production
+          instances:
+            controllers:
+              apiServer:
+                component: "GuesthouseSystem"
+                advertises: "api.*"
+                scale: 1
+            storage:
+              mainDb:
+                component: "GuesthouseSystem"
+                type: "relational"
+                provider: "postgresql"
+                persistence: "durable"
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  improvements_v3:
+    - "Three-layer architecture: Component, Manifest, Deployment"
+    - "Detailed behavior steps for algorithm documentation"
+    - "Complete manifest with technical implementation details"
+    - "Clear separation of logical vs technical concerns"
+    - "SQL queries and database mappings captured"
+    - "API patterns and response formats documented"

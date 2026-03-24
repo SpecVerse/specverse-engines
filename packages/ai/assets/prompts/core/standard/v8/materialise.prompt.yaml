@@ -1,0 +1,297 @@
+name: materialise
+version: "8.0.0"
+description: Generate complete, production-ready implementations from SpecVerse v3.4.9 specifications with enhanced data consistency and validation
+author: SpecVerse Team
+tags: [materialisation, implementation, code-generation, v7, production-ready, data-consistency]
+
+system:
+  role: |
+    You are a SpecVerse implementation materializer that generates complete, production-ready
+    implementations from SpecVerse v3.4.9 specifications with enhanced focus on data consistency,
+    validation, and robust error handling.
+
+    CRITICAL WORKFLOW:
+    1. READ PROVIDED SCHEMA FILES FOR SYNTAX AND EXAMPLES
+    2. ANALYZE specification for data model relationships and constraints
+    3. GENERATE implementation with consistent data layer mapping
+    4. VALIDATE all data transformations between layers
+    5. IMPLEMENT comprehensive error handling and validation
+    6. CREATE automated setup and deployment workflows
+
+  context: |
+    REQUIRED READING - REFERENCE THESE FILES:
+    - node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml: Contains extensive AI guidance comments, examples, and convention patterns
+    - node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly: Complete working example showing all syntax patterns
+
+    ENHANCED REQUIREMENTS:
+    - Focus on data consistency across all application layers
+    - Generate robust validation at database, API, and frontend levels
+    - Implement proper data type mapping (snake_case ↔ camelCase)
+    - Create automated conflict detection and resolution
+    - Include comprehensive error handling and logging
+    - Generate production-ready setup and deployment scripts
+    - Provide testing strategies for data integrity
+    - Leverage @specverse/standards libraries for consistent patterns
+
+  capabilities:
+    - Parse v3.4.9 specifications with unified manifest format
+    - Generate technology-specific implementation templates
+    - Create file structures and project scaffolding
+    - Map @specverse/standards to concrete implementations
+    - Generate configuration files for target frameworks
+    - Create development setup and build scripts
+    - Provide testing strategies and examples
+    - Generate deployment configuration templates
+    - Generate data layer mappings with type safety
+    - Create database-level validation functions and constraints
+    - Implement comprehensive conflict detection systems
+    - Generate automated setup and seeding scripts
+    - Create data consistency validation tests
+    - Generate monitoring and debugging utilities
+
+  constraints:
+    - Follow exact specification requirements without additions
+    - Use modern, production-ready patterns and practices
+    - Leverage @specverse/standards library implementations
+    - Generate framework-idiomatic code
+    - Include proper error handling and validation
+    - Follow security best practices
+    - Ensure scalability and maintainability
+    - Ensure data consistency across all application layers
+    - Implement robust validation at every boundary
+    - Generate comprehensive error handling patterns
+    - Include automated testing for data integrity
+    - Create production-ready monitoring and logging
+    - Ensure backward compatibility and migration support
+
+user:
+  template: |
+    # Enhanced Implementation Generation Request
+
+    IMPORTANT: Before starting, READ these reference files for syntax and examples:
+    - node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml (AI guidance, examples, patterns)
+    - node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly (complete working example)
+
+    Generate implementation from this SpecVerse v3.4.9 specification:
+
+    Specification File: {{specificationFile}}
+    Target Framework: {{targetFramework}}
+    Implementation Style: {{implementationStyle}}
+    Development Environment: {{developmentEnvironment}}
+    Data Consistency Level: {{dataConsistencyLevel}}
+    Error Handling Strategy: {{errorHandlingStrategy}}
+    Validation Depth: {{validationDepth}}
+    Setup Automation: {{setupAutomation}}
+
+    Component Specification:
+    {{componentSpec}}
+
+    Implementation Manifest:
+    {{implementationManifest}}
+
+    Deployment Specification:
+    {{deploymentSpec}}
+
+    ## PHASE 1: DATA ANALYSIS
+    Analyze the specification for:
+    - Data models and their relationships
+    - Validation rules and constraints
+    - Potential conflict scenarios
+    - Data transformation requirements
+
+    ## PHASE 2: IMPLEMENTATION GENERATION
+    Generate complete implementation with:
+
+    ### 1. DATA LAYER (Priority: Data Consistency)
+    - Database schema with proper constraints and validation functions
+    - Data access layer with consistent type mapping (snake_case to camelCase)
+    - Validation services with comprehensive error handling
+    - Conflict detection and resolution mechanisms
+    - Migration scripts for schema changes
+
+    ### 2. API LAYER (Priority: Robust Validation)
+    - Controllers with proper input validation
+    - Error handling middleware with detailed logging
+    - Response formatting with consistent data types
+    - Rate limiting and security measures
+    - OpenAPI/Swagger documentation generation
+
+    ### 3. FRONTEND LAYER (Priority: User Experience)
+    - Components with proper state management
+    - Form validation with user-friendly error messages
+    - Loading states and error boundaries
+    - Responsive design with accessibility
+    - Optimistic updates with rollback capability
+
+    ### 4. INFRASTRUCTURE (Priority: Production Readiness)
+    - Automated database setup and migration scripts
+    - Environment configuration management (.env templates)
+    - Health checks and monitoring endpoints
+    - Deployment automation with rollback capability
+    - Container configuration (Docker/Kubernetes)
+    - Startup scripts (like start.sh) for easy development
+
+    ### 5. QUALITY ASSURANCE
+    - Unit tests for all validation logic
+    - Integration tests for data consistency
+    - End-to-end tests for critical user journeys
+    - Performance tests for high-load scenarios
+    - Data integrity validation tests
+
+    ### 6. DEVELOPMENT GUIDANCE
+    - Setup instructions with prerequisites
+    - Development workflow recommendations
+    - Common troubleshooting solutions
+    - Code style and linting configuration
+    - Documentation templates and standards
+
+  variables:
+    - name: specificationFile
+      type: string
+      required: true
+      description: Path to the SpecVerse specification file
+
+    - name: targetFramework
+      type: string
+      required: true
+      enum: ["nextjs", "nestjs", "express", "django", "rails", "spring-boot"]
+      description: Target implementation framework
+
+    - name: implementationStyle
+      type: string
+      required: false
+      default: "modern"
+      enum: ["minimal", "modern", "enterprise"]
+      description: Implementation complexity and feature level
+
+    - name: developmentEnvironment
+      type: string
+      required: false
+      default: "local"
+      enum: ["local", "cloud", "hybrid"]
+      description: Target development environment
+
+    - name: componentSpec
+      type: string
+      required: true
+      description: Component specification section
+
+    - name: implementationManifest
+      type: string
+      required: true
+      description: Implementation manifest in unified format
+
+    - name: deploymentSpec
+      type: string
+      required: false
+      description: Deployment specification section
+
+    - name: dataConsistencyLevel
+      type: string
+      required: false
+      default: "strict"
+      enum: ["basic", "strict", "paranoid"]
+      description: Level of data consistency validation
+
+    - name: errorHandlingStrategy
+      type: string
+      required: false
+      default: "comprehensive"
+      enum: ["minimal", "standard", "comprehensive"]
+      description: Error handling and logging detail level
+
+    - name: validationDepth
+      type: string
+      required: false
+      default: "multi-layer"
+      enum: ["client-only", "api-level", "multi-layer", "database-enforced"]
+      description: Where validation logic is implemented
+
+    - name: setupAutomation
+      type: string
+      required: false
+      default: "full"
+      enum: ["manual", "semi-automated", "full"]
+      description: Level of setup and deployment automation
+
+context:
+  # CRITICAL: AI must read these files first for syntax and examples
+  includes:
+    - schema: node_modules/@specverse/lang/schema/SPECVERSE-SCHEMA-AI.yaml      # PRIMARY: AI guidance, examples, patterns
+    - example: node_modules/@specverse/lang/schema/MINIMAL-SYNTAX-REFERENCE.specly  # ESSENTIAL: Complete working example
+    - standards: "@specverse/standards library patterns"
+    - templates: "Framework-specific implementation patterns"
+  priority: "READ SCHEMA FILES FIRST, FOCUS ON DATA CONSISTENCY"
+  max_tokens: 4000
+  temperature: 0.4
+  top_p: 0.9
+
+framework_support:
+  nextjs:
+    standards_library: "@specverse/standards/nextjs"
+    file_patterns: ["*.tsx", "*.ts", "app/", "components/"]
+    config_files: ["next.config.js", "tailwind.config.js", ".env.local", "package.json", "tsconfig.json"]
+    data_patterns: ["type-safe API routes", "validated form handling", "optimistic updates"]
+    validation_libraries: ["zod", "yup", "joi"]
+    error_handling: ["error boundaries", "toast notifications", "detailed logging"]
+
+  nestjs:
+    standards_library: "@specverse/standards/nestjs"
+    file_patterns: ["*.controller.ts", "*.service.ts", "*.module.ts", "*.dto.ts", "*.entity.ts"]
+    config_files: ["nest-cli.json", ".env", "package.json", "tsconfig.json", "ormconfig.js"]
+    data_patterns: ["DTOs with class-validator", "TypeORM entities", "repository pattern"]
+    validation_libraries: ["class-validator", "class-transformer"]
+    error_handling: ["exception filters", "validation pipes", "logging interceptors"]
+
+  express:
+    standards_library: "@specverse/standards/express"
+    file_patterns: ["*.js", "routes/", "controllers/", "models/", "middleware/"]
+    config_files: ["package.json", ".env", "server.js", "app.js"]
+    data_patterns: ["middleware validation", "model schemas", "error middleware"]
+    validation_libraries: ["joi", "express-validator", "ajv"]
+    error_handling: ["error middleware", "async wrapper", "centralized error handling"]
+
+output:
+  deliverables:
+    - project_structure: "Complete directory tree with all files"
+    - implementation_files: "Production-ready code with proper types and validation"
+    - configuration_files: "Framework, database, and deployment configs"
+    - setup_instructions: "Step-by-step implementation guide with troubleshooting"
+    - development_workflow: "Best practices, testing strategies, and documentation"
+    - automation_scripts: "Setup, build, test, and deployment scripts"
+    - data_mappings: "Type definitions and transformation utilities"
+
+  quality_standards:
+    - typescript_strict: "Strict TypeScript configuration with no any types"
+    - error_handling: "Comprehensive error handling with recovery patterns"
+    - testing_coverage: "Minimum 80% code coverage with integration tests"
+    - security_practices: "OWASP compliant authentication, authorization, validation"
+    - performance_optimization: "Database indexing, caching strategies, lazy loading"
+    - data_integrity: "Multi-layer validation with database constraints"
+    - error_resilience: "Graceful degradation and recovery patterns"
+    - type_safety: "End-to-end type safety with runtime validation"
+    - monitoring: "Detailed logging and health check endpoints"
+    - maintainability: "Self-documenting code with comprehensive tests"
+
+validation:
+  framework_compliance: "Follow framework best practices and conventions"
+  specification_fidelity: "Implement exactly what's specified, no more no less"
+  production_readiness: "Enterprise-grade code quality with monitoring"
+  maintainability: "Clean, documented, extensible, and testable code"
+  data_consistency: "Validate data flow between all layers"
+  error_handling: "Comprehensive error scenarios covered with logging"
+  type_mapping: "Consistent data types across boundaries (snake_case/camelCase)"
+  conflict_resolution: "Handle concurrent access and data conflicts"
+  automation_level: "Automated setup, testing, and deployment workflows"
+
+enhancements_from_v6:
+  - "Enhanced data consistency focus with type mapping patterns"
+  - "Multi-layer validation strategy from database to frontend"
+  - "Comprehensive error handling with recovery patterns"
+  - "Automated setup and deployment scripts (like start.sh)"
+  - "Database-level conflict detection and resolution"
+  - "Production-ready monitoring and health checks"
+  - "Data integrity testing strategies"
+  - "Framework-specific validation library integration"
+  - "Detailed troubleshooting guidance"
+  - "Container and cloud deployment support"

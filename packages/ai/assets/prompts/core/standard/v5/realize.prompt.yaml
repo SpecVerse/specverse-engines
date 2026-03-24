@@ -1,0 +1,336 @@
+name: realize
+version: "5.0.0"
+description: Generate production deployment configurations from SpecVerse v3.2.0 specifications
+author: SpecVerse Team
+tags: [realization, deployment, infrastructure, v5, production]
+
+system:
+  role: |
+    You are a SpecVerse deployment realizer that generates production-ready infrastructure
+    and deployment configurations from SpecVerse v3.2.0 specifications. You translate
+    logical deployment specifications into concrete infrastructure as code.
+
+  context: |
+    Your task is to take complete SpecVerse specifications and generate:
+    1. Infrastructure as Code (IaC) templates
+    2. Container orchestration configurations
+    3. CI/CD pipeline definitions
+    4. Monitoring and observability setup
+    5. Security and compliance configurations
+    6. Scaling and performance optimizations
+
+    Focus on production-ready, scalable, and secure deployments.
+    Leverage cloud-native patterns and modern DevOps practices.
+    Generate configurations that match the specified deployment topology.
+
+  capabilities:
+    - Parse v3.2.0 deployment specifications with instance definitions
+    - Generate cloud provider specific infrastructure templates
+    - Create container orchestration manifests (Kubernetes, Docker Compose)
+    - Generate CI/CD pipeline configurations
+    - Create monitoring and logging configurations
+    - Generate security policies and compliance settings
+    - Optimize for cost, performance, and reliability
+    - Support multi-environment deployments
+
+  constraints:
+    - Follow exact deployment specification requirements
+    - Use production-ready infrastructure patterns
+    - Implement proper security and compliance measures
+    - Ensure high availability and disaster recovery
+    - Optimize for target scale and performance requirements
+    - Follow cloud provider best practices
+    - Include comprehensive monitoring and alerting
+
+user:
+  template: |
+    Generate production deployment configurations from this SpecVerse v3.2.0 specification:
+
+    Specification File: {{specificationFile}}
+    Target Cloud Provider: {{cloudProvider}}
+    Environment Type: {{environmentType}}
+    Scale Requirements: {{scaleRequirements}}
+
+    Component Specification:
+    {{componentSpec}}
+
+    Deployment Specification:
+    {{deploymentSpec}}
+
+    Implementation Manifest (for technology context):
+    {{implementationManifest}}
+
+    Please generate:
+
+    1. INFRASTRUCTURE AS CODE:
+    - Cloud provider specific templates (Terraform/CloudFormation/ARM)
+    - Network architecture and security groups
+    - Database and storage configurations
+    - Load balancing and auto-scaling setup
+    - DNS and SSL/TLS certificate management
+
+    2. CONTAINER ORCHESTRATION:
+    - Kubernetes manifests or Docker Compose files
+    - Service definitions and networking
+    - Persistent volume configurations
+    - Secrets and ConfigMap management
+    - Ingress controllers and service mesh setup
+
+    3. CI/CD PIPELINE:
+    - Build and deployment pipeline definitions
+    - Environment promotion strategies
+    - Testing and quality gates
+    - Security scanning and compliance checks
+    - Rollback and disaster recovery procedures
+
+    4. MONITORING AND OBSERVABILITY:
+    - Application performance monitoring setup
+    - Infrastructure monitoring configurations
+    - Log aggregation and analysis
+    - Alerting rules and notification channels
+    - Distributed tracing and metrics collection
+
+    5. SECURITY AND COMPLIANCE:
+    - Identity and access management (IAM) policies
+    - Network security and firewall rules
+    - Data encryption at rest and in transit
+    - Compliance monitoring and reporting
+    - Vulnerability scanning and patch management
+
+    6. OPERATIONAL PROCEDURES:
+    - Deployment runbooks and procedures
+    - Backup and disaster recovery plans
+    - Scaling and performance optimization guides
+    - Troubleshooting and incident response procedures
+    - Cost optimization recommendations
+
+    Focus on production-ready, enterprise-grade deployments.
+
+  variables:
+    - name: specificationFile
+      type: string
+      required: true
+      description: Path to the SpecVerse specification file
+
+    - name: cloudProvider
+      type: string
+      required: true
+      enum: ["aws", "azure", "gcp", "kubernetes", "docker", "hybrid"]
+      description: Target cloud provider or platform
+
+    - name: environmentType
+      type: string
+      required: true
+      enum: ["development", "staging", "production", "enterprise"]
+      description: Target environment type
+
+    - name: scaleRequirements
+      type: string
+      required: false
+      default: "standard"
+      enum: ["minimal", "standard", "high-scale", "enterprise"]
+      description: Expected scale and performance requirements
+
+    - name: componentSpec
+      type: string
+      required: true
+      description: Component specification section
+
+    - name: deploymentSpec
+      type: string
+      required: true
+      description: Deployment specification with instance definitions
+
+    - name: implementationManifest
+      type: string
+      required: false
+      description: Implementation manifest for technology context
+
+cloud_templates:
+  aws:
+    infrastructure: |
+      # terraform/main.tf
+      provider "aws" {
+        region = var.aws_region
+      }
+
+      # VPC and networking
+      module "vpc" {
+        source = "terraform-aws-modules/vpc/aws"
+
+        name = "{{project_name}}-vpc"
+        cidr = "10.0.0.0/16"
+
+        azs             = ["{{region}}a", "{{region}}b", "{{region}}c"]
+        private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+        public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+        enable_nat_gateway = true
+        enable_vpn_gateway = true
+      }
+
+  kubernetes:
+    manifests: |
+      # k8s/namespace.yaml
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: {{namespace}}
+      ---
+      # k8s/deployment.yaml
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: {{service_name}}
+        namespace: {{namespace}}
+      spec:
+        replicas: {{replicas}}
+        selector:
+          matchLabels:
+            app: {{service_name}}
+        template:
+          metadata:
+            labels:
+              app: {{service_name}}
+          spec:
+            containers:
+            - name: {{service_name}}
+              image: {{image}}:{{tag}}
+              ports:
+              - containerPort: {{port}}
+              env:
+              {{#environment_variables}}
+              - name: {{name}}
+                valueFrom:
+                  secretKeyRef:
+                    name: {{secret_name}}
+                    key: {{key}}
+              {{/environment_variables}}
+
+deployment_patterns:
+  microservices:
+    scaling: |
+      # Auto-scaling configuration
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: {{service_name}}-hpa
+      spec:
+        scaleTargetRef:
+          apiVersion: apps/v1
+          kind: Deployment
+          name: {{service_name}}
+        minReplicas: {{min_replicas}}
+        maxReplicas: {{max_replicas}}
+        metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: 70
+
+  monitoring:
+    prometheus: |
+      # monitoring/prometheus-config.yaml
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: prometheus-config
+      data:
+        prometheus.yml: |
+          global:
+            scrape_interval: 15s
+          scrape_configs:
+          - job_name: '{{service_name}}'
+            static_configs:
+            - targets: ['{{service_name}}:{{metrics_port}}']
+
+security_configurations:
+  network_policies: |
+    # security/network-policy.yaml
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: {{service_name}}-netpol
+    spec:
+      podSelector:
+        matchLabels:
+          app: {{service_name}}
+      policyTypes:
+      - Ingress
+      - Egress
+      ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: {{allowed_service}}
+        ports:
+        - protocol: TCP
+          port: {{port}}
+
+  rbac: |
+    # security/rbac.yaml
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: {{service_name}}-role
+    rules:
+    - apiGroups: [""]
+      resources: ["pods", "services"]
+      verbs: ["get", "list", "watch"]
+
+ci_cd_templates:
+  github_actions: |
+    # .github/workflows/deploy.yml
+    name: Deploy to {{environment}}
+
+    on:
+      push:
+        branches: [{{branch}}]
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v3
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '18'
+
+        - name: Install dependencies
+          run: npm ci
+
+        - name: Run tests
+          run: npm test
+
+        - name: Build application
+          run: npm run build
+
+        - name: Deploy to {{environment}}
+          run: |
+            # Deployment commands based on target platform
+
+output:
+  deliverables:
+    - infrastructure_templates: "IaC templates for cloud provider"
+    - container_manifests: "Kubernetes/Docker orchestration files"
+    - ci_cd_pipelines: "Build and deployment automation"
+    - monitoring_setup: "Observability and alerting configurations"
+    - security_policies: "Access control and compliance settings"
+    - operational_runbooks: "Deployment and maintenance procedures"
+
+  quality_standards:
+    - production_ready: "Enterprise-grade reliability and security"
+    - scalable_architecture: "Auto-scaling and load balancing"
+    - disaster_recovery: "Backup and recovery procedures"
+    - compliance_ready: "Security and regulatory compliance"
+    - cost_optimized: "Resource efficiency and cost management"
+
+validation:
+  infrastructure_compliance: "Cloud provider best practices"
+  security_standards: "Industry security frameworks"
+  performance_requirements: "Meet specified scale and performance"
+  operational_readiness: "Complete deployment and monitoring setup"

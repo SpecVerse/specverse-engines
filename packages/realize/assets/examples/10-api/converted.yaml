@@ -1,0 +1,96 @@
+components:
+  SpecVerseFundamentals:
+    version: 1.0.0
+    description: "Example 01-01: Basic model definition with attributes"
+    import:
+      - from: "@specverse/primitives"
+        select:
+          - Money
+    export:
+      models:
+        - Product
+    models:
+      Product:
+        description: Simple product with basic attributes
+        attributes:
+          id:
+            name: id
+            type: UUID
+            required: true
+            unique: false
+          name:
+            name: name
+            type: String
+            required: true
+            unique: false
+          summary:
+            name: summary
+            type: String
+            required: false
+            unique: false
+          price:
+            name: price
+            type: Money
+            required: true
+            unique: false
+          inStock:
+            name: inStock
+            type: Boolean
+            required: false
+            unique: false
+            default: "true"
+          category:
+            name: category
+            type: String
+            required: true
+            unique: false
+            values:
+              - electronics
+              - books
+              - clothing
+              - home
+          contactEmail:
+            name: contactEmail
+            type: Email
+            required: false
+            unique: false
+        behaviors:
+          attachProfile:
+            description: Attach a profile to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile exists and is compatible with this model
+            ensures:
+              - Profile is attached
+              - Profile attributes are available
+          detachProfile:
+            description: Detach a profile from this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+            requires:
+              - Profile is currently attached
+            ensures:
+              - Profile is detached
+              - Profile attributes are no longer available
+          hasProfile:
+            description: Check if a profile is attached to this model instance
+            parameters:
+              profileName:
+                name: profileName
+                type: String
+                required: true
+                unique: false
+            returns: Boolean
+deployments: {}
+manifests: {}

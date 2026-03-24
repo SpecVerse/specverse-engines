@@ -1,0 +1,54 @@
+components:
+  SpecVerseFundamentals:
+    version: "1.0.0"
+    description: "Example 01-04: Models with relationships demonstrating data connections"
+    
+    export:
+      models: [Customer, Order, OrderItem, Product]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Customer:
+        description: "Customer who places orders"
+        attributes:
+          id: UUID required
+          name: String required
+          email: Email required unique
+          createdAt: DateTime required
+        relationships:
+          orders: hasMany Order
+      
+      Order:
+        description: "Customer order containing multiple items"
+        attributes:
+          id: UUID required
+          orderDate: DateTime required
+          status: String required
+          total: Money required
+        relationships:
+          customer: belongsTo Customer
+          items: hasMany OrderItem
+      
+      OrderItem:
+        description: "Individual item within an order"
+        attributes:
+          id: UUID required
+          quantity: Integer required
+          unitPrice: Money required
+          lineTotal: Money required
+        relationships:
+          orderRef: belongsTo Order
+          product: belongsTo Product
+      
+      Product:
+        description: "Product available for purchase"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required
+          stock: Integer default=0
+
+deployments: {}

@@ -1,0 +1,62 @@
+manifests:
+  fullstackMonorepoImplementation:
+    specVersion: "3.5.0"
+    deployment:
+      deploymentSource: "../specs/main.specly"
+      deploymentName: "development"
+    configuration:
+      outputStructure: "monorepo"
+      frontendDir: "frontend"
+      backendDir: "backend"
+      apiBaseUrl: "http://localhost:3000"
+      apiPrefix: "/api"
+    capabilityMappings:
+      - capability: "orm.schema"
+        instanceFactory: "PrismaORM"
+        configuration:
+          outputStructure: "monorepo"
+          backendDir: "backend"
+      - capability: "service.controller"
+        instanceFactory: "PrismaServices"
+        configuration:
+          outputStructure: "monorepo"
+          backendDir: "backend"
+      - capability: "api.rest"
+        instanceFactory: "FastifyAPI"
+        configuration:
+          outputStructure: "monorepo"
+          backendDir: "backend"
+          server:
+            port: 3000
+            cors:
+              enabled: true
+              origins:
+                - "http://localhost:5173"
+      - capability: "app.entrypoint"
+        instanceFactory: "GenericApp"
+        configuration:
+          outputStructure: "monorepo"
+          backendDir: "backend"
+      - capability: "app.frontend"
+        instanceFactory: "ReactApp"
+        configuration:
+          outputStructure: "monorepo"
+          frontendDir: "frontend"
+          apiBaseUrl: "http://localhost:3000"
+          vite:
+            port: 5173
+            proxy:
+              /api: "http://localhost:3000"
+      - capability: "ui.components"
+        instanceFactory: "ReactComponents"
+        configuration:
+          outputStructure: "monorepo"
+          frontendDir: "frontend"
+      - capability: "project.scaffold"
+        instanceFactory: "GenericScaffold"
+        configuration:
+          outputStructure: "monorepo"
+          includeReadme: true
+          workspaces:
+            - "backend"
+            - "frontend"

@@ -1,0 +1,52 @@
+graph TB
+  %% Manifest Mapping
+
+  subgraph frontend_layer["🎨 FRONTEND"]
+    direction LR
+    tech_react_nextjs("react<br>nextjs<br>vlatest")
+  end
+
+  subgraph backend_layer["⚙️ BACKEND"]
+    direction LR
+    tech_nodejs_express("nodejs<br>express<br>vlatest")
+  end
+
+  subgraph database_layer["🗄️ DATABASE"]
+    direction LR
+    tech_postgresql_prisma("postgresql<br>prisma<br>vlatest")
+    tech_redis_ioredis("redis<br>ioredis<br>vlatest")
+  end
+
+  subgraph infrastructure_layer["🏗️ INFRASTRUCTURE"]
+    direction LR
+    tech_docker_docker_engine("docker<br>docker-engine<br>vlatest")
+    tech_kubernetes_k8s("kubernetes<br>k8s<br>vlatest")
+  end
+
+  subgraph testing_layer["🧪 TESTING"]
+    direction LR
+    tech_jest_testing_library("jest<br>testing-library<br>vlatest")
+  end
+
+  subgraph other_layer["📦 OTHER"]
+    direction LR
+    tech_elasticsearch_elasticsearch_client("elasticsearch<br>elasticsearch-client<br>vlatest")
+    tech_stripe_stripe_sdk("stripe<br>stripe-sdk<br>vlatest")
+    tech_sendgrid_sendgrid_sdk("sendgrid<br>sendgrid-sdk<br>vlatest")
+    tech_prometheus_grafana("prometheus<br>grafana<br>vlatest")
+    tech_elk_stack_elasticsearch_logstash_kibana("elk-stack<br>elasticsearch-logstash-kibana<br>vlatest")
+  end
+
+
+  style tech_react_nextjs fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000
+  style tech_nodejs_express fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style tech_postgresql_prisma fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+  style tech_redis_ioredis fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+  style tech_docker_docker_engine fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style tech_kubernetes_k8s fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+  style tech_jest_testing_library fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+  style tech_elasticsearch_elasticsearch_client fill:#F5F5F5,stroke:#333,stroke-width:2px,color:#000
+  style tech_stripe_stripe_sdk fill:#F5F5F5,stroke:#333,stroke-width:2px,color:#000
+  style tech_sendgrid_sendgrid_sdk fill:#F5F5F5,stroke:#333,stroke-width:2px,color:#000
+  style tech_prometheus_grafana fill:#F5F5F5,stroke:#333,stroke-width:2px,color:#000
+  style tech_elk_stack_elasticsearch_logstash_kibana fill:#F5F5F5,stroke:#333,stroke-width:2px,color:#000

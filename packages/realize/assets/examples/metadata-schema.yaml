@@ -1,0 +1,76 @@
+Application:
+  Name: "SpecVerse Examples Metadata Schema"
+  Version: "3.2.0"
+  Description: "Schema for example metadata to enable discoverability and learning progression"
+
+# This schema defines the structure for example metadata files
+# Each category and individual example can have metadata for better organization
+
+CommonDefinitions:
+  ExampleMetadata:
+    Description: "Metadata for individual example"
+    Type: "Object"
+    Properties:
+      id: "Text required"
+      title: "Text required"
+      description: "Text required"
+      concepts: "Array<Text> required"
+      prerequisites: "Array<Text> optional"
+      difficulty: "Enum[beginner,intermediate,advanced] required"
+      estimatedTime: "Text required"
+      formats: "Array<Text> required"  # yaml, specly
+      learningObjectives: "Array<Text> required"
+      businessDomain: "Text optional"
+      specverseFeatures: "Array<Text> required"
+      realWorldUseCase: "Text optional"
+
+  CategoryMetadata:
+    Description: "Metadata for example category"
+    Type: "Object"
+    Properties:
+      category: "Text required"
+      title: "Text required"
+      description: "Text required"
+      targetAudience: "Text required"
+      estimatedTime: "Text required"
+      learningObjectives: "Array<Text> required"
+      examples: "Array<ExampleMetadata> required"
+      nextSteps: "Array<NextStep> optional"
+      validationCommands: "Array<Text> optional"
+
+  NextStep:
+    Description: "Suggested next learning step"
+    Type: "Object"
+    Properties:
+      category: "Text required"
+      description: "Text required"
+      reason: "Text optional"
+
+  LearningPath:
+    Description: "Structured learning progression"
+    Type: "Object"
+    Properties:
+      name: "Text required"
+      description: "Text required"
+      targetAudience: "Text required"
+      totalTime: "Text required"
+      steps: "Array<LearningStep> required"
+
+  LearningStep:
+    Description: "Single step in learning path"
+    Type: "Object"
+    Properties:
+      order: "Integer required"
+      category: "Text required"
+      exampleIds: "Array<Text> required"
+      checkpoints: "Array<Text> optional"
+      practiceExercises: "Array<Text> optional"
+
+# This schema enables:
+# 1. Structured metadata for each example
+# 2. Learning progression tracking
+# 3. Concept mapping and prerequisites
+# 4. Difficulty assessment
+# 5. Time estimation for learning planning
+# 6. Business domain classification
+# 7. SpecVerse feature coverage tracking

@@ -1,0 +1,938 @@
+components:
+  ECommercePlatform:
+    version: "3.5.0"
+    description: "Complete e-commerce platform demonstrating all SpecVerse v3.5 language features"
+    tags:
+      - "ecommerce"
+      - "platform"
+      - "microservices"
+      - "comprehensive"
+    import:
+      - from: "@specverse/primitives"
+        select:
+          - "Address"
+          - "Money"
+          - "PhoneNumber"
+      - from: "@specverse/primitives"
+        select: []
+    export:
+      models:
+        - "User"
+        - "Product"
+        - "Order"
+        - "Payment"
+        - "Category"
+        - "ProductReview"
+        - "OrderItem"
+        - "Shipment"
+        - "ProductVariant"
+      controllers:
+        - "UserController"
+        - "ProductController"
+        - "OrderController"
+      services:
+        - "PaymentService"
+        - "NotificationService"
+        - "InventoryService"
+      events:
+        - "UserCreated"
+        - "UserLoggedIn"
+        - "OrderCreated"
+        - "PaymentProcessed"
+        - "ProductRestocked"
+        - "OrderStatusChanged"
+      views:
+        - "UserProfileView"
+        - "ProductCatalogView"
+        - "OrderTrackingView"
+    models:
+      User:
+        description: "System user with authentication and profile management"
+        attributes:
+          id: "UUID required unique auto=uuid4"
+          email: "Email required unique verified"
+          firstName: "String required"
+          lastName: "String required"
+          phone: "PhoneNumber"
+          dateOfBirth: "String"
+          isActive: "Boolean default=true"
+          loyaltyPoints: "Integer default=0"
+          tier: "String default=bronze values=[\"bronze\", \"silver\", \"gold\", \"platinum\"]"
+          profile: "String"
+          preferences: "String"
+          lastLoginAt: "DateTime"
+          createdAt: "DateTime required"
+          updatedAt: "DateTime"
+        relationships:
+          orders: "hasMany Order"
+          addresses: "hasMany Address"
+          payments: "hasMany Payment"
+          reviews: "hasMany ProductReview"
+        lifecycles:
+          account:
+            flow: "pending -> verified -> active -> suspended -> deactivated"
+          verification:
+            states:
+              - "unverified"
+              - "verified"
+              - "expired"
+            transitions:
+              verify: "unverified -> verified"
+              expire: "verified -> expired"
+              reverify: "expired -> verified"
+        behaviors:
+          authenticate:
+            description: "Authenticate user with email and password"
+            parameters:
+              email: "Email required"
+              password: "String required"
+            returns: "String"
+            requires:
+              - "user exists"
+              - "account is active"
+            ensures:
+              - "token is valid"
+              - "login attempt logged"
+            publishes:
+              - "UserLoggedIn"
+          updateProfile:
+            description: "Update user profile information"
+            parameters:
+              profileData: "String required"
+            returns: "User"
+            requires:
+              - "user is authenticated"
+            ensures:
+              - "profile updated"
+              - "cache invalidated"
+            publishes:
+              - "UserProfileUpdated"
+      Product:
+        description: "Product in the e-commerce catalog"
+        attributes:
+          id: "UUID required unique"
+          sku: "String required unique"
+          name: "String required"
+          description: "String"
+          price: "Money required"
+          cost: "Money required"
+          stock: "Integer default=0"
+          category: "String required"
+          brand: "String"
+          weight: "String"
+          dimensions: "String"
+          images: "String"
+          tags: "String"
+          isActive: "Boolean default=true"
+          createdAt: "DateTime required"
+          updatedAt: "DateTime"
+        relationships:
+          category: "belongsTo Category"
+          reviews: "hasMany ProductReview"
+          orderItems: "hasMany OrderItem"
+          variants: "hasMany ProductVariant"
+        lifecycles:
+          status:
+            flow: "draft -> review -> active -> discontinued -> archived"
+          inventory:
+            flow: "in_stock -> low_stock -> out_of_stock -> discontinued"
+        behaviors:
+          calculateDiscount:
+            description: "Calculate discount based on quantity and customer tier"
+            parameters:
+              quantity: "Integer required"
+              customerTier: "String required"
+              promoCode: "String"
+            returns: "Money"
+            requires:
+              - "product is active"
+              - "quantity > 0"
+            ensures:
+              - "discount is non-negative"
+            publishes:
+              - "DiscountCalculated"
+          checkAvailability:
+            parameters:
+              quantity: "Integer required"
+            returns: "Boolean"
+            requires:
+              - "product exists"
+            ensures:
+              - "availability check is accurate"
+      Order:
+        description: "Customer order with items and fulfillment tracking"
+        attributes:
+          id: "UUID required unique"
+          orderNumber: "String required unique"
+          customerId: "UUID required"
+          status: "String default=pending values=[\"pending\", \"confirmed\", \"processing\", \"shipped\", \"delivered\", \"cancelled\"]"
+          subtotal: "Money required"
+          tax: "Money required"
+          shipping: "Money required"
+          discount: "Money default=0"
+          total: "Money required"
+          currency: "String default=USD"
+          shippingAddress: "String required"
+          billingAddress: "String required"
+          notes: "String"
+          createdAt: "DateTime required"
+          updatedAt: "DateTime"
+        relationships:
+          customer: "belongsTo User"
+          items: "hasMany OrderItem"
+          payments: "hasMany Payment"
+          shipments: "hasMany Shipment"
+        lifecycles:
+          fulfillment:
+            flow: "pending -> confirmed -> processing -> shipped -> delivered"
+          payment:
+            flow: "unpaid -> pending -> paid -> partially_refunded -> refunded"
+        behaviors:
+          calculateTotal:
+            description: "Calculate order total including tax, shipping, and discounts"
+            parameters:
+              includeTax: "Boolean default=true"
+              applyDiscounts: "Boolean default=true"
+            returns: "Money"
+            requires:
+              - "order has items"
+            ensures:
+              - "total matches sum of components"
+            publishes:
+              - "OrderTotalCalculated"
+          validateOrder:
+            parameters:
+              orderData: "String required"
+            returns: "String"
+            requires:
+              - "customer exists"
+              - "order has items"
+            ensures:
+              - "validation result is complete"
+      Payment:
+        description: "Payment transaction for orders"
+        attributes:
+          id: "UUID required"
+          orderId: "UUID required"
+          amount: "Money required"
+          method: "String required values=[\"credit_card\", \"debit_card\", \"paypal\", \"bank_transfer\"]"
+          status: "String default=pending values=[\"pending\", \"authorized\", \"captured\", \"settled\", \"failed\", \"refunded\"]"
+          transactionId: "String"
+          processedAt: "DateTime"
+          refundedAmount: "Money"
+        relationships:
+          order: "belongsTo Order"
+        lifecycles:
+          processing:
+            flow: "pending -> authorized -> captured -> settled"
+      Category:
+        description: "Product category hierarchy"
+        attributes:
+          id: "UUID required"
+          name: "String required"
+          description: "String"
+          parentId: "UUID"
+          isActive: "Boolean default=true"
+          sortOrder: "Integer default=0"
+        relationships:
+          products: "hasMany Product"
+          parent: "belongsTo Category"
+          children: "hasMany Category"
+      ProductReview:
+        description: "Customer reviews for products"
+        attributes:
+          id: "UUID required"
+          productId: "UUID required"
+          customerId: "UUID required"
+          rating: "Integer required values=[1, 2, 3, 4, 5]"
+          title: "String"
+          comment: "String"
+          isVerified: "Boolean default=false"
+          isPublic: "Boolean default=true"
+          reviewDate: "DateTime required"
+        relationships:
+          product: "belongsTo Product"
+          customer: "belongsTo User"
+        lifecycles:
+          moderation:
+            flow: "pending -> approved -> rejected"
+      OrderItem:
+        description: "Individual line item in an order"
+        attributes:
+          id: "UUID required"
+          orderId: "UUID required"
+          productId: "UUID required"
+          quantity: "Integer required"
+          unitPrice: "Money required"
+          totalPrice: "Money required"
+          discountAmount: "Money default=0"
+        relationships:
+          order: "belongsTo Order"
+          product: "belongsTo Product"
+      Shipment:
+        description: "Shipping and tracking information"
+        attributes:
+          id: "UUID required"
+          orderId: "UUID required"
+          trackingNumber: "String"
+          carrier: "String required"
+          method: "String required"
+          status: "String default=preparing values=[\"preparing\", \"shipped\", \"in_transit\", \"delivered\", \"returned\"]"
+          shippedAt: "DateTime"
+          deliveredAt: "DateTime"
+          estimatedDelivery: "DateTime"
+        relationships:
+          order: "belongsTo Order"
+      ProductVariant:
+        description: "Product variants for different sizes, colors, etc."
+        attributes:
+          id: "UUID required"
+          productId: "UUID required"
+          sku: "String required unique"
+          name: "String required"
+          variantType: "String required values=[\"size\", \"color\", \"style\", \"material\"]"
+          variantValue: "String required"
+          price: "Money"
+          stock: "Integer default=0"
+          isActive: "Boolean default=true"
+        relationships:
+          product: "belongsTo Product"
+    controllers:
+      UserController:
+        description: "User management and authentication endpoints"
+        model: "User"
+        subscribes_to:
+          PaymentProcessed: "handleUserLoyaltyPoints"
+          OrderCreated: "updateUserActivity"
+        cured:
+          create:
+            parameters:
+              userData: "UserCreateRequest required"
+            returns: "User"
+            publishes:
+              - "UserCreated"
+            requires:
+              - "Email is valid"
+              - "Password meets requirements"
+            ensures:
+              - "User created with unique email"
+              - "Welcome email queued"
+          retrieve:
+            parameters:
+              id: "UUID required"
+            returns: "User"
+            requires:
+              - "User exists"
+            ensures:
+              - "User data returned with relationships"
+          retrieve_many:
+            parameters:
+              limit: "Integer optional default=20"
+              offset: "Integer optional default=0"
+              filter: "String optional"
+            returns: "Array<User>"
+            ensures:
+              - "Paginated results returned"
+          update:
+            parameters:
+              id: "UUID required"
+              userData: "UserUpdateRequest required"
+            returns: "User"
+            requires:
+              - "User exists"
+              - "Update data is valid"
+            ensures:
+              - "User updated"
+              - "Audit log created"
+          evolve:
+            parameters:
+              id: "UUID required"
+              lifecycle: "String required"
+              action: "String required"
+              reason: "String optional"
+            returns: "User"
+            requires:
+              - "User exists"
+              - "Lifecycle action is valid"
+            ensures:
+              - "User state changed"
+              - "State change logged"
+          delete:
+            parameters:
+              id: "UUID required"
+            returns: "Boolean"
+            requires:
+              - "User exists"
+              - "User can be deleted"
+            ensures:
+              - "User marked as deleted"
+              - "Related data handled"
+        actions:
+          register:
+            description: "Register new user account"
+            parameters:
+              userData: "String required"
+              sendWelcomeEmail: "Boolean default=true"
+            returns: "User"
+            requires:
+              - "email is unique"
+              - "password meets policy"
+            ensures:
+              - "user created"
+              - "welcome email sent"
+            publishes:
+              - "UserCreated"
+          login:
+            description: "Authenticate user and create session"
+            parameters:
+              credentials: "String required"
+            returns: "String"
+            requires:
+              - "credentials are valid"
+            ensures:
+              - "token created"
+              - "login logged"
+            publishes:
+              - "UserLoggedIn"
+          getProfile:
+            description: "Get user profile information"
+            parameters:
+              userId: "UUID required"
+              includePreferences: "Boolean default=false"
+            returns: "User"
+            requires:
+              - "user is authenticated"
+            ensures:
+              - "profile data returned"
+          updateProfile:
+            description: "Update user profile"
+            parameters:
+              profileData: "String required"
+            returns: "User"
+            requires:
+              - "user owns profile or is admin"
+            ensures:
+              - "profile updated"
+              - "cache invalidated"
+            publishes:
+              - "UserProfileUpdated"
+      ProductController:
+        description: "Product catalog management"
+        model: "Product"
+        actions:
+          listProducts:
+            description: "Get paginated list of products with filtering"
+            parameters:
+              category: "String"
+              priceMin: "Money"
+              priceMax: "Money"
+              search: "String"
+              page: "Integer default=1"
+              limit: "Integer default=20"
+              sortBy: "String default=name values=[\"name\", \"price\", \"createdAt\"]"
+              sortOrder: "String default=asc values=[\"asc\", \"desc\"]"
+            returns: "String"
+            ensures:
+              - "results are paginated"
+              - "filters applied correctly"
+          getProduct:
+            description: "Get single product by ID"
+            parameters:
+              productId: "UUID required"
+            returns: "Product"
+            requires:
+              - "product exists"
+            ensures:
+              - "complete product data returned"
+      OrderController:
+        description: "Order management and processing"
+        model: "Order"
+        actions:
+          createOrder:
+            description: "Create new customer order"
+            parameters:
+              customerId: "UUID required"
+              items: "String required"
+              shippingAddress: "String required"
+              billingAddress: "String required"
+            returns: "Order"
+            requires:
+              - "customer exists"
+              - "items are valid"
+            ensures:
+              - "order created"
+              - "inventory reserved"
+            publishes:
+              - "OrderCreated"
+          getOrder:
+            parameters:
+              orderId: "UUID required"
+            returns: "Order"
+            requires:
+              - "order exists"
+              - "user has access"
+            ensures:
+              - "order data returned"
+          updateOrderStatus:
+            description: "Update order fulfillment status"
+            parameters:
+              orderId: "UUID required"
+              status: "String required"
+              notes: "String"
+            returns: "Order"
+            requires:
+              - "order exists"
+              - "status transition is valid"
+            ensures:
+              - "status updated"
+              - "notifications sent"
+            publishes:
+              - "OrderStatusChanged"
+    services:
+      PaymentService:
+        description: "External payment processing service"
+        subscribes_to:
+          OrderCreated: "processPayment"
+        operations:
+          processPayment:
+            description: "Process payment for an order"
+            parameters:
+              paymentData: "String required"
+            returns: "String"
+          refundPayment:
+            description: "Process refund for a payment"
+            parameters:
+              refundData: "String required"
+            returns: "String"
+          validateCard:
+            description: "Validate credit card information"
+            parameters:
+              cardInfo: "String required"
+            returns: "String"
+          getPaymentStatus:
+            description: "Check status of a payment transaction"
+            parameters:
+              transactionId: "String required"
+            returns: "String"
+      NotificationService:
+        description: "Multi-channel notification service"
+        subscribes_to:
+          UserCreated: "sendWelcomeEmail"
+          OrderCreated: "sendOrderConfirmation"
+          PaymentProcessed: "sendPaymentReceipt"
+        operations:
+          sendEmail:
+            description: "Send email notification"
+            parameters:
+              emailData: "String required"
+            returns: "String"
+          sendSMS:
+            description: "Send SMS notification"
+            parameters:
+              smsData: "String required"
+            returns: "String"
+          sendPushNotification:
+            description: "Send push notification to mobile devices"
+            parameters:
+              pushData: "String required"
+            returns: "String"
+      InventoryService:
+        description: "Inventory and stock management service"
+        operations:
+          checkStock:
+            description: "Check available stock for products"
+            parameters:
+              productIds: "String required"
+            returns: "String"
+          reserveStock:
+            description: "Reserve stock for an order"
+            parameters:
+              reservationData: "String required"
+            returns: "String"
+          releaseStock:
+            description: "Release reserved stock"
+            parameters:
+              releaseData: "String required"
+            returns: "String"
+    events:
+      UserCreated:
+        description: "New user account was created"
+        attributes:
+          userId: "UUID required"
+          email: "Email required"
+          registrationDate: "DateTime required"
+          source: "String required"
+      UserLoggedIn:
+        description: "User successfully authenticated"
+        attributes:
+          userId: "UUID required"
+          loginTime: "DateTime required"
+          ipAddress: "String"
+          userAgent: "String"
+      OrderCreated:
+        description: "New order was placed"
+        attributes:
+          orderId: "UUID required"
+          customerId: "UUID required"
+          orderTotal: "Money required"
+          itemCount: "Integer required"
+          orderDate: "DateTime required"
+      PaymentProcessed:
+        description: "Payment was successfully processed"
+        attributes:
+          paymentId: "UUID required"
+          orderId: "UUID required"
+          amount: "Money required"
+          method: "String required"
+          processedAt: "DateTime required"
+      ProductRestocked:
+        description: "Product inventory was replenished"
+        attributes:
+          productId: "UUID required"
+          newStock: "Integer required"
+          restockDate: "DateTime required"
+          supplier: "String"
+      OrderStatusChanged:
+        description: "Order status was updated"
+        attributes:
+          orderId: "UUID required"
+          oldStatus: "String required"
+          newStatus: "String required"
+          changedAt: "DateTime required"
+          changedBy: "UUID"
+    views:
+      UserProfileView:
+        description: "User profile management interface"
+        type: "page"
+        model: "User"
+        uiComponents:
+          ProfileForm: "UI.FormView"
+          AddressList: "UI.ListView"
+          OrderHistory: "UI.TableView"
+          PreferenceSettings: "UI.FormView"
+      ProductCatalogView:
+        description: "Product browsing and search interface"
+        type: "page"
+        model: "Product"
+        uiComponents:
+          ProductGrid: "UI.GridView"
+          SearchFilters: "UI.FilterView"
+          CategoryNav: "UI.NavigationView"
+          ProductCard: "UI.CardView"
+          Pagination: "UI.PaginationView"
+      OrderTrackingView:
+        description: "Order status and tracking interface"
+        type: "page"
+        model: "Order"
+        uiComponents:
+          OrderDetails: "UI.DetailView"
+          StatusTimeline: "UI.TimelineView"
+          TrackingMap: "UI.MapView"
+          ContactSupport: "UI.ActionView"
+deployments:
+  ecommercePlatform:
+    description: "Production deployment for e-commerce platform with logical instances"
+    version: "1.0.0"
+    environment: "production"
+    instances:
+      controllers:
+        productController:
+          component: "e-commerce-platform"
+          namespace: "product"
+          advertises: "*"
+          uses:
+            - "catalog.*"
+            - "inventory.*"
+            - "orders.*"
+          scale: 5
+        orderController:
+          component: "e-commerce-platform"
+          namespace: "order"
+          advertises:
+            - "behaviors.*"
+            - "actions.*"
+          uses:
+            - "payment.*"
+            - "shipping.*"
+            - "inventory.*"
+          scale: 8
+        customerController:
+          component: "e-commerce-platform"
+          namespace: "customer"
+          advertises:
+            - "behaviors.*"
+            - "events.*"
+          uses:
+            - "profile.*"
+            - "preferences.*"
+            - "notifications.*"
+          scale: 3
+      services:
+        paymentService:
+          component: "e-commerce-platform"
+          namespace: "payment"
+          advertises:
+            - "operations.*"
+          uses:
+            - "gateway.*"
+            - "fraud.*"
+            - "audit.*"
+          scale: 6
+        inventoryService:
+          component: "e-commerce-platform"
+          namespace: "inventory"
+          advertises:
+            - "operations.*"
+          uses:
+            - "warehouse.*"
+            - "tracking.*"
+            - "alerts.*"
+          scale: 4
+        notificationService:
+          component: "e-commerce-platform"
+          namespace: "notification"
+          advertises:
+            - "operations.*"
+          uses:
+            - "email.*"
+            - "sms.*"
+            - "push.*"
+          scale: 2
+        shippingService:
+          component: "e-commerce-platform"
+          namespace: "shipping"
+          advertises:
+            - "operations.*"
+          uses:
+            - "carriers.*"
+            - "tracking.*"
+            - "rates.*"
+          scale: 3
+      views:
+        customerInterface:
+          component: "e-commerce-platform"
+          namespace: "customer"
+          uses:
+            - "models.*"
+            - "catalog.*"
+            - "orders.*"
+          scale: 10
+        adminInterface:
+          component: "e-commerce-platform"
+          namespace: "admin"
+          uses:
+            - "models.*"
+            - "analytics.*"
+            - "management.*"
+          scale: 3
+        mobileInterface:
+          component: "e-commerce-platform"
+          namespace: "mobile"
+          uses:
+            - "models.*"
+            - "simplified.*"
+            - "responsive.*"
+          scale: 6
+      communications:
+        mainBus:
+          namespace: "global"
+          capabilities:
+            - "product.create"
+            - "product.read"
+            - "product.update"
+            - "product.delete"
+            - "order.create"
+            - "order.read"
+            - "order.update"
+            - "order.cancel"
+            - "customer.register"
+            - "customer.authenticate"
+            - "customer.update"
+            - "payment.process"
+            - "payment.validate"
+            - "payment.refund"
+            - "inventory.check"
+            - "inventory.reserve"
+            - "inventory.release"
+            - "notification.send"
+            - "notification.schedule"
+            - "notification.track"
+            - "shipping.calculate"
+            - "shipping.book"
+            - "shipping.track"
+          type: "pubsub"
+        orderingBus:
+          namespace: "ordering"
+          capabilities:
+            - "orders.*"
+            - "payment.*"
+            - "inventory.*"
+            - "shipping.*"
+          type: "rpc"
+        catalogBus:
+          namespace: "catalog"
+          capabilities:
+            - "product.*"
+            - "categories.*"
+            - "search.*"
+            - "recommendations.*"
+          type: "rpc"
+        customerBus:
+          namespace: "customer"
+          capabilities:
+            - "profile.*"
+            - "preferences.*"
+            - "authentication.*"
+            - "notifications.*"
+          type: "pubsub"
+      storage:
+        primaryDatabase:
+          component: "e-commerce-platform"
+          namespace: "data"
+          type: "relational"
+          advertises:
+            - "persistence.*"
+            - "query.*"
+            - "transaction.*"
+          scale: 3
+        cacheCluster:
+          component: "e-commerce-platform"
+          namespace: "cache"
+          type: "keyvalue"
+          advertises:
+            - "cache.*"
+            - "session.*"
+          scale: 6
+        mediaStorage:
+          component: "e-commerce-platform"
+          namespace: "media"
+          type: "blob"
+          advertises:
+            - "storage.*"
+            - "media.*"
+            - "cdn.*"
+          scale: 1
+      security:
+        oauthProvider:
+          component: "e-commerce-platform"
+          namespace: "auth"
+          type: "authentication"
+          advertises:
+            - "auth.*"
+            - "identity.*"
+            - "token.*"
+        rbacSystem:
+          component: "e-commerce-platform"
+          namespace: "authz"
+          type: "authorization"
+          advertises:
+            - "authz.*"
+            - "permissions.*"
+            - "roles.*"
+          uses:
+            - "auth.identity.*"
+        encryptionService:
+          component: "e-commerce-platform"
+          namespace: "crypto"
+          type: "encryption"
+          advertises:
+            - "encrypt.*"
+            - "decrypt.*"
+            - "keys.*"
+      infrastructure:
+        apiGateway:
+          component: "e-commerce-platform"
+          namespace: "gateway"
+          type: "gateway"
+          advertises:
+            - "routing.*"
+            - "balancing.*"
+            - "rate-limiting.*"
+        loadBalancer:
+          component: "e-commerce-platform"
+          namespace: "lb"
+          type: "loadbalancer"
+          advertises:
+            - "balancing.*"
+            - "failover.*"
+        cdnNetwork:
+          component: "e-commerce-platform"
+          namespace: "cdn"
+          type: "cdn"
+      monitoring:
+        prometheusStack:
+          component: "e-commerce-platform"
+          namespace: "metrics"
+          type: "metrics"
+          advertises:
+            - "metrics.*"
+            - "health.*"
+            - "performance.*"
+        elkLogging:
+          component: "e-commerce-platform"
+          namespace: "logging"
+          type: "logging"
+          advertises:
+            - "logs.*"
+            - "search.*"
+            - "analytics.*"
+        datadogAPM:
+          component: "e-commerce-platform"
+          namespace: "apm"
+          type: "tracing"
+          advertises:
+            - "traces.*"
+            - "spans.*"
+            - "dependencies.*"
+        sentryErrors:
+          component: "e-commerce-platform"
+          namespace: "errors"
+          type: "alerting"
+          advertises:
+            - "alerts.*"
+            - "errors.*"
+            - "notifications.*"
+manifests:
+  productionImplementation:
+    specVersion: "3.5.0"
+    name: "ecommerce-production"
+    version: "1.0.0"
+    deployment:
+      deploymentSource: "."
+      deploymentName: "ecommercePlatform"
+    instanceFactories:
+      - name: "PostgreSQL"
+        source: "@specverse/factories-postgres"
+      - name: "Redis"
+        source: "@specverse/factories-redis"
+      - name: "AWS-S3"
+        source: "@specverse/factories-aws"
+      - name: "Auth0"
+        source: "@specverse/factories-auth0"
+      - name: "NGINX"
+        source: "@specverse/factories-nginx"
+    capabilityMappings:
+      - capability: "storage.relational"
+        instanceFactory: "PostgreSQL"
+        configuration:
+          provider: "postgresql"
+          persistence: "durable"
+          consistency: "strong"
+          replication: 2
+          backup: true
+          encryption: true
+      - capability: "storage.keyvalue"
+        instanceFactory: "Redis"
+        configuration:
+          provider: "redis"
+          persistence: "cache"
+          consistency: "eventual"
+          replication: 1
+      - capability: "storage.blob"
+        instanceFactory: "AWS-S3"
+        configuration:
+          provider: "s3"
+          persistence: "durable"
+          consistency: "eventual"
+          backup: true
+          encryption: true

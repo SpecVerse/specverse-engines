@@ -1,0 +1,606 @@
+name: realize
+version: "1.0.0"
+description: Generate complete new application implementation from SpecVerse specifications
+author: SpecVerse Team
+tags: [realize, implementation, new-application]
+
+system:
+  role: |
+    You generate complete, production-ready application implementations from SpecVerse specifications.
+    You create new applications from scratch, selecting appropriate technology stacks based on
+    requirements and generating all necessary code, configuration, and documentation.
+    
+  context: |
+    Your task is to:
+    1. Analyze requirements to select the most appropriate technology stack
+    2. Choose or combine manifests from the library catalog
+    3. Generate a complete, working application implementation
+    4. Include all necessary configuration files, documentation, and deployment setup
+    5. Create production-ready code with proper architecture
+    
+    Generate modern, maintainable applications following current best practices.
+    
+  capabilities:
+    - Select optimal technology stacks based on requirements
+    - Generate complete application architectures
+    - "Create all layers: database, API, services, UI"
+    - Generate configuration and deployment files
+    - Add proper testing infrastructure
+    - Create comprehensive documentation
+    - Follow framework-specific best practices
+    
+  constraints:
+    - Must implement ALL specifications completely
+    - Generate production-ready, deployable code
+    - Follow selected technology stack conventions
+    - Include proper error handling and validation
+    - Add comprehensive testing
+    - Generate working build/deployment scripts
+
+user:
+  template: |
+    Generate a complete application from these specifications and requirements:
+    
+    Full Specification:
+    {{fullSpecification}}
+    
+    Original Requirements:
+    {{originalRequirements}}
+    
+    Available Manifests:
+    {{availableManifests}}
+    
+    User Preferences:
+    - Scale: {{scale}}
+    - Technology preference: {{techPreference}}
+    - Deployment target: {{deploymentTarget}}
+    
+    Tasks:
+    1. Analyze requirements to select the best technology stack
+    2. Choose appropriate manifest(s) from the available library
+    3. Generate complete application implementation
+    4. Include all necessary configuration files
+    5. Create deployment scripts and documentation
+    6. Add testing infrastructure
+    
+    Provide:
+    - Selected manifest and reasoning
+    - Complete file structure
+    - All source code files
+    - Configuration files
+    - Documentation (README, API docs)
+    - Deployment instructions
+    
+  variables:
+    - name: fullSpecification
+      type: string
+      required: true
+      description: Complete SpecVerse specification (after inference)
+      
+    - name: originalRequirements
+      type: string
+      required: true
+      description: Original user requirements for context
+      
+    - name: availableManifests
+      type: string
+      required: true
+      description: Catalog of available implementation manifests
+      
+    - name: scale
+      type: string
+      required: false
+      default: "business"
+      description: Project scale (personal, business, enterprise)
+      validation: "^(personal|business|enterprise)$"
+      
+    - name: techPreference
+      type: string
+      required: false
+      default: "auto"
+      description: Technology preference (nextjs, fastapi, spring, auto)
+      
+    - name: deploymentTarget
+      type: string
+      required: false
+      default: "cloud"
+      description: Deployment target (local, cloud, edge, enterprise)
+
+context:
+  includes:
+    - schema: schema/SPECVERSE-V3.1-SCHEMA-AI.yaml
+    - library: manifest-catalog
+    - template: implementation-patterns
+  max_tokens: 16000
+  temperature: 0.3
+  top_p: 0.95
+
+validation:
+  input:
+    - rule: Full specification must be provided
+      required: true
+    - rule: Original requirements must be provided
+      required: true
+    - rule: Available manifests must be provided
+      required: true
+      
+  output:
+    - rule: Must select and justify manifest choice
+      format: text
+    - rule: Must generate complete working application
+      format: text
+    - rule: All models from specification must be implemented
+      format: text
+    - rule: Must include deployment configuration
+      format: text
+    - rule: Must include README with setup instructions
+      format: markdown
+
+examples:
+  - name: Task Management Application
+    description: Generate complete Next.js application for task management
+    input:
+      fullSpecification: |
+        components:
+          TaskManagement:
+            version: "1.0.0"
+            models:
+              Project:
+                attributes:
+                  id: UUID required unique auto=uuid4
+                  name: String required searchable
+                  description: String optional
+                relationships:
+                  tasks: hasMany Task cascade
+              Task:
+                attributes:
+                  id: UUID required unique auto=uuid4
+                  title: String required searchable
+                  description: String optional
+                  status: String required default=todo values=["todo","in_progress","done"]
+                  dueDate: Date optional
+                relationships:
+                  project: belongsTo Project required
+                  assignee: belongsTo User optional
+              User:
+                attributes:
+                  id: UUID required unique auto=uuid4
+                  email: Email required unique
+                  name: String required
+                relationships:
+                  assignedTasks: hasMany Task
+            controllers:
+              ProjectController:
+                model: Project
+                actions:
+                  create, read, update, delete
+              TaskController:
+                model: Task
+                actions:
+                  create, read, update, delete, complete
+            services:
+              TaskService:
+                operations:
+                  assignTask, completeTask, getTasksByStatus
+            events:
+              TaskCreated, TaskCompleted, TaskAssigned
+            views:
+              ProjectList, ProjectDetail, TaskBoard, TaskList
+        deployments:
+          production:
+            instances:
+              controllers:
+                apiController: { scale: 2 }
+              views:
+                webApp: { scale: 1 }
+              storage:
+                database: { type: relational, scale: 1 }
+      originalRequirements: "Build a task management system where users can create projects and tasks, assign tasks to team members, and track progress"
+      availableManifests: |
+        - nextjs-14-full: Next.js 14 with TypeScript, Prisma, Tailwind
+        - fastapi-modern: FastAPI with SQLAlchemy, Pydantic, PostgreSQL
+        - spring-boot-3: Spring Boot 3 with JPA, H2/PostgreSQL
+      scale: business
+      techPreference: nextjs
+      deploymentTarget: cloud
+      
+    output: |
+      ## Selected Manifest: nextjs-14-full
+      
+      **Reasoning**: 
+      - User preference for Next.js
+      - Business scale fits Next.js full-stack capabilities
+      - Cloud deployment target aligns with Vercel/Next.js ecosystem
+      - Rich UI requirements (TaskBoard, ProjectDetail) suit React/Next.js
+      
+      ## Application Structure
+      
+      ```
+      task-management/
+      ├── app/
+      │   ├── api/
+      │   │   ├── projects/
+      │   │   │   ├── route.ts
+      │   │   │   └── [id]/
+      │   │   │       ├── route.ts
+      │   │   │       └── tasks/
+      │   │   │           └── route.ts
+      │   │   ├── tasks/
+      │   │   │   ├── route.ts
+      │   │   │   └── [id]/
+      │   │   │       ├── route.ts
+      │   │   │       └── complete/
+      │   │   │           └── route.ts
+      │   │   └── users/
+      │   │       └── route.ts
+      │   ├── projects/
+      │   │   ├── page.tsx
+      │   │   └── [id]/
+      │   │       └── page.tsx
+      │   ├── tasks/
+      │   │   ├── page.tsx
+      │   │   └── board/
+      │   │       └── page.tsx
+      │   ├── layout.tsx
+      │   └── page.tsx
+      ├── components/
+      │   ├── ui/
+      │   ├── project/
+      │   ├── task/
+      │   └── layout/
+      ├── lib/
+      │   ├── prisma.ts
+      │   ├── validations.ts
+      │   └── utils.ts
+      ├── prisma/
+      │   ├── schema.prisma
+      │   └── seed.ts
+      ├── types/
+      └── __tests__/
+      ```
+      
+      ### Key Files
+      
+      **package.json**
+      ```json
+      {
+        "name": "task-management",
+        "version": "1.0.0",
+        "scripts": {
+          "dev": "next dev",
+          "build": "next build",
+          "start": "next start",
+          "db:push": "prisma db push",
+          "db:seed": "tsx prisma/seed.ts",
+          "test": "jest"
+        },
+        "dependencies": {
+          "next": "14.2.0",
+          "react": "18.2.0",
+          "@prisma/client": "5.0.0",
+          "tailwindcss": "3.4.0",
+          "zod": "3.22.0",
+          "@hookform/resolvers": "3.3.0"
+        },
+        "devDependencies": {
+          "prisma": "5.0.0",
+          "@types/node": "20.0.0",
+          "typescript": "5.0.0",
+          "jest": "29.0.0"
+        }
+      }
+      ```
+      
+      **prisma/schema.prisma**
+      ```prisma
+      generator client {
+        provider = "prisma-client-js"
+      }
+      
+      datasource db {
+        provider = "postgresql"
+        url      = env("DATABASE_URL")
+      }
+      
+      model Project {
+        id          String   @id @default(uuid())
+        name        String
+        description String?
+        tasks       Task[]
+        createdAt   DateTime @default(now())
+        updatedAt   DateTime @updatedAt
+        
+        @@map("projects")
+      }
+      
+      model Task {
+        id          String   @id @default(uuid())
+        title       String
+        description String?
+        status      String   @default("todo")
+        dueDate     DateTime?
+        projectId   String
+        assigneeId  String?
+        project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+        assignee    User?    @relation(fields: [assigneeId], references: [id])
+        createdAt   DateTime @default(now())
+        updatedAt   DateTime @updatedAt
+        
+        @@map("tasks")
+      }
+      
+      model User {
+        id            String @id @default(uuid())
+        email         String @unique
+        name          String
+        assignedTasks Task[]
+        
+        @@map("users")
+      }
+      ```
+      
+      **app/api/projects/route.ts**
+      ```typescript
+      import { NextRequest, NextResponse } from 'next/server';
+      import { prisma } from '@/lib/prisma';
+      import { projectSchema } from '@/lib/validations';
+      
+      export async function GET() {
+        try {
+          const projects = await prisma.project.findMany({
+            include: {
+              tasks: {
+                include: { assignee: true },
+              },
+              _count: { select: { tasks: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+          });
+          return NextResponse.json(projects);
+        } catch (error) {
+          return NextResponse.json(
+            { error: 'Failed to fetch projects' },
+            { status: 500 }
+          );
+        }
+      }
+      
+      export async function POST(request: NextRequest) {
+        try {
+          const body = await request.json();
+          const validatedData = projectSchema.parse(body);
+          
+          const project = await prisma.project.create({
+            data: validatedData,
+            include: {
+              tasks: { include: { assignee: true } },
+              _count: { select: { tasks: true } },
+            },
+          });
+          
+          return NextResponse.json(project, { status: 201 });
+        } catch (error) {
+          return NextResponse.json(
+            { error: 'Failed to create project' },
+            { status: 500 }
+          );
+        }
+      }
+      ```
+      
+      **app/projects/page.tsx**
+      ```typescript
+      'use client';
+      
+      import { useState, useEffect } from 'react';
+      import { ProjectList } from '@/components/project/project-list';
+      import { CreateProjectDialog } from '@/components/project/create-project-dialog';
+      import { Button } from '@/components/ui/button';
+      
+      export default function ProjectsPage() {
+        const [projects, setProjects] = useState([]);
+        const [loading, setLoading] = useState(true);
+        
+        useEffect(() => {
+          fetchProjects();
+        }, []);
+        
+        const fetchProjects = async () => {
+          try {
+            const response = await fetch('/api/projects');
+            const data = await response.json();
+            setProjects(data);
+          } catch (error) {
+            console.error('Failed to fetch projects:', error);
+          } finally {
+            setLoading(false);
+          }
+        };
+        
+        return (
+          <div className="container mx-auto py-8">
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl font-bold">Projects</h1>
+              <CreateProjectDialog onProjectCreated={fetchProjects} />
+            </div>
+            
+            {loading ? (
+              <div>Loading projects...</div>
+            ) : (
+              <ProjectList projects={projects} />
+            )}
+          </div>
+        );
+      }
+      ```
+      
+      **components/task/task-board.tsx**
+      ```typescript
+      'use client';
+      
+      import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+      import { TaskCard } from './task-card';
+      
+      const columns = {
+        todo: 'To Do',
+        in_progress: 'In Progress',
+        done: 'Done'
+      };
+      
+      export function TaskBoard({ tasks, onTaskUpdate }) {
+        const handleDragEnd = async (result) => {
+          if (!result.destination) return;
+          
+          const taskId = result.draggableId;
+          const newStatus = result.destination.droppableId;
+          
+          await onTaskUpdate(taskId, { status: newStatus });
+        };
+        
+        return (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="grid grid-cols-3 gap-6">
+              {Object.entries(columns).map(([status, title]) => (
+                <div key={status} className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-4">{title}</h3>
+                  <Droppable droppableId={status}>
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-3"
+                      >
+                        {tasks
+                          .filter(task => task.status === status)
+                          .map((task, index) => (
+                            <Draggable
+                              key={task.id}
+                              draggableId={task.id}
+                              index={index}
+                            >
+                              {(provided) => (
+                                <TaskCard
+                                  task={task}
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                />
+                              )}
+                            </Draggable>
+                          ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              ))}
+            </div>
+          </DragDropContext>
+        );
+      }
+      ```
+      
+      ## README.md
+      
+      ```markdown
+      # Task Management System
+      
+      A modern task management application built with Next.js 14, TypeScript, and Prisma.
+      
+      ## Features
+      
+      - Create and manage projects
+      - Add tasks to projects
+      - Assign tasks to team members
+      - Kanban board interface
+      - Drag-and-drop task management
+      - Responsive design
+      
+      ## Tech Stack
+      
+      - **Frontend**: Next.js 14, React 18, TypeScript
+      - **Database**: PostgreSQL with Prisma ORM
+      - **Styling**: Tailwind CSS
+      - **Deployment**: Vercel
+      
+      ## Getting Started
+      
+      1. **Clone the repository**
+         ```bash
+         git clone <repository-url>
+         cd task-management
+         ```
+      
+      2. **Install dependencies**
+         ```bash
+         npm install
+         ```
+      
+      3. **Set up environment variables**
+         ```bash
+         cp .env.example .env.local
+         ```
+         Add your PostgreSQL database URL
+      
+      4. **Set up the database**
+         ```bash
+         npx prisma db push
+         npx prisma db seed
+         ```
+      
+      5. **Start the development server**
+         ```bash
+         npm run dev
+         ```
+      
+      Open [http://localhost:3000](http://localhost:3000) in your browser.
+      
+      ## API Endpoints
+      
+      - `GET /api/projects` - List all projects
+      - `POST /api/projects` - Create a project
+      - `GET /api/projects/[id]` - Get project details
+      - `PUT /api/projects/[id]` - Update project
+      - `DELETE /api/projects/[id]` - Delete project
+      - `GET /api/tasks` - List all tasks
+      - `POST /api/tasks` - Create a task
+      - `PUT /api/tasks/[id]` - Update task
+      - `POST /api/tasks/[id]/complete` - Complete task
+      
+      ## Deployment
+      
+      Deploy to Vercel:
+      
+      1. Push to GitHub
+      2. Connect repository to Vercel
+      3. Add environment variables
+      4. Deploy
+      
+      ## Testing
+      
+      ```bash
+      npm test
+      ```
+      ```
+      
+    explanation: |
+      Generated a complete, production-ready Next.js application with:
+      - Full database schema and API endpoints
+      - Interactive UI components including drag-and-drop board
+      - Proper TypeScript types and validation
+      - Comprehensive documentation and setup instructions
+      - Modern architecture following Next.js 14 best practices
+
+metadata:
+  created: "2024-01-01T00:00:00Z"
+  updated: "2024-01-01T00:00:00Z"
+  tested_with:
+    - provider: openai
+      model: gpt-4
+      success_rate: 88
+    - provider: anthropic
+      model: claude-3-opus
+      success_rate: 91
+  performance:
+    avg_response_time: 25.3
+    avg_tokens_used: 8500

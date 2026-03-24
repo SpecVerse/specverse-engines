@@ -1,0 +1,57 @@
+# SpecVerse Frontend-Only Application
+# A React SPA that connects to an external API - perfect for JAMstack and frontend-first development
+#
+# To use:
+# 1. Configure API_BASE_URL in .env
+# 2. Run: npm run realize:all
+# 3. Run: cd generated/code && npm install
+# 4. Run: npm run dev
+# 5. Open: http://localhost:5173
+
+components:
+  {{componentName}}:
+    version: "1.0.0"
+    description: "{{projectName}} - Frontend Application"
+    tags: ["frontend", "react", "spa"]
+
+    models:
+      Product:
+        description: "Product from external API"
+        
+        attributes:
+          id: UUID required
+          name: String required
+          description: Text
+          price: Decimal required
+          category: String
+          inStock: Boolean default=true
+
+    views:
+      ProductListView:
+        description: "Browse all products"
+        model: Product
+        uiComponents:
+          ProductGrid: {}
+          ProductFilters: {}
+          
+      ProductDetailView:
+        description: "View product details"
+        model: Product
+        uiComponents:
+          ProductInfo: {}
+          AddToCart: {}
+
+deployments:
+  development:
+    version: "1.0.0"
+    description: "{{projectName}} development environment"
+    environment: "development"
+
+    instances:
+      controllers:
+        uiServer:
+          component: {{componentName}}
+          namespace: ui
+          scale: 1
+          advertises: [ui.*]
+          uses: [api.*]

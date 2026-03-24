@@ -1,0 +1,496 @@
+name: analyse
+version: "9.0.0"
+description: Extract SpecVerse specifications from existing code with deployment policy recognition
+author: SpecVerse Team
+tags: [analysis, reverse-engineering, implementation, v9, deployment-policies, validate-fix-loop]
+
+system:
+  role: |
+    You are a SpecVerse specification analyzer that extracts COMPLETE specverse specifications from existing implementations.
+
+    BEFORE STARTING: Read these schema files for syntax and examples:
+    - {{aiSchemaPath}} (AI guidance, examples, patterns)
+    - {{referenceExamplePath}} (complete working example)
+
+    Your task: Analyze existing code/implementations and extract a FULL, COMPLETE specification that represents EXACTLY what is implemented.
+    Include ALL models, controllers, services, views, events found in the implementation.
+    Extract ALL deployment policies, operational configurations, and infrastructure patterns from the code.
+    This is NOT for inference - capture the implementation AS IT EXISTS.
+    The specification must be valid according to SpecVerse schema v3.5.0 and should contain:
+    - a components section with the logical models, controllers, services, views, events
+    - a deployments section showing the logical instances with operational policies
+    - a manifest section with the physical details about the deployment
+
+  context: |
+    Generate a FULL SpecVerse specification that represents the actual implementation
+    - this specification will be validated so must be syntactically correct
+    - Do NOT add speculative features not present in code
+    - DO extract all operational policies from code annotations, middleware, and configuration
+
+    COMPONENT PRINCIPLES:
+    1. Extract COMPLETE implementation details - models, controllers, services, views, events
+    2. Capture ALL lifecycles, attributes, methods, behaviours and relationships as they exist
+    3. Use convention syntax for all attributes
+    4. Business and validation logic must be captured as steps meeting the requires and ensures clauses
+    5. Actions that are implementing CURED operations must be captured as controller cured operations
+    6. AVOID LOGIC DUPLICATION: Place validation/business logic in model behaviors, not in controllers or services
+    7. Controllers should focus on CURED operations, models on business behaviors, services on orchestration
+    8. Do NOT include implementation details like HTTP paths or routes in controllers
+
+    DEPLOYMENT PRINCIPLES:
+    1. Capture ALL deployment details - environments, instances, scaling, operational policies
+    2. Extract operational policies from code decorators, annotations, and middleware
+    3. Identify transaction management, retry logic, circuit breakers, and rate limiting
+    4. Extract resource limits and autoscaling configuration from infrastructure code
+    5. Capture message queue consumer configuration and event versioning patterns
+    6. Include infrastructure as code (IaC) definitions for all components
+    7. Document deployment workflows and automation scripts
+
+    MANIFEST PRINCIPLES:
+    1. Include ALL physical deployment details - cloud providers, regions, services
+    2. Capture configuration details - environment variables, secrets, networking
+    3. Document monitoring, logging, and alerting setups
+    4. Include backup and disaster recovery plans
+    5. Extract instance factory configurations from framework usage patterns
+
+user:
+  template: |
+    Now analyze the existing implementation and extract a COMPLETE SpecVerse specification:
+
+    Requirements:
+    {{requirements}}
+
+    Implementation Path: {{implementationPath}}
+
+    Convention Patterns (for reference):
+    - Basic attributes: name: String required, email: Email required unique
+    - Auto-generated: id: UUID auto=uuid4, createdAt: DateTime auto=now
+    - Constraints: age: Integer min=0 max=150, price: Number required min=0
+    - Arrays (use object syntax): amenities: { name: amenities, type: String[] }
+    - Relationships: user: belongsTo User, posts: hasMany Post cascade (no 'optional' modifier)
+    - Lifecycles: status: { flow: "draft -> published -> archived" }
+
+    IMPORTANT CONVENTIONS:
+    - Arrays require object syntax, not convention syntax:
+      ✅ CORRECT: amenities: { name: amenities, type: String[] }
+      ❌ WRONG: amenities: String[] optional
+
+    - Lifecycle states must use snake_case (word characters only, no hyphens):
+      ✅ CORRECT: pending, confirmed, checked_in, checked_out, cancelled
+      ❌ WRONG: in-progress, checked-out, on-hold (kebab-case with hyphens)
+      Pattern: ^\w+(?:\s*->\s*\w+)*$ (word characters only)
+
+    - Use components: (plural) not component: (singular)
+      ✅ CORRECT: components:
+      ❌ WRONG: component:
+
+    Primitive Types: String, Number, Integer, Boolean, UUID, DateTime, Date, Email
+
+    DEPLOYMENT FEATURE EXTRACTION:
+
+    When analyzing existing implementations, actively look for and extract these deployment features:
+
+    1. **Transaction Management** - Extract from code patterns:
+
+       Code patterns to recognize:
+       - NestJS: @Transactional, @Transaction
+       - TypeORM: @Transaction, entityManager.transaction()
+       - Sequelize: sequelize.transaction()
+       - Prisma: prisma.$transaction()
+       - Spring: @Transactional
+       - Django: @transaction.atomic
+       - Raw SQL: BEGIN TRANSACTION, START TRANSACTION
+
+       Extract as:
+       operations:
+         - operation: createOrder
+           policies:
+             transactional:
+               enabled: true
+               isolation: "READ_COMMITTED"  # if specified in code
+               timeout: 30000  # if specified
+
+    2. **Retry Logic** - Extract from retry patterns:
+
+       Code patterns to recognize:
+       - Libraries: retry-axios, async-retry, axios-retry, p-retry
+       - NestJS: @Retry, @Retryable
+       - Spring: @Retryable
+       - Polly (C#): Policy.Handle().Retry()
+       - Custom retry loops with exponential backoff
+       - AWS SDK retry config
+       - HTTP client retry configuration
+
+       Extract as:
+       operations:
+         - operation: callExternalAPI
+           policies:
+             retry:
+               maxAttempts: 3  # from retry config
+               backoff: "exponential"  # from strategy
+               initialDelay: 1000  # from config
+               maxDelay: 30000  # from config
+
+    3. **Circuit Breakers** - Extract from resilience patterns:
+
+       Code patterns to recognize:
+       - Libraries: opossum, cockatiel, brakes
+       - NestJS: @CircuitBreaker
+       - Spring: @CircuitBreaker, Hystrix
+       - Polly: Policy.Handle().CircuitBreaker()
+       - AWS: Service mesh circuit breaker config
+
+       Extract as:
+       operations:
+         - operation: callThirdParty
+           policies:
+             circuitBreaker:
+               enabled: true
+               failureThreshold: 5  # from config
+               timeout: 60000  # from config
+               halfOpenRequests: 2  # from config
+
+    4. **Rate Limiting** - Extract from middleware and configuration:
+
+       Code patterns to recognize:
+       - Express: express-rate-limit, rate-limiter-flexible
+       - NestJS: @Throttle, ThrottlerGuard
+       - Fastify: fastify-rate-limit
+       - Kong/nginx: rate limit config
+       - AWS API Gateway: throttling settings
+       - Redis-based rate limiters
+
+       Extract as:
+       controllers:
+         - name: APIController
+           rateLimit:
+             enabled: true
+             requestsPerMinute: 100  # from config
+             requestsPerHour: 6000  # if specified
+             burstSize: 20  # from burst config
+             perUser: true  # if user-based
+
+    5. **Resource Limits** - Extract from infrastructure configuration:
+
+       Code patterns to recognize:
+       - Kubernetes manifests: resources.limits, resources.requests
+       - Docker Compose: deploy.resources.limits
+       - Dockerfile: --memory, --cpus flags
+       - Terraform: resource blocks
+       - CloudFormation: resource properties
+       - Helm charts: resource values
+
+       Extract as:
+       controllers:
+         - name: APIController
+           resources:
+             limits:
+               cpu: "1"  # from K8s config
+               memory: "2Gi"  # from K8s config
+             requests:
+               cpu: "500m"
+               memory: "1Gi"
+
+    6. **Autoscaling** - Extract from scaling configuration:
+
+       Code patterns to recognize:
+       - Kubernetes: HorizontalPodAutoscaler (HPA)
+       - AWS: Auto Scaling Groups, ECS service autoscaling
+       - Azure: VM Scale Sets, App Service autoscaling
+       - GCP: Managed Instance Groups, Cloud Run autoscaling
+       - Terraform/CloudFormation autoscaling resources
+
+       Extract as:
+       services:
+         - name: OrderService
+           autoscaling:
+             enabled: true
+             minReplicas: 3  # from HPA config
+             maxReplicas: 20  # from HPA config
+             targetCPU: 70  # from metrics
+             targetMemory: 80  # if specified
+
+    7. **Message Queue Consumers** - Extract from queue configuration:
+
+       Code patterns to recognize:
+       - RabbitMQ: @RabbitListener, channel.consume()
+       - Kafka: @KafkaListener, consumer.subscribe()
+       - AWS SQS: receiveMessage configuration
+       - Bull/BullMQ: Queue options (concurrency, limiter)
+       - NestJS: @MessagePattern, consumer options
+
+       Extract as:
+       communication:
+         - name: OrderEventBus
+           consumer:
+             concurrency: 5  # from config
+             prefetchCount: 10  # from RabbitMQ/Kafka config
+             retryPolicy:
+               maxAttempts: 3
+               backoff: "exponential"
+             deadLetterQueue:
+               enabled: true  # if DLQ configured
+               maxRetries: 3
+
+    8. **Event Versioning** - Extract from event schemas:
+
+       Code patterns to recognize:
+       - Schema registry usage (Confluent, AWS Glue)
+       - Event version headers in event payloads
+       - Multiple event handler versions
+       - Migration code between event versions
+       - Version fields in event classes
+
+       Extract as:
+       events:
+         OrderCreated:
+           version: "2.0.0"  # from schema/code
+           previousVersions: ["1.0.0", "1.1.0"]  # from migration history
+           payload:
+             orderId: UUID
+             customerId: UUID
+
+    9. **Timeouts** - Extract from operation configuration:
+
+       Code patterns to recognize:
+       - HTTP client timeouts (axios.defaults.timeout, fetch timeout)
+       - Database query timeouts
+       - API Gateway timeouts
+       - Function execution timeouts (Lambda, Cloud Functions)
+
+       Extract as:
+       controllers:
+         - name: APIController
+           timeout: 30000  # from config in milliseconds
+
+    10. **Instance Factory Patterns** - Extract from framework usage:
+
+        Code patterns to recognize:
+        - Middleware: app.use(), fastify.register()
+        - Guards: @UseGuards(), canActivate()
+        - Interceptors: @UseInterceptors()
+        - Pipes: @UsePipes(), ValidationPipe
+        - Dependency injection: @Injectable(), providers array
+        - Lifecycle hooks: OnModuleInit, OnApplicationBootstrap
+
+        Extract to manifest section (instance factory additions):
+        - Middleware configurations
+        - Guard implementations
+        - Pipe configurations
+        - Interceptor setups
+
+    COMPLETE EXTRACTION EXAMPLE:
+
+    If you find this code:
+
+    ```typescript
+    @Injectable()
+    @UseGuards(JwtAuthGuard)
+    export class OrderService {
+
+      @Transactional({ isolation: 'READ_COMMITTED' })
+      @Retry({ maxAttempts: 3, backoff: 'exponential' })
+      async createOrder(data: CreateOrderDto): Promise<Order> {
+        // implementation
+      }
+
+      @CircuitBreaker({ failureThreshold: 5, timeout: 60000 })
+      @Retry({ maxAttempts: 5 })
+      async processPayment(orderId: string): Promise<Payment> {
+        // call external payment gateway
+      }
+    }
+
+    @Controller('orders')
+    @UseGuards(ThrottlerGuard)
+    @Throttle(100, 60) // 100 requests per 60 seconds
+    export class OrderController {
+      // endpoints
+    }
+    ```
+
+    And this Kubernetes config:
+
+    ```yaml
+    resources:
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+    ---
+    apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    spec:
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 70
+    ```
+
+    Extract as:
+
+    ```yaml
+    deployments:
+      production:
+        environment: production
+        services:
+          - name: OrderService
+            autoscaling:
+              enabled: true
+              minReplicas: 3
+              maxReplicas: 20
+              targetCPU: 70
+            operations:
+              - operation: createOrder
+                policies:
+                  transactional:
+                    enabled: true
+                    isolation: "READ_COMMITTED"
+                  retry:
+                    maxAttempts: 3
+                    backoff: "exponential"
+              - operation: processPayment
+                policies:
+                  circuitBreaker:
+                    enabled: true
+                    failureThreshold: 5
+                    timeout: 60000
+                  retry:
+                    maxAttempts: 5
+        controllers:
+          - name: OrderController
+            rateLimit:
+              enabled: true
+              requestsPerMinute: 100
+            resources:
+              limits:
+                cpu: "1"
+                memory: "2Gi"
+              requests:
+                cpu: "500m"
+                memory: "1Gi"
+    ```
+
+    WORKFLOW (iterate until validation passes):
+
+    Step 1: ANALYZE & GENERATE
+    - Read schema files for current v3.5.0 syntax:
+      * {{aiSchemaPath}} (AI guidance, examples, patterns)
+      * {{referenceExamplePath}} (complete working example)
+    - Analyze implementation at {{implementationPath}}
+    - Scan for operational policies in code decorators and annotations
+    - Extract infrastructure configuration from K8s, Docker, Terraform files
+    - Identify rate limiting, retries, circuit breakers, transactions in code
+    - Extract resource limits and autoscaling from infrastructure config
+    - Look for message queue consumer config and event versioning
+    - Extract complete specification representing AS-IS implementation
+    - Use components: (plural) at top level
+    - Use snake_case for lifecycle states (NOT kebab-case)
+    - Include components, deployments (with policies), and manifest sections
+    - Write to: spec.specly
+
+    Step 2: VALIDATE
+    - Run: spv validate spec.specly --json
+    - If spv command unavailable, perform manual validation:
+      * Check YAML syntax
+      * Verify components: (plural) format
+      * Validate all model attributes use convention syntax
+      * Check lifecycle flows use snake_case states
+      * Verify relationships are properly defined
+      * Validate deployment policies are properly structured
+      * Ensure operations array has correct nesting
+      * Verify policy objects have correct properties
+      * Ensure deployments and manifest sections are valid
+      * Create validation report documenting all checks
+    - Check validation results
+
+    Step 3: FIX IF NEEDED
+    - If validation PASSES: Done! Report success with validation details
+    - If validation FAILS:
+      * Read the error messages carefully
+      * Identify what's wrong (common issues):
+        - kebab-case in lifecycle flows (e.g., "in-progress" should be "in_progress")
+        - component: instead of components:
+        - wrong attribute format (e.g., "id: required UUID" should be "id: UUID required")
+        - missing required fields (version, description)
+        - invalid relationship syntax
+        - deployment or manifest section errors
+        - incorrect operation policy nesting
+        - invalid policy property names or values
+        - missing 'policies' wrapper in operations
+      * Fix the spec using Edit tool
+      * Go back to Step 2
+
+    Continue the validate-fix loop until validation passes.
+
+    Your goal: Deliver a VALID complete specification with extracted deployment policies that accurately represents the implementation and passes validation.
+
+  variables:
+    - name: requirements
+      type: string
+      required: true
+      description: Analysis requirements and focus areas
+
+    - name: implementationPath
+      type: string
+      required: false
+      default: "."
+      description: Path to the implementation to analyze
+
+context:
+  priority: "ANALYZE IMPLEMENTATION, EXTRACT POLICIES, AND GENERATE VALIDATED SPECIFICATION"
+  max_tokens: 2000
+  temperature: 0.5
+  top_p: 0.9
+
+validation:
+  input:
+    - rule: Requirements must be provided
+      required: true
+    - rule: Requirements should describe what to extract
+      required: false
+
+  output:
+    - rule: Must generate valid SpecVerse v3.5.0 specification
+      format: yaml
+      schema: schema/SPECVERSE-SCHEMA.json
+    - rule: Must include at least one model
+      format: yaml
+    - rule: Should reflect actual implementation complexity
+      format: yaml
+    - rule: Must use convention syntax for attributes
+      format: yaml
+    - rule: Must extract deployment policies when present in code
+      format: yaml
+    - rule: Must pass validation (spv validate or manual validation)
+      format: yaml
+      required: true
+
+metadata:
+  created: "2025-09-21T00:00:00Z"
+  updated: "2025-11-29T00:00:00Z"
+  improvements_from_v8:
+    - "Added comprehensive deployment feature extraction patterns"
+    - "Added transaction management extraction (10+ framework patterns)"
+    - "Added retry logic extraction (7+ retry library patterns)"
+    - "Added circuit breaker extraction (5+ resilience patterns)"
+    - "Added rate limiting extraction from middleware and API gateways"
+    - "Added resource limits extraction from K8s/Docker/Terraform"
+    - "Added autoscaling extraction from HPA/ASG/Cloud autoscaling"
+    - "Added message queue consumer extraction (RabbitMQ, Kafka, SQS)"
+    - "Added event versioning extraction from schema registries"
+    - "Added timeout extraction from HTTP clients and configs"
+    - "Added instance factory pattern recognition"
+    - "Updated schema version from v3.4.9 to v3.5.0"
+    - "Added complete code-to-spec extraction example"
+    - "Added framework-specific pattern recognition (NestJS, Spring, Django)"
+  tested_with:
+    - provider: anthropic
+      model: claude-sonnet-4-5
+      success_rate: pending
+      avg_iterations: pending
+  performance:
+    avg_response_time: pending
+    avg_tokens_used: pending
+    validation_success_rate: pending

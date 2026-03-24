@@ -1,0 +1,192 @@
+components:
+  ComprehensiveERDemo:
+    version: "3.2.0"
+    description: "Example 11-10: Comprehensive ER diagram - demonstrates all attribute types and relationship patterns"
+
+    export:
+      models: [Department, Employee, Project, ProjectAssignment, Task, TimeEntry, Client, Contract, Expense]
+
+    models:
+      Department:
+        description: "Department with employees and projects"
+        attributes:
+          id: UUID required
+          name: String required unique
+          code: String required unique
+          budget: Money
+          establishedDate: Date
+          isActive: Boolean required
+          description: Text
+        relationships:
+          employees: hasMany Employee
+          manager: hasOne Employee
+          projects: hasMany Project
+
+      Employee:
+        description: "Employee with self-referential manager relationship"
+        attributes:
+          id: UUID required
+          employeeNumber: String required unique
+          firstName: String required
+          lastName: String required
+          email: Email required unique
+          phoneNumber: PhoneNumber
+          hireDate: Date required
+          birthDate: Date
+          salary: Money required
+          jobTitle: String required
+          departmentId: UUID required
+          managerId: UUID
+          isActive: Boolean required
+          lastReviewDate: Date
+        relationships:
+          department: belongsTo Department
+          manager: belongsTo Employee
+          subordinates: hasMany Employee
+          projects: manyToMany Project through=ProjectAssignment
+          timeEntries: hasMany TimeEntry
+          expenses: hasMany Expense
+
+      Project:
+        description: "Project with many-to-many employee relationship"
+        attributes:
+          id: UUID required
+          projectCode: String required unique
+          name: String required
+          description: Text
+          startDate: Date required
+          endDate: Date
+          estimatedBudget: Money
+          actualBudget: Money
+          status: String required
+          priority: String
+          departmentId: UUID required
+          clientId: UUID
+        relationships:
+          department: belongsTo Department
+          client: belongsTo Client
+          employees: manyToMany Employee through=ProjectAssignment
+          lead: hasOne Employee
+          tasks: hasMany Task
+
+      ProjectAssignment:
+        description: "Through table for Employee-Project many-to-many"
+        attributes:
+          id: UUID required
+          employeeId: UUID required
+          projectId: UUID required
+          role: String required
+          assignedDate: Date required
+          endDate: Date
+          hoursAllocated: Number required
+          hourlyRate: Money
+          isActive: Boolean required
+        relationships:
+          employee: belongsTo Employee
+          project: belongsTo Project
+
+      Task:
+        description: "Task assigned to employees"
+        attributes:
+          id: UUID required
+          projectId: UUID required
+          assignedToId: UUID
+          title: String required
+          description: Text
+          estimatedHours: Number
+          actualHours: Number
+          status: String required
+          priority: String
+          dueDate: Date
+          completedDate: Date
+        relationships:
+          project: belongsTo Project
+          assignedTo: belongsTo Employee
+          timeEntries: hasMany TimeEntry
+
+      TimeEntry:
+        description: "Time tracking entries"
+        attributes:
+          id: UUID required
+          employeeId: UUID required
+          projectId: UUID
+          taskId: UUID
+          date: Date required
+          hours: Number required
+          description: Text
+          isBillable: Boolean required
+        relationships:
+          employee: belongsTo Employee
+          project: belongsTo Project
+          task: belongsTo Task
+
+      Client:
+        description: "Client organization"
+        attributes:
+          id: UUID required
+          companyName: String required
+          contactName: String required
+          contactEmail: Email required
+          contactPhone: PhoneNumber
+          address: Address
+          industry: String
+          isActive: Boolean required
+          since: Date required
+        relationships:
+          projects: hasMany Project
+          contracts: hasMany Contract
+
+      Contract:
+        description: "Client contract"
+        attributes:
+          id: UUID required
+          clientId: UUID required
+          contractNumber: String required unique
+          startDate: Date required
+          endDate: Date required
+          value: Money required
+          terms: Text
+          status: String required
+          signedDate: Date
+        relationships:
+          client: belongsTo Client
+          project: hasOne Project
+
+      Expense:
+        description: "Employee expenses"
+        attributes:
+          id: UUID required
+          employeeId: UUID required
+          projectId: UUID
+          amount: Money required
+          category: String required
+          description: Text
+          expenseDate: Date required
+          submittedDate: Date
+          approvedDate: Date
+          status: String required
+          receiptURL: String
+        relationships:
+          employee: belongsTo Employee
+          project: belongsTo Project
+          approver: belongsTo Employee
+
+      SystemConfiguration:
+        description: "System configuration with all attribute types"
+        attributes:
+          id: UUID required
+          configKey: String required unique
+          configValue: String required
+          dataType: String required
+          category: String required
+          description: Text
+          isEncrypted: Boolean required
+          lastModified: DateTime required
+          modifiedBy: UUID
+          validFrom: Date
+          validTo: Date
+          integerValue: Integer
+          decimalValue: Number
+          booleanValue: Boolean
+          dateValue: Date
+          jsonValue: JSON

@@ -1,0 +1,77 @@
+# Example 11-06: Lifecycle State Diagram Demonstration
+#
+# This example demonstrates lifecycle state machine visualization for models
+# showing state transitions and workflows.
+#
+# Lifecycle Diagrams are ideal for:
+# - Visualizing state machines and workflows
+# - Understanding model state transitions
+# - Documenting business process flows
+# - Planning state management logic
+# - Identifying valid state transition paths
+
+components:
+  LifecycleDemo:
+    version: "3.2.0"
+    description: "Example 11-06: Lifecycle state machine demonstration"
+
+    models:
+      Order:
+        description: "E-commerce order with complete lifecycle"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          totalAmount: Number required
+          paymentStatus: String required
+          status: String required
+
+        lifecycles:
+          orderStatus:
+            flow: "draft -> pending_payment -> confirmed -> processing -> shipped -> delivered"
+
+      Product:
+        description: "Product with inventory lifecycle"
+        attributes:
+          productId: UUID required
+          name: String required
+          stockLevel: Number required
+          reorderPoint: Number
+          supplierId: UUID
+
+        lifecycles:
+          inventoryStatus:
+            flow: "active -> low_stock -> out_of_stock -> backordered -> active"
+
+      Shipment:
+        description: "Shipment tracking lifecycle"
+        attributes:
+          shipmentId: UUID required
+          orderId: UUID required
+          carrier: String
+          trackingNumber: String
+          estimatedDelivery: DateTime
+
+        lifecycles:
+          trackingStatus:
+            flow: "created -> picked_up -> in_transit -> out_for_delivery -> delivered"
+
+    controllers:
+      OrderController:
+        model: Order
+        cured:
+          create: {}
+          retrieve: {}
+
+    services:
+      OrderProcessingService:
+        operations:
+          processOrder:
+            description: "Process order through lifecycle states"
+
+    events:
+      OrderStatusChanged:
+        attributes:
+          orderId: UUID required
+          oldStatus: String required
+          newStatus: String required
+          changedAt: DateTime required

@@ -1,0 +1,43 @@
+manifests:
+  backendOnlyImplementation:
+    specVersion: "3.5.0"
+    deployment:
+      deploymentSource: "../specs/main.specly"
+      deploymentName: "production"
+    configuration:
+      outputStructure: "standalone"
+      backendDir: "."
+      apiPort: 3000
+      apiHost: "0.0.0.0"
+      corsOrigins: "${CORS_ORIGINS}"
+    capabilityMappings:
+      - capability: "orm.schema"
+        instanceFactory: "PrismaORM"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+      - capability: "service.controller"
+        instanceFactory: "PrismaServices"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+      - capability: "api.rest"
+        instanceFactory: "FastifyAPI"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+          server:
+            cors:
+              enabled: true
+              origins:
+                - "${CORS_ORIGINS}"
+      - capability: "app.entrypoint"
+        instanceFactory: "GenericApp"
+        configuration:
+          outputStructure: "standalone"
+          backendDir: "."
+      - capability: "project.scaffold"
+        instanceFactory: "GenericScaffold"
+        configuration:
+          outputStructure: "standalone"
+          includeReadme: true
