@@ -307,7 +307,32 @@ class SpecVerseRealizeEngine implements RealizeEngine {
       if (frontendFiles.length) console.log(`   ✅ Frontend application: ${frontendFiles.join(', ')}`);
     }
 
-    // 10. Ship assets (templates, examples, schema) from engine packages
+    // 10. Developer tools (VSCode extension, MCP server)
+    try {
+      const toolsDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'libs', 'instance-factories', 'tools', 'templates');
+
+      // VSCode extension
+      const vscodeGen = join(toolsDir, 'vscode', 'vscode-extension-generator.ts');
+      if (existsSync(vscodeGen)) {
+        try {
+          const { default: generateVSCodeExtension } = await import(vscodeGen);
+          const result = generateVSCodeExtension({ spec, outputDir, models: allModels });
+          console.log(`   ✅ VSCode extension: ${result}`);
+        } catch (e: any) { errors.push(`VSCode: ${e.message}`); }
+      }
+
+      // MCP server
+      const mcpGen = join(toolsDir, 'mcp', 'mcp-server-generator.ts');
+      if (existsSync(mcpGen)) {
+        try {
+          const { default: generateMCPServer } = await import(mcpGen);
+          const result = generateMCPServer({ spec, outputDir, models: allModels });
+          console.log(`   ✅ MCP server: ${result}`);
+        } catch (e: any) { errors.push(`MCP: ${e.message}`); }
+      }
+    } catch { /* tools generation is optional */ }
+
+    // 11. Ship assets (templates, examples, schema) from engine packages
     try {
       const assetsCopied = await this.copyAssets(outputDir);
       if (assetsCopied.length > 0) {

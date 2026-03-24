@@ -1,0 +1,138 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SpecVerse Specly",
+  "scopeName": "source.specly",
+  "fileTypes": [
+    "specly"
+  ],
+  "version": "1.0.0",
+  "patterns": [
+    {
+      "name": "comment.line.number-sign.specly",
+      "match": "#.*$"
+    },
+    {
+      "name": "keyword.control.container.specly",
+      "match": "\\\\b(components|deployments):"
+    },
+    {
+      "name": "keyword.control.section.specly",
+      "match": "\\\\b(component|deployment|version|description|tags|import|export|models|controllers|services|views|events):"
+    },
+    {
+      "name": "keyword.control.subsection.specly",
+      "match": "\\\\b(manifests|name|type|required|unique|isArray|auto|min|max|default|verified|searchable|values|parameters|returns|requires|ensures|publishes|steps|primitives|commands|constraints|from|file|package|namespace|select|as|extends|profiles|metadata|attributes|relationships|lifecycles|behaviors|profile-attachment|target|cascade|dependent|eager|lazy|through|flow|states|transitions|actions|conditions|priority|id|fields|label|audit|timestamps|users|timestampNames|created|updated|userNames|softDelete|enabled|fieldNames|deletedAt|isDeleted|status|field|lifecycle|baseType|typeAlias|validation|pattern|format|model|subscribes_to|cured|create|retrieve|retrieve_many|update|evolve|delete|validate|operations|previousVersions|compatibility|deprecated|deprecationMessage|layout|uiComponents|properties|$ref|environment|instances|communications|storage|security|infrastructure|monitoring|advertises|uses|scale|config|rateLimit|timeout|requestMs|keepAliveMs|resources|autoscaling|capabilities|consumer|concurrency|prefetch|autoAck|persistence|consistency|encryption|backup|replication|scope|policies|auditLevel|healthCheck|loadBalancing|redundancy|retention|alerting|sampling|arguments|positional|flags|alias|exitCodes|subcommands|implies|when_modified_by|adds|sets|validates|appliesTo|source|aggregation|computation|filter|dimensions|specVersion|deploymentSource|deploymentName|deploymentVersion|defaultMappings|controller|service|view|communication|capabilityMappings|capability|instanceFactory|configuration|instanceMappings|instanceName|manifestTemplates|template|conditionalMappings|condition|region|featureFlags|fallback|degradedMode|warnings|errors|requiredAcknowledgment|conflicts|instanceFactories|reason|severity|library|componentSource|componentVersion|overrides|localExtensions|technology|framework|adapter|provider|libraries|environmentVariables|defaultPath|modelName|behaviorName|implementationMethod|implementationPath|implementationType|capabilityType|channelBinding|channelName|strategy|namespaces|isolation|resourceLimits|securityPolicy|crossNamespacePolicy|category|specverse|node|provides|runtime|language|database|dependencies|optional|dev|peer|codeTemplates|engine|generator|prompt|outputPattern|validators|postProcessors|configurationSchema|configurationDocs|author|repository|homepage|license|keywords|documentation|requirements|example|files|path|middleware|global|preHandler|postHandler|onResponse|onError|interceptors|route|guards|pipes|dependencyInjection|defaultScope|scopeOptions|mount|unmount|beforeUpdate|afterUpdate|contentNegotiation|serializers|contentType|handler|parsers|eventRouting|mechanism|exchangeType|topicStrategy|partitionStrategy|routingKeyPattern|groupIdPattern|queuePattern|autoCommit|deadLetterQueue|namingPattern|webhookVerification|signatureHeader|algorithm|verificationMethod|styling|method|fileExtension|classNameStrategy|preprocessor|scoped|migrations|to|breaking|migrationSteps|step|automated|command|codemod|estimatedDuration|rollbackStrategy|automatic|backupRequired|deprecations|api|replacement|peerDependencies|columns|placeholder|chartType|dataSource|options|value|minLength|maxLength|additionalProperties|regions|width|minWidth|maxWidth|height|minHeight|maxHeight|flex|order|align|spacing|responsive|mobile|tablet|desktop|authenticated|authorized|realtime|sortable|filterable|paginated|pagination|exportable|printable|bookmarkable|cacheable|editable|refreshInterval|theme|locale|transactional|propagation|readOnly|retry|circuitBreaker|idempotency|keyField|ttlSeconds|cache|keyFields|requestsPerMinute|burstSize|byIP|byUser|byApiKey|maxAttempts|backoffMs|backoffMultiplier|maxBackoffMs|retryableErrors|failureThreshold|successThreshold|timeoutMs|halfOpenAfterMs|requests|cpu|memory|ephemeralStorage|limits|minReplicas|maxReplicas|targetCPU|targetMemory|customMetrics|averageValue|scaleDown|stabilizationWindowSeconds|selectPolicy|scaleUp):"
+    },
+    {
+      "name": "keyword.control.cured.specly",
+      "match": "\\b(create|retrieve|retrieve_many|update|evolve|delete|validate):"
+    },
+    {
+      "name": "keyword.control.executable.specly",
+      "match": "\\b(parameters|returns|requires|ensures|publishes|steps):"
+    },
+    {
+      "name": "keyword.control.lifecycle.specly",
+      "match": "\\b(flow|states|transitions):"
+    },
+    {
+      "name": "support.type.specly",
+      "match": "\\\\b(String|Text|Integer|Number|Boolean|Date|DateTime|UUID|Email|URL|JSON|Object|Array)\\\\b"
+    },
+    {
+      "comment": "Array<Type> generic syntax",
+      "match": "\\\\b(Array)(<)([A-Z][A-Za-z0-9_]*)(>)",
+      "captures": {
+        "1": {
+          "name": "support.type.specly"
+        },
+        "2": {
+          "name": "punctuation.definition.typeparameters.begin.specly"
+        },
+        "3": {
+          "name": "entity.name.type.specly"
+        },
+        "4": {
+          "name": "punctuation.definition.typeparameters.end.specly"
+        }
+      }
+    },
+    {
+      "name": "entity.name.type.relationship.specly",
+      "match": "\\b(hasMany|hasOne|belongsTo|manyToMany)\\b"
+    },
+    {
+      "name": "storage.modifier.attribute.specly",
+      "match": "\\b(required|unique|optional|searchable|verified)\\b"
+    },
+    {
+      "name": "storage.modifier.relationship.specly",
+      "match": "\\b(cascade|dependent|eager|lazy)\\b"
+    },
+    {
+      "name": "keyword.control.inference.specly",
+      "match": "\\b(infer|ai-generated|auto-inferred)\\b"
+    },
+    {
+      "name": "keyword.control.v31-features.specly",
+      "match": "\\b(profile|attachment|subscription|handler|Money|Decimal)\\b"
+    },
+    {
+      "name": "keyword.control.deployment.specly",
+      "match": "\\b(component|namespace|advertises|uses|capabilities|scale|environment|type):"
+    },
+    {
+      "name": "keyword.operator.arrow.specly",
+      "match": "->"
+    },
+    {
+      "name": "entity.name.tag.yaml.specly",
+      "match": "^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*:",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.yaml.specly"
+        }
+      }
+    },
+    {
+      "match": "\\b(auto|default|min|max|through)(=)([^\\s]+)",
+      "captures": {
+        "1": {
+          "name": "storage.modifier.assignment.specly"
+        },
+        "2": {
+          "name": "keyword.operator.assignment.specly"
+        },
+        "3": {
+          "name": "string.unquoted.value.specly"
+        }
+      }
+    },
+    {
+      "name": "string.quoted.double.specly",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.specly",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "string.quoted.single.specly",
+      "begin": "'",
+      "end": "'",
+      "patterns": [
+        {
+          "name": "constant.character.escape.specly",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "constant.numeric.specly",
+      "match": "\\b[0-9]+\\.?[0-9]*\\b"
+    }
+  ]
+}

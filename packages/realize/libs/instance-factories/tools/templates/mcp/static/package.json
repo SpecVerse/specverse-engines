@@ -1,0 +1,92 @@
+{
+  "name": "@specverse/mcp",
+  "version": "3.5.2",
+  "description": "SpecVerse MCP Server - Universal AI assistance for all environments",
+  "type": "module",
+  "main": "dist/server/mcp-server.js",
+  "types": "dist/server/mcp-server.d.ts",
+  "bin": {
+    "specverse-mcp": "dist/local/server/mcp-server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prebuild": "node scripts/copy-canonical-files.js",
+    "build:all": "npm run clean && npm run build:local && npm run build:web && npm run build:extension && npm run build:enterprise",
+    "build:local": "node scripts/build-local.js",
+    "build:web": "node scripts/build-web.js",
+    "build:extension": "node scripts/build-extension.js",
+    "build:enterprise": "node scripts/build-enterprise.js",
+    "dev": "tsc --watch",
+    "start": "node dist/server/mcp-server.js",
+    "start:local": "node dist/local/server/mcp-server.js --mode local",
+    "start:web": "node dist/web/server/mcp-server.js --mode remote --port 3000",
+    "start:enterprise": "node dist/enterprise/server/mcp-server.js --mode enterprise --port 3000",
+    "docker:build": "cd dist/enterprise && docker build -t specverse-mcp-enterprise .",
+    "docker:run": "docker run -p 3000:3000 specverse-mcp-enterprise",
+    "docker:compose": "cd dist/enterprise && docker-compose up -d",
+    "test": "vitest run",
+    "test:unit": "vitest src/tests/unit",
+    "test:integration": "vitest src/tests/integration",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "rm -rf dist/",
+    "prepublishOnly": "npm run clean && npm run build:local"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "specverse",
+    "ai-support",
+    "prompt-templates",
+    "clean-implementation"
+  ],
+  "author": "SpecVerse Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@specverse/lang": "^3.3.1",
+    "yaml": "^2.8.1",
+    "zod": "^3.25.76"
+  },
+  "peerDependencies": {
+    "@specverse/lang": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.11",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^8.57.0",
+    "typescript": "^5.9.2",
+    "vitest": "^1.6.1"
+  },
+  "files": [
+    "dist/local/",
+    "resources/",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/specverse/specverse-lang.git",
+    "directory": "tools/specverse-mcp"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "mcp": {
+    "server": {
+      "name": "specverse-ai-support-clean",
+      "version": "1.0.0",
+      "capabilities": {
+        "resources": true,
+        "tools": true,
+        "prompts": false,
+        "logging": true
+      }
+    }
+  }
+}

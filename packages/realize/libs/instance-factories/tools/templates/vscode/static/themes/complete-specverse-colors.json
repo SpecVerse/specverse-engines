@@ -1,0 +1,122 @@
+{
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": "keyword.control.section.specly",
+        "settings": {
+          "foreground": "#569CD6",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": "keyword.control.subsection.specly",
+        "settings": {
+          "foreground": "#9CDCFE",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": "keyword.control.cured.specly",
+        "settings": {
+          "foreground": "#FF6B6B",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": "keyword.control.executable.specly",
+        "settings": {
+          "foreground": "#FFD700"
+        }
+      },
+      {
+        "scope": "keyword.control.lifecycle.specly",
+        "settings": {
+          "foreground": "#DA70D6"
+        }
+      },
+      {
+        "scope": "support.type.specly",
+        "settings": {
+          "foreground": "#4EC9B0",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": "entity.name.type.relationship.specly",
+        "settings": {
+          "foreground": "#DCDCAA",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": "storage.modifier.attribute.specly",
+        "settings": {
+          "foreground": "#C586C0"
+        }
+      },
+      {
+        "scope": "storage.modifier.relationship.specly",
+        "settings": {
+          "foreground": "#C586C0",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": "storage.modifier.assignment.specly",
+        "settings": {
+          "foreground": "#FFA500"
+        }
+      },
+      {
+        "scope": "keyword.operator.arrow.specly",
+        "settings": {
+          "foreground": "#FF69B4",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": "keyword.operator.assignment.specly",
+        "settings": {
+          "foreground": "#FFA500"
+        }
+      },
+      {
+        "scope": "entity.name.tag.yaml.specly",
+        "settings": {
+          "foreground": "#9CDCFE"
+        }
+      },
+      {
+        "scope": "string.quoted.double.specly",
+        "settings": {
+          "foreground": "#CE9178"
+        }
+      },
+      {
+        "scope": "string.quoted.single.specly",
+        "settings": {
+          "foreground": "#CE9178"
+        }
+      },
+      {
+        "scope": "string.unquoted.value.specly",
+        "settings": {
+          "foreground": "#D7BA7D"
+        }
+      },
+      {
+        "scope": "constant.numeric.specly",
+        "settings": {
+          "foreground": "#B5CEA8"
+        }
+      },
+      {
+        "scope": "comment.line.number-sign.specly",
+        "settings": {
+          "foreground": "#6A9955",
+          "fontStyle": "italic"
+        }
+      }
+    ]
+  }
+}
