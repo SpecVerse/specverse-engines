@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const projectRoot = resolve(__dirname, '../../../');
+const projectRoot = resolve(__dirname, '../../');
 
 function loadSchema(path: string): any {
   return JSON.parse(readFileSync(resolve(projectRoot, path), 'utf8'));
@@ -19,7 +19,7 @@ describe('Entity Schema Extraction', () => {
   // --------------------------------------------------------------------------
 
   describe('primitives.schema.json', () => {
-    const primitives = loadSchema('src/entities/_shared/schema/primitives.schema.json');
+    const primitives = loadSchema('src/_shared/schema/primitives.schema.json');
     const monolith = loadSchema('schema/SPECVERSE-SCHEMA.json');
 
     it('should have valid JSON Schema metadata', () => {
@@ -58,7 +58,7 @@ describe('Entity Schema Extraction', () => {
   // --------------------------------------------------------------------------
 
   describe('models.schema.json', () => {
-    const models = loadSchema('src/entities/core/models/schema/models.schema.json');
+    const models = loadSchema('src/core/models/schema/models.schema.json');
     const monolith = loadSchema('schema/SPECVERSE-SCHEMA.json');
 
     it('should have valid JSON Schema metadata', () => {
@@ -93,7 +93,7 @@ describe('Entity Schema Extraction', () => {
     });
 
     it('should not duplicate shared definitions', () => {
-      const primitives = loadSchema('src/entities/_shared/schema/primitives.schema.json');
+      const primitives = loadSchema('src/_shared/schema/primitives.schema.json');
       const sharedKeys = Object.keys(primitives.$defs);
       const modelKeys = Object.keys(models.$defs);
 
@@ -108,8 +108,8 @@ describe('Entity Schema Extraction', () => {
 
   describe('extraction coverage', () => {
     const monolith = loadSchema('schema/SPECVERSE-SCHEMA.json');
-    const primitives = loadSchema('src/entities/_shared/schema/primitives.schema.json');
-    const models = loadSchema('src/entities/core/models/schema/models.schema.json');
+    const primitives = loadSchema('src/_shared/schema/primitives.schema.json');
+    const models = loadSchema('src/core/models/schema/models.schema.json');
 
     it('should have extracted at least the model and shared definitions', () => {
       const extracted = new Set([

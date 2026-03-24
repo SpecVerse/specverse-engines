@@ -16,7 +16,7 @@ describe('SpecialistViewExpander', () => {
     expander = new SpecialistViewExpander();
 
     // Load the domain-specific v3.4 specialist view rules
-    const rulesPath = join(__dirname, '../../../../entities/core/views/inference/v3.4-specialist-views.json');
+    const rulesPath = join(__dirname, '../../../../../entities/src/core/views/inference/v3.4-specialist-views.json');
     const rulesContent = readFileSync(rulesPath, 'utf8');
     rules = JSON.parse(rulesContent) as ExpansionTemplateRuleFile;
 

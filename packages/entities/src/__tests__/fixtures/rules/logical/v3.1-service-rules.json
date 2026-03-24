@@ -1,0 +1,62 @@
+{
+  "version": "v3.1",
+  "logical_inference": {
+    "services": [
+      {
+        "name": "processing_service",
+        "pattern": "ProcessingService",
+        "condition": "false",
+        "priority": 100,
+        "description": "DEPRECATED - Processing logic now handled by CURED operations in controllers",
+        "template": {
+          "type": "specly",
+          "content": "ProcessingService for {{modelName}} with lifecycle support"
+        }
+      },
+      {
+        "name": "validation_service",
+        "pattern": "ValidationService",
+        "condition": "false",
+        "priority": 90,
+        "description": "DEPRECATED - Validation now handled by CURED Validate operation",
+        "template": {
+          "type": "specly",
+          "content": "ValidationService for {{modelName}} with comprehensive validation"
+        }
+      },
+      {
+        "name": "integration_service",
+        "pattern": "IntegrationService",
+        "condition": "model.name.toLowerCase().includes('external') || model.attributes.some(attr => attr.name.toLowerCase().includes('external') || attr.name.toLowerCase().includes('integration'))",
+        "priority": 85,
+        "description": "Handles external system integration for models requiring it",
+        "template": {
+          "type": "specly",
+          "content": "Manages external system integration for {{modelName}}"
+        }
+      },
+      {
+        "name": "lifecycle_service",
+        "pattern": "LifecycleService",
+        "condition": "model.lifecycle && model.lifecycle.transitions.length > 2",
+        "priority": 80,
+        "description": "Manages complex lifecycle transitions and state-dependent behavior",
+        "template": {
+          "type": "specly",
+          "content": "Manages lifecycle transitions and state-dependent behavior for {{modelName}}"
+        }
+      },
+      {
+        "name": "relationship_service",
+        "pattern": "RelationshipService",
+        "condition": "relationships && (relationships.childRelationships.length > 2 || relationships.manyToManyRelationships.length > 0)",
+        "priority": 75,
+        "description": "Manages complex relationships and relationship integrity",
+        "template": {
+          "type": "specly",
+          "content": "Manages complex relationships and ensures relationship integrity for {{modelName}}"
+        }
+      }
+    ]
+  }
+}

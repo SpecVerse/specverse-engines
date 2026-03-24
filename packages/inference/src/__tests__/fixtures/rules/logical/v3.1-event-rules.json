@@ -1,0 +1,119 @@
+{
+  "version": "v3.1",
+  "logical_inference": {
+    "events": [
+      {
+        "name": "standard_crud_events",
+        "pattern": "StandardEvents",
+        "condition": "true",
+        "priority": 100,
+        "description": "Standard CRUD events for all models",
+        "template": {
+          "type": "specly",
+          "content": "Standard CRUD events for {{modelName}} with V3.1 attributes format"
+        }
+      },
+      {
+        "name": "relationship_events",
+        "pattern": "RelationshipEvents",
+        "condition": "relationships && (relationships.parentRelationships.length > 0 || relationships.childRelationships.length > 0 || relationships.manyToManyRelationships.length > 0)",
+        "priority": 90,
+        "description": "Relationship-specific events for models with relationships",
+        "template": {
+          "type": "specly",
+          "content": "Relationship-specific events for {{modelName}} with parent/child/many-to-many relationships"
+        }
+      },
+      {
+        "name": "lifecycle_events",
+        "pattern": "LifecycleEvents",
+        "condition": "model.lifecycle && model.lifecycle.transitions.length > 0",
+        "priority": 85,
+        "description": "Lifecycle transition events for models with state management",
+        "template": {
+          "type": "yaml",
+          "content": "# General lifecycle evolution event\n{{modelName}}Evolved:\n  description: \"{{modelName}} lifecycle state changed\"\n  attributes:\n    id: UUID required\n    {{#each model.attributes}}\n    {{#if (eq name \"name\")}}\n    {{name}}: {{type}} optional\n    {{/if}}\n    {{/each}}\n    fromState: String required\n    toState: String required\n    transitionName: String required\n    reason: String optional\n    triggeredBy: UUID required\n    timestamp: DateTime required\n    validationsPassed: Boolean required\n    sideEffectsCompleted: Boolean required\n\n{{#each model.lifecycle.transitions}}\n# Specific transition events\n{{../modelName}}{{name}}:\n  description: \"{{../modelName}} transitioned from {{from}} to {{to}}\"\n  attributes:\n    id: UUID required\n    {{#each ../../model.attributes}}\n    {{#if (eq name \"name\")}}\n    {{name}}: {{type}} optional\n    {{/if}}\n    {{/each}}\n    fromState: String default={{from}}\n    toState: String default={{to}}\n    transitionName: String default={{name}}\n    prerequisites: String optional\n    triggeredBy: UUID required\n    timestamp: DateTime required\n    duration: Integer optional\n    {{#if conditions}}\n    conditionsMet: Object optional\n    {{/if}}\n{{/each}}"
+        }
+      },
+      {
+        "name": "validation_events",
+        "pattern": "ValidationEvents",
+        "condition": "model.attributes.some(attr => attr.constraints && attr.constraints.length > 0) || (relationships && relationships.parentRelationships.length > 0)",
+        "priority": 80,
+        "description": "Validation-related events for models with validation requirements",
+        "template": {
+          "type": "yaml",
+          "content": [
+            "{{modelName}}ValidationFailed:",
+            "  description: \"{{modelName}} validation failed\"",
+            "  attributes:",
+            "    id: UUID optional",
+            "    entityData: Object required",
+            "    validationType: String required",
+            "    failedRules: String optional",
+            "    errorDetails: Object required",
+            "    timestamp: DateTime required",
+            "    validatedBy: UUID required",
+            "    severity: String default=error",
+            "",
+            "{{modelName}}ValidationPassed:",
+            "  description: \"{{modelName}} validation passed\"",
+            "  attributes:",
+            "    id: UUID optional",
+            "    entityData: Object required",
+            "    validationType: String required",
+            "    rulesChecked: String optional",
+            "    timestamp: DateTime required",
+            "    validatedBy: UUID required",
+            "",
+            "{{#if model.lifecycle}}",
+            "{{modelName}}StateTransitionValidationFailed:",
+            "  description: \"{{modelName}} state transition validation failed\"",
+            "  attributes:",
+            "    id: UUID # required",
+            "    fromState: String # required",
+            "    toState: String # required",
+            "    failedPrerequisites: String optional",
+            "    errorDetails: Object # required",
+            "    timestamp: DateTime # required",
+            "    attemptedBy: UUID # required",
+            "{{/if}}"
+          ]
+        }
+      },
+      {
+        "name": "profile_events",
+        "pattern": "ProfileEvents",
+        "condition": "model.profiles && model.profiles.length > 0",
+        "priority": 75,
+        "description": "Profile attachment events for models supporting profiles",
+        "template": {
+          "type": "yaml",
+          "content": "ProfileAttachedTo{{modelName}}:\n  description: \"Profile was attached to {{modelName}}\"\n  attributes:\n    {{modelName.toLowerCase}}Id: UUID required\n    profileType: String required\n    profileData: Object required\n    profileVersion: String default=1.0\n    attachedBy: UUID required\n    timestamp: DateTime required\n    validationPassed: Boolean required\n\nProfileDetachedFrom{{modelName}}:\n  description: \"Profile was detached from {{modelName}}\"\n  attributes:\n    {{modelName.toLowerCase}}Id: UUID required\n    profileType: String required\n    detachedBy: UUID required\n    timestamp: DateTime required\n    reason: String optional\n    dataPreserved: Boolean default=false\n\nProfileUpdatedOn{{modelName}}:\n  description: \"Profile was updated on {{modelName}}\"\n  attributes:\n    {{modelName.toLowerCase}}Id: UUID required\n    profileType: String required\n    changedFields: String optional\n    previousValues: Object optional\n    newValues: Object required\n    profileVersion: String required\n    updatedBy: UUID required\n    timestamp: DateTime required"
+        }
+      },
+      {
+        "name": "integration_events",
+        "pattern": "IntegrationEvents",
+        "condition": "model.name.toLowerCase().includes('external') || model.attributes.some(attr => attr.name.toLowerCase().includes('external') || attr.name.toLowerCase().includes('integration'))",
+        "priority": 70,
+        "description": "External system integration events",
+        "template": {
+          "type": "yaml",
+          "content": "{{modelName}}SyncedToExternal:\n  description: \"{{modelName}} was synchronized to external system\"\n  attributes:\n    id: UUID required\n    externalSystemId: String required\n    externalId: String required\n    syncType: String required  # create, update, delete\n    syncStatus: String required  # success, failed, partial\n    syncTimestamp: DateTime required\n    dataSnapshot: Object optional\n    errorDetails: Object optional\n\n{{modelName}}SyncFromExternal:\n  description: \"{{modelName}} was synchronized from external system\"\n  attributes:\n    id: UUID optional\n    externalSystemId: String required\n    externalId: String required\n    syncType: String required\n    syncStatus: String required\n    conflictResolution: String optional\n    dataChanges: Object optional\n    syncTimestamp: DateTime required\n\n{{modelName}}ExternalSyncFailed:\n  description: \"{{modelName}} external synchronization failed\"\n  attributes:\n    id: UUID optional\n    externalSystemId: String required\n    syncType: String required\n    failureReason: String required\n    errorDetails: Object required\n    retryCount: Integer default=0\n    nextRetryTime: DateTime optional\n    timestamp: DateTime required"
+        }
+      },
+      {
+        "name": "business_process_events",
+        "pattern": "BusinessProcessEvents",
+        "condition": "model.attributes.length > 8 || (relationships && relationships.childRelationships.length > 2)",
+        "priority": 65,
+        "description": "Business process events for complex models",
+        "template": {
+          "type": "yaml",
+          "content": "{{modelName}}ProcessingStarted:\n  description: \"{{modelName}} business processing started\"\n  attributes:\n    id: UUID required\n    processType: String required\n    processId: UUID required\n    processParameters: Object optional\n    startedBy: UUID required\n    timestamp: DateTime required\n    estimatedDuration: Integer optional\n\n{{modelName}}ProcessingCompleted:\n  description: \"{{modelName}} business processing completed\"\n  attributes:\n    id: UUID required\n    processType: String required\n    processId: UUID required\n    processingResults: Object required\n    duration: Integer required\n    completedBy: UUID required\n    timestamp: DateTime required\n    sideEffects: String optional\n\n{{modelName}}ProcessingFailed:\n  description: \"{{modelName}} business processing failed\"\n  attributes:\n    id: UUID required\n    processType: String required\n    processId: UUID required\n    failureReason: String required\n    errorDetails: Object required\n    partialResults: Object optional\n    failedBy: UUID required\n    timestamp: DateTime required\n    recoverable: Boolean required"
+        }
+      }
+    ]
+  }
+}

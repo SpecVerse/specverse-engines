@@ -4,6 +4,13 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readdirSync, statSync } from 'fs';
 
+// Quint tests are conditional — skip if quint binary not available
+const hasQuint = globalThis.__TEST_ENV__?.hasQuint ?? (() => {
+  try { execSync('npx quint --version', { stdio: 'pipe', timeout: 10000 }); return true; }
+  catch { return false; }
+})();
+const itQuint = hasQuint ? it : it.skip;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '../../../');
@@ -43,7 +50,7 @@ describe('Quint Behavioural Specifications', () => {
     for (const qntFile of qntFiles) {
       const relativePath = qntFile.replace(entitiesDir + '/', '');
 
-      it(`should typecheck ${relativePath}`, () => {
+      itQuint(`should typecheck ${relativePath}`, () => {
         try {
           execSync(`npx quint typecheck "${qntFile}"`, {
             cwd: projectRoot,

@@ -9,13 +9,10 @@ import { UnifiedSpecVerseParser } from '../unified-parser.js';
 import fs from 'fs';
 import path from 'path';
 
+const schemaPath = path.join(__dirname, '../../../schema/SPECVERSE-SCHEMA.json');
+const examplePath = path.join(__dirname, 'fixtures/complete-example.specly');
+
 describe('Complete Example Integration Test', () => {
-  // Load the actual schema and example files
-  // __dirname in tests is src/parser/__tests__/
-  // Schema is at ../../../schema/ from there
-  const schemaPath = path.join(__dirname, '../../../schema/SPECVERSE-SCHEMA.json');
-  const examplePath = path.join(__dirname, '../../../examples/08-comprehensive/08-01-complete-grammar-example.specly');
-  
   const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
   const exampleContent = fs.readFileSync(examplePath, 'utf8');
 

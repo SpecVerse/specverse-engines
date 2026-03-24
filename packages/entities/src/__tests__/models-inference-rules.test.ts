@@ -94,7 +94,7 @@ describe('Models Entity Inference Rules', () => {
       const entityRules = loadControllerRules();
       const distRules = JSON.parse(
         readFileSync(
-          resolve(projectRoot, 'dist/inference-engine/rules/logical/v3.1-controller-rules.json'),
+          resolve(__dirname, 'fixtures/rules/logical/v3.1-controller-rules.json'),
           'utf8'
         )
       );
@@ -132,7 +132,7 @@ describe('Models Entity Inference Rules', () => {
       const entityRules = loadServiceRules();
       const distRules = JSON.parse(
         readFileSync(
-          resolve(projectRoot, 'dist/inference-engine/rules/logical/v3.1-service-rules.json'),
+          resolve(__dirname, 'fixtures/rules/logical/v3.1-service-rules.json'),
           'utf8'
         )
       );

@@ -146,8 +146,8 @@ const mockContext = {
 };
 
 describe('Inference Engine Rule Regression Tests', () => {
-  // Rules are composed from entity modules into dist/ at build time
-  const rulesDir = join(__dirname, '..', '..', '..', 'dist', 'inference-engine', 'rules', 'logical');
+  // Rules as local fixtures (copied from specverse-lang dist/)
+  const rulesDir = join(__dirname, 'fixtures', 'rules', 'logical');
   let allRules: { file: string; category: string; rule: InferenceRule }[] = [];
 
   // Load all rules before tests

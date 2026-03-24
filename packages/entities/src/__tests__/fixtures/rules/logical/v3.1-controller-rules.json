@@ -1,0 +1,51 @@
+{
+  "version": "v3.1",
+  "logical_inference": {
+    "controllers": [
+      {
+        "name": "cured_root_controller",
+        "pattern": "StandardCURED",
+        "condition": "true",
+        "priority": 100,
+        "description": "Standard CURED controller for root entities (no parent relationships)",
+        "template": {
+          "type": "specly",
+          "content": "TEST_TEMPLATE_APPLIED_{{modelName}}_CONTROLLER_WITH_ACTIONS"
+        }
+      },
+      {
+        "name": "cured_child_controller",
+        "pattern": "ParentScopedCURED",
+        "condition": "hasParentRelationship()",
+        "priority": 90,
+        "description": "CURED controller for child entities with parent-scoped operations",
+        "template": {
+          "type": "specly",
+          "content": "TEST_TEMPLATE_APPLIED_{{modelName}}_CHILD_CONTROLLER_WITH_PARENT_SCOPED_ACTIONS"
+        }
+      },
+      {
+        "name": "many_to_many_controller_enhancement",
+        "pattern": "ManyToManyOperations",
+        "condition": "relationships && relationships.manyToManyRelationships.length > 0",
+        "priority": 80,
+        "description": "Additional operations for models with many-to-many relationships",
+        "template": {
+          "type": "yaml",
+          "content": "# Additional many-to-many operations\n{{#each relationships.manyToManyRelationships}}associate_with_{{targetModel}}:\n  parameters:\n    {{../modelName}}Id: UUID # required\n    {{targetModel}}Id: UUID # required\n    associationData: Object # optional\n  returns: Boolean\n  requires:\n    - \"{{../modelName}} with ID exists\"\n    - \"{{targetModel}} with ID exists\"\n    - \"Association does not already exist\"\n  ensures:\n    - \"{{../modelName}} associated with {{targetModel}}\"\n    - \"Association data stored if provided\"\n  publishes:\n    - {{../modelName}}AssociatedWith{{targetModel}}\ndisassociate_from_{{targetModel}}:\n  parameters:\n    {{../modelName}}Id: UUID # required\n    {{targetModel}}Id: UUID # required\n  returns: Boolean\n  requires:\n    - \"{{../modelName}} with ID exists\"\n    - \"{{targetModel}} with ID exists\"\n    - \"Association exists\"\n  ensures:\n    - \"{{../modelName}} disassociated from {{targetModel}}\"\n    - \"Association data removed\"\n  publishes:\n    - {{../modelName}}DisassociatedFrom{{targetModel}}\nlist_{{targetModel}}_associations:\n  parameters:\n    {{../modelName}}Id: UUID # required\n    filters: AssociationFilter # optional\n  returns: Array[{{targetModel}}Association]\n  requires:\n    - \"{{../modelName}} with ID exists\"\n  ensures:\n    - \"Returns all {{targetModel}} associations for {{../modelName}}\"\n    - \"Includes association metadata\"{{/each}}"
+        }
+      },
+      {
+        "name": "profile_aware_controller",
+        "pattern": "ProfileOperations",
+        "condition": "model.profiles && model.profiles.length > 0",
+        "priority": 75,
+        "description": "Additional operations for models with profile attachments",
+        "template": {
+          "type": "yaml",
+          "content": "# Profile attachment operations\nattach_profile:\n  parameters:\n    {{modelName}}Id: UUID # required\n    profileType: String # required\n    profileData: Object # required\n  returns: ProfileAttachment\n  requires:\n    - \"{{modelName}} with ID exists\"\n    - \"Profile type is supported\"\n    - \"Profile data is valid for type\"\n  ensures:\n    - \"Profile attached to {{modelName}}\"\n    - \"Profile data validated against profile schema\"\n  publishes:\n    - ProfileAttachedTo{{modelName}}\n\ndetach_profile:\n  parameters:\n    {{modelName}}Id: UUID # required\n    profileType: String # required\n  returns: Boolean\n  requires:\n    - \"{{modelName}} with ID exists\"\n    - \"Profile attachment exists\"\n  ensures:\n    - \"Profile detached from {{modelName}}\"\n    - \"Profile-specific data removed\"\n  publishes:\n    - ProfileDetachedFrom{{modelName}}\n\nupdate_profile:\n  parameters:\n    {{modelName}}Id: UUID # required\n    profileType: String # required\n    profileUpdates: Object # required\n  returns: ProfileAttachment\n  requires:\n    - \"{{modelName}} with ID exists\"\n    - \"Profile attachment exists\"\n    - \"Profile updates are valid\"\n  ensures:\n    - \"Profile data updated\"\n    - \"Profile version incremented\"\n  publishes:\n    - ProfileUpdatedOn{{modelName}}\n\nlist_profiles:\n  parameters:\n    {{modelName}}Id: UUID # required\n  returns: Array[ProfileAttachment]\n  requires:\n    - \"{{modelName}} with ID exists\"\n  ensures:\n    - \"Returns all profiles attached to {{modelName}}\"\n    - \"Includes profile metadata and versions\""
+        }
+      }
+    ]
+  }
+}
