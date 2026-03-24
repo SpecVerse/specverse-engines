@@ -4,7 +4,7 @@
  * Generates the HTML entry point for a React SPA
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateIndexHtml(context: TemplateContext): string {
   const { spec } = context;

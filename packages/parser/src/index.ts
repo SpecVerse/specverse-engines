@@ -34,8 +34,19 @@ export type {
   ServiceSpec,
   ViewSpec,
   EventSpec,
-  ManifestSpec
+  ManifestSpec,
+  ComponentSpec,
+  PrimitiveSpec,
+  ProfileAttachmentSpec,
+  ExpandedConstraint,
+  DeploymentSpec
 } from './types/ast.js';
+
+// Namespace utilities
+export { parseNamespace, parseReference, validateNamespace } from './namespace-utils.js';
+
+// Import resolver
+export { ImportResolver } from './import-resolver/resolver.js';
 
 // Re-export for convenience
 import fs from 'fs';

@@ -4,7 +4,7 @@
  * Generates basic CSS with Tailwind-style reset
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateIndexCss(context: TemplateContext): string {
   return `/* Base styles with Tailwind-inspired reset */

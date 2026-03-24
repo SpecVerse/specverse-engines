@@ -4,7 +4,7 @@
  * Generates the React entry point with React Query provider
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateMainTsx(context: TemplateContext): string {
   return `import React from 'react';

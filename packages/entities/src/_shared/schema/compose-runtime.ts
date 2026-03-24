@@ -11,6 +11,7 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * Compose the unified schema from entity module fragments at runtime.
@@ -63,20 +64,14 @@ export function composeSchemaFromRegistry(): any | null {
       ...structure,
       $defs: mergedDefs,
     };
-  } catch {
+  } catch (error) {
+    console.warn(`Schema composition failed: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }
 
+const __composeRuntimeDir = dirname(fileURLToPath(import.meta.url));
+
 function resolveThisFile(): string {
-  if (typeof __dirname !== 'undefined') {
-    return resolve(__dirname, 'compose-runtime.js');
-  }
-  // ESM context
-  try {
-    const url = new Function('return import.meta.url')();
-    return url.startsWith('file://') ? url.slice(7) : url;
-  } catch {
-    return '';
-  }
+  return resolve(__composeRuntimeDir, 'compose-runtime.js');
 }

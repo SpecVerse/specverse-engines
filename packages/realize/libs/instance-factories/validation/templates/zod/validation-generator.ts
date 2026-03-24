@@ -9,7 +9,7 @@
  *       See zod-validation.yaml for conversion notes.
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 import { generateValidation } from '../../../../../scripts/generate-validation.js';
 
 /**

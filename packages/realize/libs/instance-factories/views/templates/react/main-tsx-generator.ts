@@ -4,7 +4,7 @@
  * Generates the main.tsx entry point for React application
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate main.tsx React entry point

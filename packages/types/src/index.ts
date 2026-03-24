@@ -12,3 +12,4 @@ export * from './ast.js';
 export * from './engine.js';
 export * from './processor.js';
 export * from './entity-module.js';
+export * from './utils.js';

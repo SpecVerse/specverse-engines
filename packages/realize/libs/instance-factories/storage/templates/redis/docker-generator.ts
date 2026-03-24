@@ -1,7 +1,7 @@
 /**
  * Redis Docker Compose Generator
  */
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateRedisDocker(context: TemplateContext): string {
   const { instance } = context;

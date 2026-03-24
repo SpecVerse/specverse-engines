@@ -4,7 +4,8 @@
  * Generates Prisma schema from SpecVerse models
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
+import { pluralize } from '@specverse/types';
 
 /**
  * Generate Prisma schema
@@ -531,8 +532,5 @@ function isVersionField(name: string): boolean {
   return versionFields.includes(name);
 }
 
-function pluralize(word: string): string {
-  if (word.endsWith('s')) return word;
-  if (word.endsWith('y')) return word.slice(0, -1) + 'ies';
-  return word + 's';
-}
+// Imported from @specverse/types — shared across engines
+import { pluralize } from '@specverse/types';

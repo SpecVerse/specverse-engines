@@ -108,61 +108,20 @@ export class LibraryContextGenerator {
       this.catalogCache = yaml.load(catalogContent);
       return this.catalogCache;
     } catch (error) {
-      // If catalog doesn't exist, use fallback (don't auto-generate during builds)
-      console.warn('Library catalog not found, using fallback catalog with essential libraries');
-      // Note: Auto-generation disabled to prevent build conflicts
-        
-      // Return minimal catalog with essential libraries for CI compatibility
+      console.warn(`Library catalog not found at ${this.catalogPath}. AI prompts will have limited library context.`);
+      console.warn(`Provide catalogPath to LibraryContextGenerator constructor, or generate with: npm run library:catalog`);
       return {
-          version: '3.1.0',
-          generated_at: new Date().toISOString(),
-          generated_from: 'fallback',
-          ai_optimization: true,
-          total_libraries: 4,
-          deployments: {
-            monolith: {
-              name: 'monolith',
-              description: 'Single-instance application deployment',
-              ai_description: 'Single-instance application deployment. Best for: MVPs, internal tools, simple architectures.',
-              expansion_factor: 1.5,
-              complexity_level: 'low',
-              best_for: ['MVPs', 'internal tools', 'simple architectures']
-            }
-          },
-          domains: {
-            ecommerce: {
-              name: 'ecommerce',
-              description: 'Complete e-commerce domain models',
-              ai_description: 'Complete e-commerce domain models: Product, Order, Customer',
-              models: ['Product', 'Order', 'Customer'],
-              expansion_factor: 4.2,
-              complexity_level: 'medium',
-              best_for: ['online stores', 'marketplaces']
-            }
-          },
-          manifests: {
-            nextjs: {
-              name: 'nextjs',
-              description: 'Next.js framework integration',
-              ai_description: 'Next.js React framework with SSR/SSG capabilities',
-              framework: 'Next.js 14',
-              expansion_factor: 2.8,
-              complexity_level: 'medium',
-              best_for: ['React applications', 'SSR', 'SSG']
-            },
-            sqlite: {
-              name: 'sqlite',
-              description: 'SQLite embedded database integration',
-              ai_description: 'SQLite lightweight embedded database',
-              framework: 'SQLite 3',
-              expansion_factor: 1.8,
-              complexity_level: 'low',
-              best_for: ['embedded apps', 'development']
-            }
-          },
-          types: {},
-          standards: {}
-        };
+        version: '3.1.0',
+        generated_at: new Date().toISOString(),
+        generated_from: 'fallback',
+        ai_optimization: false,
+        total_libraries: 0,
+        deployments: {},
+        domains: {},
+        manifests: {},
+        types: {},
+        standards: {}
+      };
     }
   }
 

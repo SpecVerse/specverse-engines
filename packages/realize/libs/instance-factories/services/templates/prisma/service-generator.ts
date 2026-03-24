@@ -5,7 +5,7 @@
  * Services are NOT tied to specific models but can interact with multiple models
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 import { generateBehaviorBody, type BehaviorContext, type BehaviorMetadata, type OperationMetadata } from './behavior-generator.js';
 
 /**

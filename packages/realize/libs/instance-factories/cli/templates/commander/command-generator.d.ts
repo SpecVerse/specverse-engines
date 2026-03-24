@@ -5,7 +5,7 @@
  * Each command registers itself on a Commander program and wires
  * to its corresponding service for business logic delegation.
  */
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 /**
  * Generate a single command file.
  * Called once per command in the spec.

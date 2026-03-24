@@ -18,6 +18,7 @@ import { InferenceContextManager, ContextUtils } from '../../core/context.js';
 import { ComponentTypeResolver, type ComponentMappingRules } from './component-type-resolver.js';
 import { SpecialistViewExpander, type SpecialistViewRules } from './specialist-view-expander.js';
 import { ExpansionTemplateRuleFile, ConfigurationRuleFile } from '../../core/rule-file-types.js';
+import { pluralize } from '@specverse/types';
 
 export interface ViewGenerationResult {
   views: Record<string, ViewSpec>;
@@ -793,7 +794,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
         searchBar: {
           type: pattern.searchBar.type,  // 'input' from v3.4 rules
           properties: {
-            placeholder: `Search ${this.pluralize(model.name.toLowerCase())}...`,
+            placeholder: `Search ${pluralize(model.name.toLowerCase())}...`,
             debounce: 300
           }
         },
@@ -832,7 +833,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
       searchBar: {
         type: 'SearchInput',
         properties: {
-          placeholder: `Search ${this.pluralize(model.name.toLowerCase())}...`,
+          placeholder: `Search ${pluralize(model.name.toLowerCase())}...`,
           debounce: 300
         }
       },
@@ -913,7 +914,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
         components[`related${rel.targetModel}Section`] = {
           type: relType.type,  // 'list' from v3.4 rules for hasMany
           properties: {
-            title: `Related ${this.pluralize(rel.targetModel)}`,
+            title: `Related ${pluralize(rel.targetModel)}`,
             model: rel.targetModel,
             relationship: rel.type,
             allowCreate: true,
@@ -1043,7 +1044,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
       components[`${rel.targetModel.toLowerCase()}DetailPane`] = {
         type: 'DetailPane',
         properties: {
-          title: `${this.pluralize(rel.targetModel)}`,
+          title: `${pluralize(rel.targetModel)}`,
           model: rel.targetModel,
           parentModel: model.name,
           relationshipType: rel.type,
@@ -1105,7 +1106,7 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
         type: 'SummaryCard',
         properties: {
           model: model.name,
-          title: `${this.pluralize(model.name)} Overview`,
+          title: `${pluralize(model.name)} Overview`,
           showCount: true,
           showRecentActivity: true,
           showTrends: true
@@ -1225,16 +1226,6 @@ export class ViewGenerator implements LogicalGenerator<ModelDefinition, ViewSpec
       .trim();
   }
 
-  private pluralize(str: string): string {
-    if (str.endsWith('y')) {
-      return str.slice(0, -1) + 'ies';
-    }
-    if (str.endsWith('s') || str.endsWith('x') || str.endsWith('z') || 
-        str.endsWith('ch') || str.endsWith('sh')) {
-      return str + 'es';
-    }
-    return str + 's';
-  }
 
   /**
    * Convert string to PascalCase

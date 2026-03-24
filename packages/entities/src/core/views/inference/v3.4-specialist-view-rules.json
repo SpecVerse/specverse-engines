@@ -1,318 +1,326 @@
 {
+  "ruleFileType": "expansion-template",
   "version": "v3.4.0",
+  "category": "specialist-views",
   "description": "Specialist view type inference - expands abstract view types to atomic components (49 types)",
-  "logical_inference": {
-    "specialist_views": {
-      "dashboard": {
-        "description": "Overview dashboard with metrics, charts, and summary",
-        "components": [
-          {
-            "name": "{{metricName}}Card",
-            "type": "card",
-            "for": "each metric",
-            "properties": {
-              "variant": "metric",
-              "showTrend": true
-            }
-          },
-          {
-            "name": "{{chartName}}Chart",
-            "type": "chart",
-            "for": "visualizations",
-            "properties": {
-              "responsive": true,
-              "showLegend": true
-            }
-          },
-          {
-            "name": "summaryTable",
-            "type": "table",
-            "properties": {
-              "compact": true,
-              "pagination": true
-            }
+  "templates": {
+    "dashboard": {
+      "description": "Overview dashboard with metrics, charts, and summary",
+      "components": [
+        {
+          "name": "{{metricName}}Card",
+          "type": "card",
+          "for": "each metric",
+          "properties": {
+            "variant": "metric",
+            "showTrend": true
           }
-        ]
-      },
-      "analytics": {
-        "description": "Deep analysis with filters, charts, and data export",
-        "components": [
-          {
-            "name": "filterPanel",
-            "type": "filterPanel",
-            "properties": {
-              "advanced": true,
-              "showDateRange": true
-            }
-          },
-          {
-            "name": "{{chartName}}Chart",
-            "type": "chart",
-            "for": "each chart",
-            "properties": {
-              "interactive": true,
-              "exportable": true
-            }
-          },
-          {
-            "name": "dataTable",
-            "type": "table",
-            "properties": {
-              "exportable": true,
-              "sortable": true,
-              "filterable": true
-            }
+        },
+        {
+          "name": "{{chartName}}Chart",
+          "type": "chart",
+          "for": "visualizations",
+          "properties": {
+            "responsive": true,
+            "showLegend": true
           }
-        ]
-      },
-      "board": {
-        "description": "Kanban/swimlane board for workflow visualization",
-        "components": [
-          {
-            "name": "boardContainer",
-            "type": "container",
-            "properties": {
-              "layout": "horizontal",
-              "scrollable": true
-            }
-          },
-          {
-            "name": "{{columnName}}Column",
-            "type": "container",
-            "for": "each column",
-            "properties": {
-              "layout": "vertical",
-              "allowDrop": true
-            }
-          },
-          {
-            "name": "{{modelName}}Card",
-            "type": "card",
-            "properties": {
-              "draggable": true,
-              "compact": true
-            }
-          },
-          {
-            "name": "filterPanel",
-            "type": "filterPanel",
-            "properties": {
-              "position": "top",
-              "collapsible": true
-            }
+        },
+        {
+          "name": "summaryTable",
+          "type": "table",
+          "properties": {
+            "compact": true,
+            "pagination": true
           }
-        ]
-      },
-      "timeline": {
-        "description": "Chronological timeline for event visualization",
-        "components": [
-          {
-            "name": "timeline",
-            "type": "timeline",
-            "properties": {
-              "orientation": "vertical",
-              "showDateMarkers": true
-            }
-          },
-          {
-            "name": "eventCard",
-            "type": "card",
-            "for": "each event",
-            "properties": {
-              "compact": true,
-              "showTimestamp": true
-            }
-          },
-          {
-            "name": "filterPanel",
-            "type": "filterPanel",
-            "properties": {
-              "showDateRange": true
-            }
+        }
+      ]
+    },
+    "analytics": {
+      "description": "Deep analysis with filters, charts, and data export",
+      "components": [
+        {
+          "name": "filterPanel",
+          "type": "filterPanel",
+          "properties": {
+            "advanced": true,
+            "showDateRange": true
           }
-        ]
-      },
-      "calendar": {
-        "description": "Calendar view for date-based scheduling (specialist view type, not atomic component)",
-        "components": [
-          {
-            "name": "calendarContainer",
-            "type": "container",
-            "properties": {
-              "renderType": "calendar",
-              "views": ["month", "week", "day"]
-            }
-          },
-          {
-            "name": "eventDetails",
-            "type": "drawer",
-            "properties": {
-              "position": "right",
-              "width": 400
-            }
-          },
-          {
-            "name": "filterPanel",
-            "type": "filterPanel",
-            "properties": {
-              "showCategories": true
-            }
+        },
+        {
+          "name": "{{chartName}}Chart",
+          "type": "chart",
+          "for": "each chart",
+          "properties": {
+            "interactive": true,
+            "exportable": true
           }
-        ]
-      },
-      "workflow": {
-        "description": "Workflow/state machine visualization",
-        "components": [
-          {
-            "name": "workflowDiagram",
-            "type": "container",
-            "properties": {
-              "renderType": "state-diagram",
-              "interactive": true
-            }
-          },
-          {
-            "name": "actions",
-            "type": "button-group",
-            "properties": {
-              "orientation": "vertical",
-              "showConditions": true
-            }
-          },
-          {
-            "name": "history",
-            "type": "timeline",
-            "properties": {
-              "showDuration": true,
-              "showUser": true
-            }
+        },
+        {
+          "name": "dataTable",
+          "type": "table",
+          "properties": {
+            "exportable": true,
+            "sortable": true,
+            "filterable": true
           }
-        ]
-      },
-      "wizard": {
-        "description": "Multi-step guided process (note: stepper not in 49 atomic - use tabs)",
-        "components": [
-          {
-            "name": "steps",
-            "type": "tabs",
-            "properties": {
-              "orientation": "horizontal",
-              "showProgress": true
-            }
-          },
-          {
-            "name": "stepContent",
-            "type": "container",
-            "for": "each step",
-            "properties": {
-              "showNavigation": true
-            }
-          },
-          {
-            "name": "navigation",
-            "type": "button-group",
-            "properties": {
-              "buttons": ["back", "next", "finish"]
-            }
+        }
+      ]
+    },
+    "board": {
+      "description": "Kanban/swimlane board for workflow visualization",
+      "components": [
+        {
+          "name": "boardContainer",
+          "type": "container",
+          "properties": {
+            "layout": "horizontal",
+            "scrollable": true
           }
-        ]
-      },
-      "comparison": {
-        "description": "Side-by-side entity comparison",
-        "components": [
-          {
-            "name": "entitySelector",
-            "type": "autocomplete",
-            "properties": {
-              "multiple": true,
-              "limit": 4
-            }
-          },
-          {
-            "name": "comparisonTable",
-            "type": "table",
-            "properties": {
-              "orientation": "vertical",
-              "highlightDifferences": true
-            }
-          },
-          {
-            "name": "comparisonChart",
-            "type": "chart",
-            "properties": {
-              "overlay": true,
-              "showLegend": true
-            }
+        },
+        {
+          "name": "{{columnName}}Column",
+          "type": "container",
+          "for": "each column",
+          "properties": {
+            "layout": "vertical",
+            "allowDrop": true
           }
-        ]
-      },
-      "settings": {
-        "description": "Configuration panel with organized sections",
-        "components": [
-          {
-            "name": "settingsTabs",
-            "type": "tabs",
-            "properties": {
-              "orientation": "vertical",
-              "variant": "scrollable"
-            }
-          },
-          {
-            "name": "{{sectionName}}Section",
-            "type": "accordion",
-            "for": "each section",
-            "properties": {
-              "allowMultiple": false
-            }
-          },
-          {
-            "name": "settingsForm",
-            "type": "form",
-            "properties": {
-              "autoSave": true,
-              "showValidation": true
-            }
+        },
+        {
+          "name": "{{modelName}}Card",
+          "type": "card",
+          "properties": {
+            "draggable": true,
+            "compact": true
           }
-        ]
-      },
-      "map": {
-        "description": "Geographic data visualization",
-        "components": [
-          {
-            "name": "mapContainer",
-            "type": "container",
-            "properties": {
-              "renderType": "map",
-              "interactive": true
-            }
-          },
-          {
-            "name": "markers",
-            "type": "container",
-            "for": "entities with location",
-            "properties": {
-              "clickable": true,
-              "showPopup": true
-            }
-          },
-          {
-            "name": "filterPanel",
-            "type": "filterPanel",
-            "properties": {
-              "position": "sidebar",
-              "showSearch": true
-            }
-          },
-          {
-            "name": "legend",
-            "type": "card",
-            "properties": {
-              "position": "bottomRight",
-              "collapsible": true
-            }
+        },
+        {
+          "name": "filterPanel",
+          "type": "filterPanel",
+          "properties": {
+            "position": "top",
+            "collapsible": true
           }
-        ]
-      }
+        }
+      ]
+    },
+    "timeline": {
+      "description": "Chronological timeline for event visualization",
+      "components": [
+        {
+          "name": "timeline",
+          "type": "timeline",
+          "properties": {
+            "orientation": "vertical",
+            "showDateMarkers": true
+          }
+        },
+        {
+          "name": "eventCard",
+          "type": "card",
+          "for": "each event",
+          "properties": {
+            "compact": true,
+            "showTimestamp": true
+          }
+        },
+        {
+          "name": "filterPanel",
+          "type": "filterPanel",
+          "properties": {
+            "showDateRange": true
+          }
+        }
+      ]
+    },
+    "calendar": {
+      "description": "Calendar view for date-based scheduling (specialist view type, not atomic component)",
+      "components": [
+        {
+          "name": "calendarContainer",
+          "type": "container",
+          "properties": {
+            "renderType": "calendar",
+            "views": [
+              "month",
+              "week",
+              "day"
+            ]
+          }
+        },
+        {
+          "name": "eventDetails",
+          "type": "drawer",
+          "properties": {
+            "position": "right",
+            "width": 400
+          }
+        },
+        {
+          "name": "filterPanel",
+          "type": "filterPanel",
+          "properties": {
+            "showCategories": true
+          }
+        }
+      ]
+    },
+    "workflow": {
+      "description": "Workflow/state machine visualization",
+      "components": [
+        {
+          "name": "workflowDiagram",
+          "type": "container",
+          "properties": {
+            "renderType": "state-diagram",
+            "interactive": true
+          }
+        },
+        {
+          "name": "actions",
+          "type": "button-group",
+          "properties": {
+            "orientation": "vertical",
+            "showConditions": true
+          }
+        },
+        {
+          "name": "history",
+          "type": "timeline",
+          "properties": {
+            "showDuration": true,
+            "showUser": true
+          }
+        }
+      ]
+    },
+    "wizard": {
+      "description": "Multi-step guided process (note: stepper not in 49 atomic - use tabs)",
+      "components": [
+        {
+          "name": "steps",
+          "type": "tabs",
+          "properties": {
+            "orientation": "horizontal",
+            "showProgress": true
+          }
+        },
+        {
+          "name": "stepContent",
+          "type": "container",
+          "for": "each step",
+          "properties": {
+            "showNavigation": true
+          }
+        },
+        {
+          "name": "navigation",
+          "type": "button-group",
+          "properties": {
+            "buttons": [
+              "back",
+              "next",
+              "finish"
+            ]
+          }
+        }
+      ]
+    },
+    "comparison": {
+      "description": "Side-by-side entity comparison",
+      "components": [
+        {
+          "name": "entitySelector",
+          "type": "autocomplete",
+          "properties": {
+            "multiple": true,
+            "limit": 4
+          }
+        },
+        {
+          "name": "comparisonTable",
+          "type": "table",
+          "properties": {
+            "orientation": "vertical",
+            "highlightDifferences": true
+          }
+        },
+        {
+          "name": "comparisonChart",
+          "type": "chart",
+          "properties": {
+            "overlay": true,
+            "showLegend": true
+          }
+        }
+      ]
+    },
+    "settings": {
+      "description": "Configuration panel with organized sections",
+      "components": [
+        {
+          "name": "settingsTabs",
+          "type": "tabs",
+          "properties": {
+            "orientation": "vertical",
+            "variant": "scrollable"
+          }
+        },
+        {
+          "name": "{{sectionName}}Section",
+          "type": "accordion",
+          "for": "each section",
+          "properties": {
+            "allowMultiple": false
+          }
+        },
+        {
+          "name": "settingsForm",
+          "type": "form",
+          "properties": {
+            "autoSave": true,
+            "showValidation": true
+          }
+        }
+      ]
+    },
+    "map": {
+      "description": "Geographic data visualization",
+      "components": [
+        {
+          "name": "mapContainer",
+          "type": "container",
+          "properties": {
+            "renderType": "map",
+            "interactive": true
+          }
+        },
+        {
+          "name": "markers",
+          "type": "container",
+          "for": "entities with location",
+          "properties": {
+            "clickable": true,
+            "showPopup": true
+          }
+        },
+        {
+          "name": "filterPanel",
+          "type": "filterPanel",
+          "properties": {
+            "position": "sidebar",
+            "showSearch": true
+          }
+        },
+        {
+          "name": "legend",
+          "type": "card",
+          "properties": {
+            "position": "bottomRight",
+            "collapsible": true
+          }
+        }
+      ]
     }
   }
 }

@@ -4,7 +4,7 @@
  * Generates React forms with react-hook-form and Zod validation
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate React form component for a model

@@ -20,6 +20,7 @@ import { ProcessorContext } from '@specverse/types';
 import type { EntityConventionProcessor } from '@specverse/types';
 import { bootstrapEntityModules, getEntityRegistry, BehaviouralConventionProcessor } from '@specverse/engine-entities';
 import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { existsSync, realpathSync } from 'fs';
 
 export class ConventionProcessor implements ProcessorContext {
@@ -45,14 +46,7 @@ export class ConventionProcessor implements ProcessorContext {
     // Load behavioural convention grammars from entity modules
     this.behaviouralProcessor = new BehaviouralConventionProcessor();
     try {
-      // Try multiple paths to find entities (works in both monorepo layouts)
-      let thisDir: string;
-      if (typeof __dirname !== 'undefined') {
-        thisDir = __dirname;
-      } else {
-        thisDir = dirname(new Function('return import.meta.url')());
-        if (thisDir.startsWith('file://')) thisDir = thisDir.slice(7);
-      }
+      const thisDir = dirname(fileURLToPath(import.meta.url));
 
       // Path 1: specverse-lang layout (src/parser/../entities)
       let entitiesDir = resolve(thisDir, '..', 'entities');
@@ -66,7 +60,7 @@ export class ConventionProcessor implements ProcessorContext {
 
       this.behaviouralProcessor.loadGrammarsFromEntities(entitiesDir);
     } catch {
-      // Grammars may not be available in all contexts (e.g., packaged builds)
+      // Grammars are optional — not available in all contexts (packaged builds, test environments)
     }
   }
   

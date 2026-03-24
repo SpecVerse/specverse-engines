@@ -4,7 +4,7 @@
  * Generates package.json for the frontend workspace with React dependencies
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate frontend workspace package.json

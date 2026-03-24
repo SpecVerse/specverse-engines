@@ -6,3 +6,4 @@
 
 export * from './ai-spec-loader.js';
 export * from './manifest-loader.js';
+export * from './mapping-migration.js';

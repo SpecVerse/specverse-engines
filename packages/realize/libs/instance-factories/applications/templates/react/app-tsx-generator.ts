@@ -4,7 +4,7 @@
  * Generates the root App component with React Router
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateAppTsx(context: TemplateContext): string {
   const { spec } = context;

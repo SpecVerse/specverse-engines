@@ -4,7 +4,7 @@
  * Generates React components from SpecVerse views
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate React component for a view

@@ -4,7 +4,7 @@
  * Generates README based on spec and manifest choices
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateReadme(context: TemplateContext): string {
   const { spec, manifest } = context;

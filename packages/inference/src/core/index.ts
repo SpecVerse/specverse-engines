@@ -53,3 +53,6 @@ export { InferenceContextManager, ContextUtils } from './context.js';
 // Default configuration
 import { DEFAULT_ENGINE_CONFIG } from './types.js';
 export { DEFAULT_ENGINE_CONFIG };
+
+// Specly converter
+export { SpeclyConverter } from './specly-converter.js';

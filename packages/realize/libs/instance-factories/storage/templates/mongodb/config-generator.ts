@@ -1,7 +1,7 @@
 /**
  * MongoDB Configuration Generator
  */
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateMongoDBConfig(context: TemplateContext): string {
   const { instance } = context;

@@ -4,7 +4,7 @@
  * Generates main Fastify server bootstrap file
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate Fastify server bootstrap

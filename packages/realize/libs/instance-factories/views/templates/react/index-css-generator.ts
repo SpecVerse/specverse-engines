@@ -4,7 +4,7 @@
  * Generates base CSS styles for React application
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate index.css with base styles

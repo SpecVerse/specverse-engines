@@ -4,7 +4,7 @@
  * Generates event subscribers for EventEmitter
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate event subscriber

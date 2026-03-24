@@ -4,7 +4,7 @@
  * Generates the HTML entry point for a React application
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate index.html for React application

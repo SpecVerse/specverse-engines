@@ -4,7 +4,7 @@
  * Generates Vite configuration with React plugin and proxy
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 import { getApiBaseUrl, getPathConfig } from '../../../shared/path-resolver.js';
 
 export default function generateViteConfig(context: TemplateContext): string {

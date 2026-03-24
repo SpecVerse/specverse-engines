@@ -6,7 +6,7 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateEnv(context: TemplateContext): string {
   const { manifest } = context;

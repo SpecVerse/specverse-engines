@@ -2,7 +2,7 @@
  * .gitignore Generator for React Frontend
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateGitignore(context: TemplateContext): string {
   return `# Logs

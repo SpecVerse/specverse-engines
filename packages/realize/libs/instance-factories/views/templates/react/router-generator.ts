@@ -4,7 +4,7 @@
  * Generates router.tsx with routes based on spec views
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate router.tsx with React Router v6 setup

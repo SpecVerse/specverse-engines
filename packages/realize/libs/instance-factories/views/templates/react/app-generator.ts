@@ -4,7 +4,7 @@
  * Generates the root App component with React Query and React Router setup
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate App.tsx root component

@@ -1,7 +1,7 @@
 /**
  * MongoDB Docker Compose Generator
  */
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateMongoDBDocker(context: TemplateContext): string {
   const { instance } = context;

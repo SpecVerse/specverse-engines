@@ -4,7 +4,7 @@
  * Generates spec.json with the complete AI-optimized specification
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate spec.json - the complete AI-optimized spec

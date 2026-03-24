@@ -9,7 +9,7 @@
  *       See python-sdk.yaml for conversion notes.
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 import { generatePythonSDK } from '../../../../../scripts/generate-sdk-python.js';
 
 /**

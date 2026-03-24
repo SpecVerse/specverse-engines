@@ -5,6 +5,9 @@
  * Transforms minimal specs into production-ready implementations.
  */
 
+// Types (TemplateContext, etc.)
+export * from './types/index.js';
+
 // Utilities
 export * from './utils/index.js';
 

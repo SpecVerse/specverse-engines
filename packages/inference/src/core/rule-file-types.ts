@@ -271,18 +271,7 @@ export function detectRuleFileType(content: any): RuleFileType | 'legacy' {
 
   // Legacy detection - check for either logical_inference OR deployment_inference
   if (content.logical_inference) {
-    // Check if it's v3.4 configuration-based (has object categories)
-    for (const category in content.logical_inference) {
-      const categoryData = content.logical_inference[category];
-
-      if (category === 'component_type_mapping' || category === 'specialist_views') {
-        return 'legacy'; // v3.4 legacy format
-      }
-
-      if (Array.isArray(categoryData)) {
-        return 'legacy'; // v3.1 legacy format
-      }
-    }
+    return 'legacy';
   }
 
   // Also check for deployment_inference (legacy format for deployment rules)

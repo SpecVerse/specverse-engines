@@ -5,7 +5,7 @@
  * Uses Commander.js for argument parsing, help text, and command routing.
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 interface CommandDef {
   name: string;

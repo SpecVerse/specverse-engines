@@ -581,7 +581,7 @@ export class RuleLoader {
       errors: [],
       warnings: []
     };
-    
+
     // Discover categories from loaded rules (not hardcoded)
     const ruleCategories = Object.keys(logicalRules);
 

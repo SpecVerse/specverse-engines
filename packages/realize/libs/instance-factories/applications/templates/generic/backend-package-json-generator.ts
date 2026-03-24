@@ -4,7 +4,7 @@
  * Generates package.json for backend workspace in monorepo
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateBackendPackageJson(context: TemplateContext): string {
   const { spec } = context;

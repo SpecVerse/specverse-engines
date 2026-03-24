@@ -4,7 +4,7 @@
  * Generates React custom hooks for data fetching and mutations
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate React custom hook for a model

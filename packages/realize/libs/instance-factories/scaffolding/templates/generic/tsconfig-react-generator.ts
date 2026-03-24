@@ -4,7 +4,7 @@
  * Generates TypeScript configuration for React components with bundler module resolution
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateReactTsConfig(context: TemplateContext): string {
   const tsconfigReact = {

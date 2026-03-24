@@ -4,7 +4,7 @@
  * Generates TypeScript interfaces from model definitions
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate TypeScript interface for a model

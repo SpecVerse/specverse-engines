@@ -5,7 +5,7 @@
  * These endpoints are needed by view-renderers architecture
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate Fastify meta routes for spec and views metadata

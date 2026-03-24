@@ -4,7 +4,7 @@
  * Generates TypeScript configuration for backend workspace
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generateBackendTsConfig(context: TemplateContext): string {
   const config = {

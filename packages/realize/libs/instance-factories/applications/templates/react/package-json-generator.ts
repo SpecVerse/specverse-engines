@@ -4,7 +4,7 @@
  * Generates package.json for the frontend workspace
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 export default function generatePackageJson(context: TemplateContext): string {
   const { spec } = context;

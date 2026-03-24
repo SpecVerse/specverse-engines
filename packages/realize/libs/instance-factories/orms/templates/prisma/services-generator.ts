@@ -4,7 +4,7 @@
  * Generates service classes with Prisma ORM integration
  */
 
-import type { TemplateContext } from '../../../../../src/realize/types/index.js';
+import type { TemplateContext } from '@specverse/engine-realize';
 
 /**
  * Generate Prisma service for a model
