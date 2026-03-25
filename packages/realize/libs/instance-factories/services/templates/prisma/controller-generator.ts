@@ -246,10 +246,22 @@ function generateUpdateMethod(model: any, modelName: string, modelVar: string, c
       throw new Error(\`Validation failed: \${validationResult.errors.join(', ')}\`);
     }
 
+    // Strip nested relations and id — only send scalar fields to Prisma
+    const updateData: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (key === 'id') continue;
+      if (Array.isArray(value)) continue;
+      if (value !== null && typeof value === 'object' && !(value instanceof Date)) continue;
+      updateData[key] = value;
+    }
+
+    // Transform FK fields to Prisma connect format
+    ${generateFKTransform(model, 'updateData')}
+
     // Update record
     const ${modelVar} = await prisma.${modelVar}.update({
       where: { id: parseId(id) },
-      data${generateIncludeRelationships(model)}
+      data: updateData${generateIncludeRelationships(model)}
     });
 
     ${updateEvent ? `
@@ -436,7 +448,7 @@ function mapTypeToTypeScript(type: string): string {
  * Converts flat FK IDs (guesthouseId: "uuid") to Prisma connect format
  * (guesthouse: { connect: { id: "uuid" } })
  */
-function generateFKTransform(model: any): string {
+function generateFKTransform(model: any, varName: string = 'prismaData'): string {
   const rels = Array.isArray(model.relationships)
     ? model.relationships
     : Object.values(model.relationships || {});
@@ -447,9 +459,9 @@ function generateFKTransform(model: any): string {
   return belongsToRels.map((rel: any) => {
     const relName = rel.name;
     const fkField = `${relName}Id`;
-    return `if (prismaData.${fkField}) {
-      prismaData.${relName} = { connect: { id: prismaData.${fkField} } };
-      delete prismaData.${fkField};
+    return `if (${varName}.${fkField}) {
+      ${varName}.${relName} = { connect: { id: ${varName}.${fkField} } };
+      delete ${varName}.${fkField};
     }`;
   }).join('\n    ');
 }

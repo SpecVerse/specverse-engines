@@ -1,182 +1,103 @@
 /**
  * React Router Generator (Generic Renderers)
  *
- * Generates router.tsx that uses locally generated view components
+ * Generates App.tsx with clean navigation and routing.
+ * Groups navigation by model: each model has List and Form links.
  */
 
 import type { TemplateContext } from '@specverse/engine-realize';
 
-/**
- * Generate router.tsx with generic renderers
- */
 export default function generateRouter(context: TemplateContext): string {
   const { spec, models = [], views = [] } = context;
 
-  // Extract views from spec if not provided
   const specViews = views.length > 0 ? views : (spec?.views || []);
   const viewsArray = Array.isArray(specViews) ? specViews : Object.values(specViews);
 
-  // Generate route entries
-  const routes: string[] = [];
+  // Extract unique model names from views
+  const modelNames = new Set<string>();
+  const viewImports: string[] = [];
+  const routeEntries: string[] = [];
 
-  // Track used paths to ensure uniqueness
-  const usedPaths = new Set<string>();
-
-  // Generate routes for each view
   viewsArray.forEach((viewDef: any) => {
     const viewName = viewDef.name;
-    const viewType = viewDef.type || 'list';
+    if (!viewName) return;
     const model = Array.isArray(viewDef.model) ? viewDef.model[0] : viewDef.model;
+    if (model) modelNames.add(model);
 
-    if (!model) return;
+    const viewType = viewDef.type || 'list';
+    const modelLower = model ? model.toLowerCase() : 'unknown';
+    const path = `/${modelLower}${viewType}`;
 
-    const modelLower = model.toLowerCase();
-    const modelPlural = modelLower + 's'; // Simple pluralization
-
-    // Determine which generic renderer to use
-    const rendererName = getRendererForType(viewType);
-
-    // Generate unique path based on view type
-    const basePath = `/${modelPlural}`;
-
-    switch (viewType) {
-      case 'list':
-        const listPath = usedPaths.has(basePath)
-          ? `${basePath}/${viewName.toLowerCase().replace(/view$/, '')}`
-          : basePath;
-
-        if (!usedPaths.has(listPath)) {
-          routes.push(`  {
-    path: '${listPath}',
-    element: <${rendererName} view={viewsMetadata.${viewName}} spec={spec} />
-  }`);
-          usedPaths.add(listPath);
-        }
-        break;
-
-      case 'detail':
-        const detailPath = `${basePath}/:id`;
-        if (!usedPaths.has(detailPath)) {
-          routes.push(`  {
-    path: '${detailPath}',
-    element: <${rendererName} view={viewsMetadata.${viewName}} spec={spec} />
-  }`);
-          usedPaths.add(detailPath);
-        }
-        break;
-
-      case 'form':
-      case 'create-form':
-        const newPath = `${basePath}/new`;
-        if (!usedPaths.has(newPath)) {
-          routes.push(`  {
-    path: '${newPath}',
-    element: <${rendererName} view={viewsMetadata.${viewName}} spec={spec} />
-  }`);
-          usedPaths.add(newPath);
-        }
-        break;
-
-      case 'edit-form':
-        const editPath = `${basePath}/:id/edit`;
-        if (!usedPaths.has(editPath)) {
-          routes.push(`  {
-    path: '${editPath}',
-    element: <${rendererName} view={viewsMetadata.${viewName}} spec={spec} />
-  }`);
-          usedPaths.add(editPath);
-        }
-        break;
-
-      case 'dashboard':
-        const dashPath = `${basePath}/dashboard`;
-        if (!usedPaths.has(dashPath)) {
-          routes.push(`  {
-    path: '${dashPath}',
-    element: <${rendererName} view={viewsMetadata.${viewName}} spec={spec} />
-  }`);
-          usedPaths.add(dashPath);
-        }
-        break;
-    }
+    viewImports.push(`import ${viewName} from './components/${viewName}';`);
+    routeEntries.push(`        <Route path="${path}" element={<${viewName} />} />`);
   });
 
-  // Add home route with navigation
-  const homeLinks = viewsArray.map((viewDef: any) => {
-    const viewName = viewDef.name;
-    const model = Array.isArray(viewDef.model) ? viewDef.model[0] : viewDef.model;
-    const modelLower = model?.toLowerCase() || 'unknown';
-    const path = getPathForView(viewDef, modelLower);
-    return `          <li><a href="${path}">${viewName}</a></li>`;
+  // Add dashboard if present
+  const hasDashboard = viewsArray.some((v: any) => v.type === 'dashboard');
+  if (hasDashboard) {
+    const dashName = viewsArray.find((v: any) => v.type === 'dashboard')?.name || 'SystemDashboardView';
+    if (!viewImports.some(i => i.includes(dashName))) {
+      viewImports.push(`import ${dashName} from './components/${dashName}';`);
+      routeEntries.push(`        <Route path="/dashboard" element={<${dashName} />} />`);
+    }
+  }
+
+  // Build model nav items
+  const modelNavItems = Array.from(modelNames).map(m => {
+    const lower = m.toLowerCase();
+    return `            <div className="space-y-1">
+              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">${m}s</h3>
+              <Link to="/${lower}list" className={\`block px-3 py-2 rounded-md text-sm \${location.pathname === '/${lower}list' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}\`}>
+                List
+              </Link>
+              <Link to="/${lower}form" className={\`block px-3 py-2 rounded-md text-sm \${location.pathname === '/${lower}form' ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}\`}>
+                + New
+              </Link>
+            </div>`;
   }).join('\n');
 
-  routes.unshift(`  {
-    path: '/',
-    element: (
-      <div className="home-page">
-        <h1>Welcome</h1>
-        <nav>
-          <ul>
-${homeLinks}
-          </ul>
-        </nav>
+  // Default route — first list view or dashboard
+  const defaultModel = Array.from(modelNames)[0]?.toLowerCase() || 'unknown';
+  const defaultRoute = hasDashboard ? '/dashboard' : `/${defaultModel}list`;
+
+  return `import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+${viewImports.join('\n')}
+
+function NavBar() {
+  const location = useLocation();
+  return (
+    <div className="w-56 bg-white border-r min-h-screen p-4">
+      <div className="mb-6">
+        <h1 className="text-lg font-bold text-gray-900">SpecVerse App</h1>
+        <p className="text-xs text-gray-500">Generated from specification</p>
       </div>
-    )
-  }`);
+      <nav className="space-y-4">
+${hasDashboard ? `        <Link to="/dashboard" className={\`block px-3 py-2 rounded-md text-sm font-medium \${location.pathname === '/dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}\`}>
+          Dashboard
+        </Link>` : ''}
+${modelNavItems}
+      </nav>
+    </div>
+  );
+}
 
-  return `/**
- * React Router Configuration
- * Auto-generated by SpecVerse
- */
+function App() {
+  return (
+    <Router>
+      <div className="flex min-h-screen bg-gray-50">
+        <NavBar />
+        <main className="flex-1 overflow-auto">
+          <Routes>
+            <Route path="/" element={<${hasDashboard ? viewsArray.find((v: any) => v.type === 'dashboard')?.name || 'SystemDashboardView' : `${Array.from(modelNames)[0] || 'Unknown'}ListView`} />} />
+${routeEntries.join('\n')}
+            <Route path="*" element={<div className="p-8"><h1 className="text-2xl">404 - Not Found</h1></div>} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+  );
+}
 
-import { createBrowserRouter } from 'react-router-dom';
-import { FormView, ListView, DetailView, DashboardView } from './components';
-import viewsMetadata from './views-metadata.json';
-import spec from './spec.json';
-
-/**
- * Application routes
- */
-export const router = createBrowserRouter([
-${routes.join(',\n')}
-]);
+export default App;
 `;
-}
-
-/**
- * Get renderer component name for view type
- */
-function getRendererForType(viewType: string): string {
-  const rendererMap: Record<string, string> = {
-    'list': 'ListView',
-    'detail': 'DetailView',
-    'form': 'FormView',
-    'create-form': 'FormView',
-    'edit-form': 'FormView',
-    'dashboard': 'DashboardView'
-  };
-
-  return rendererMap[viewType] || 'ListView';
-}
-
-/**
- * Get path for view based on type
- */
-function getPathForView(viewDef: any, modelLower: string): string {
-  const basePath = `/${modelLower}s`;
-  const viewType = viewDef.type || 'list';
-
-  switch (viewType) {
-    case 'detail':
-      return `${basePath}/1`; // Example ID
-    case 'form':
-    case 'create-form':
-      return `${basePath}/new`;
-    case 'edit-form':
-      return `${basePath}/1/edit`;
-    case 'dashboard':
-      return `${basePath}/dashboard`;
-    default:
-      return basePath;
-  }
 }

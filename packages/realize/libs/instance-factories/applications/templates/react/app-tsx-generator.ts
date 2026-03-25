@@ -1,7 +1,8 @@
 /**
  * App.tsx Generator for React App
  *
- * Generates the root App component with React Router
+ * Generates root App component with sidebar navigation grouped by model.
+ * Only List and +New are in the nav — Detail is accessed via list row clicks.
  */
 
 import type { TemplateContext } from '@specverse/engine-realize';
@@ -9,64 +10,76 @@ import type { TemplateContext } from '@specverse/engine-realize';
 export default function generateAppTsx(context: TemplateContext): string {
   const { spec } = context;
 
-  // Get all views/controllers from spec for routing
-  // Handle both array and object formats for views
-  let views: string[] = [];
+  // Get views — handle both array and object formats
+  let viewList: any[] = [];
   if (spec.views) {
-    if (Array.isArray(spec.views)) {
-      views = spec.views.map((v: any) => v.name || 'UnnamedView');
-    } else {
-      views = Object.keys(spec.views);
-    }
+    viewList = Array.isArray(spec.views) ? spec.views
+      : Object.entries(spec.views).map(([name, def]: [string, any]) => ({ name, ...def }));
   }
 
-  const controllers = spec.controllers ? Object.keys(spec.controllers) : [];
+  // Group views by model
+  const modelViews = new Map<string, { list?: string; detail?: string; form?: string; other: string[] }>();
+  const dashboardView: string | null = viewList.find((v: any) => v.type === 'dashboard')?.name || null;
 
-  // Generate imports for view components
-  const viewImports = views.map(viewName => {
-    return `import ${viewName} from './components/${viewName}';`;
+  for (const view of viewList) {
+    const model = Array.isArray(view.model) ? view.model[0] : (view.model || view.primaryModel);
+    if (!model) continue;
+    if (!modelViews.has(model)) modelViews.set(model, { other: [] });
+    const entry = modelViews.get(model)!;
+    const type = view.type || 'list';
+    if (type === 'list') entry.list = view.name;
+    else if (type === 'detail') entry.detail = view.name;
+    else if (type === 'form') entry.form = view.name;
+    else if (type !== 'dashboard') entry.other.push(view.name);
+  }
+
+  // Generate imports
+  const imports = viewList.map((v: any) => `import ${v.name} from './components/${v.name}';`).join('\n');
+
+  // Generate routes
+  const routes = viewList.map((v: any) => {
+    const path = `/${v.name.toLowerCase().replace('view', '')}`;
+    return `          <Route path="${path}" element={<${v.name} />} />`;
   }).join('\n');
 
-  // Generate routes for each view
-  const routes = views.map(viewName => {
-    const path = `/${viewName.toLowerCase().replace('view', '')}`;
-    return `        <Route path="${path}" element={<${viewName} />} />`;
+  // Default route
+  const defaultView = dashboardView || viewList[0]?.name || 'div';
+  const defaultElement = defaultView === 'div' ? '<div className="p-8">Welcome</div>' : `<${defaultView} />`;
+
+  // Sidebar nav items grouped by model
+  const navGroups = Array.from(modelViews.entries()).map(([model, views]) => {
+    const lower = model.charAt(0).toLowerCase() + model.slice(1);
+    const listPath = views.list ? `/${views.list.toLowerCase().replace('view', '')}` : '';
+    const formPath = views.form ? `/${views.form.toLowerCase().replace('view', '')}` : '';
+    return `          <div>
+            <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">${model}s</h3>
+${listPath ? `            <a href="${listPath}" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">Browse</a>` : ''}
+${formPath ? `            <a href="${formPath}" className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded">+ New</a>` : ''}
+          </div>`;
   }).join('\n');
 
-  // If no views, create a simple home route
-  const defaultRoute = views.length === 0
-    ? `        <Route path="/" element={<div className="p-8"><h1 className="text-3xl font-bold">Welcome to ${spec.metadata?.component || 'SpecVerse App'}</h1></div>} />`
-    : `        <Route path="/" element={<${views[0]} />} />`;
-
-  return `import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-${viewImports}
+  return `import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+${imports}
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex space-x-8">
-                <Link to="/" className="flex items-center px-3 py-2 text-gray-700 hover:text-gray-900">
-                  Home
-                </Link>
-${views.map(viewName => {
-  const path = `/${viewName.toLowerCase().replace('view', '')}`;
-  const label = viewName.replace('View', '');
-  return `                <Link to="${path}" className="flex items-center px-3 py-2 text-gray-700 hover:text-gray-900">
-                  ${label}
-                </Link>`;
-}).join('\n')}
-              </div>
-            </div>
+      <div className="flex min-h-screen bg-gray-50">
+        {/* Sidebar */}
+        <aside className="w-56 bg-white border-r border-gray-200 p-4 space-y-5">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">SpecVerse App</h1>
+            <p className="text-xs text-gray-400">Generated from specification</p>
           </div>
-        </nav>
+${dashboardView ? `          <a href="/dashboard" className="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">Dashboard</a>` : ''}
+${navGroups}
+        </aside>
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Main content */}
+        <main className="flex-1 overflow-auto">
           <Routes>
-${defaultRoute}
+            <Route path="/" element={${defaultElement}} />
+${dashboardView ? `          <Route path="/dashboard" element={<${dashboardView} />} />` : ''}
 ${routes}
             <Route path="*" element={<div className="p-8"><h1 className="text-2xl">404 - Not Found</h1></div>} />
           </Routes>
