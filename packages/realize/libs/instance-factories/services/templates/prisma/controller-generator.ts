@@ -29,6 +29,12 @@ export default function generatePrismaController(context: TemplateContext): stri
   const modelVar = RESERVED_WORDS.has(rawModelVar) ? `${rawModelVar}Item` : rawModelVar;
   const curedOps = controller.cured || {};
 
+  // Determine ID type for proper parsing
+  const idAttr = (Array.isArray(model.attributes) ? model.attributes : Object.values(model.attributes || {}))
+    .find((a: any) => a.name === 'id');
+  const idType = idAttr?.type || 'UUID';
+  const needsIntParse = idType === 'Integer' || idType === 'Int' || idType === 'Number';
+
   return `/**
  * ${controllerName}
  * Model-specific business logic for ${modelName}
@@ -39,6 +45,11 @@ import { PrismaClient } from '@prisma/client';
 ${hasEventPublishing(curedOps, controller) ? `import { eventBus, EventName } from '../events/eventBus.js';` : ''}
 
 const prisma = new PrismaClient();
+
+/** Parse ID from string to the correct type for this model */
+function parseId(id: string): ${needsIntParse ? 'number' : 'string'} {
+  ${needsIntParse ? 'return parseInt(id, 10);' : 'return id;'}
+}
 
 /**
  * ${controllerName} class
@@ -195,7 +206,7 @@ function generateRetrieveMethod(model: any, modelName: string, modelVar: string)
    */
   public async retrieve(id: string): Promise<any> {
     const ${modelVar} = await prisma.${modelVar}.findUnique({
-      where: { id }${generateIncludeRelationships(model)}
+      where: { id: parseId(id) }${generateIncludeRelationships(model)}
     });
 
     if (!${modelVar}) {
@@ -237,7 +248,7 @@ function generateUpdateMethod(model: any, modelName: string, modelVar: string, c
 
     // Update record
     const ${modelVar} = await prisma.${modelVar}.update({
-      where: { id },
+      where: { id: parseId(id) },
       data${generateIncludeRelationships(model)}
     });
 
@@ -274,7 +285,7 @@ function generateEvolveMethod(model: any, modelName: string, modelVar: string, c
 
     ${hasLifecycle ? `
     // Get current record to check lifecycle state
-    const current = await prisma.${modelVar}.findUnique({ where: { id } });
+    const current = await prisma.${modelVar}.findUnique({ where: { id: parseId(id) } });
     if (!current) {
       throw new Error('${modelName} not found');
     }
@@ -286,7 +297,7 @@ function generateEvolveMethod(model: any, modelName: string, modelVar: string, c
 
     // Update record
     const ${modelVar} = await prisma.${modelVar}.update({
-      where: { id },
+      where: { id: parseId(id) },
       data${generateIncludeRelationships(model)}
     });
 
@@ -309,11 +320,11 @@ function generateDeleteMethod(model: any, modelName: string, modelVar: string, c
   public async delete(id: string): Promise<void> {
     ${deleteEvent ? `
     // Get record before deletion for event
-    const ${modelVar} = await prisma.${modelVar}.findUnique({ where: { id } });
+    const ${modelVar} = await prisma.${modelVar}.findUnique({ where: { id: parseId(id) } });
     ` : ''}
 
     await prisma.${modelVar}.delete({
-      where: { id }
+      where: { id: parseId(id) }
     });
 
     ${deleteEvent ? `
