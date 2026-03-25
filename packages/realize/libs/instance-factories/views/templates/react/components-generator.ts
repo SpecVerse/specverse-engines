@@ -37,7 +37,7 @@ export default function generateReactComponent(context: TemplateContext): string
     case 'detail':
       return generateDetailComponent(componentName, modelName, lowerModel, pluralModel, apiPath, allAttrs, view);
     case 'form':
-      return generateFormComponent(componentName, modelName, lowerModel, pluralModel, apiPath, allAttrs, view);
+      return generateFormComponent(componentName, modelName, lowerModel, pluralModel, apiPath, allAttrs, view, getBelongsToRelationships(model));
     case 'dashboard':
       return generateDashboardComponent(componentName, modelName, lowerModel, pluralModel, apiPath, columns, view);
     default:
@@ -52,6 +52,16 @@ function getModelAttributes(model: any): Array<{ name: string; type: string; req
         typeof def === 'string' ? { name, type: def.split(' ')[0], required: def.includes('required') }
         : { name, ...def });
   return attrs.filter((a: any) => a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt');
+}
+
+function getBelongsToRelationships(model: any): Array<{ name: string; target: string }> {
+  if (!model?.relationships) return [];
+  const rels = Array.isArray(model.relationships) ? model.relationships
+    : Object.entries(model.relationships).map(([name, def]: [string, any]) => ({ name, ...def }));
+  return rels.filter((r: any) => r.type === 'belongsTo').map((r: any) => ({
+    name: r.name,
+    target: r.target || r.targetModel || r.name,
+  }));
 }
 
 function getModelDisplayColumns(model: any): string[] {
@@ -186,8 +196,38 @@ export default ${name};
 `;
 }
 
-function generateFormComponent(name: string, model: string, lower: string, plural: string, api: string, attrs: any[], view: any): string {
+function generateFormComponent(name: string, model: string, lower: string, plural: string, api: string, attrs: any[], view: any, belongsToRels: Array<{ name: string; target: string }> = []): string {
   const editableAttrs = attrs.filter(a => !['createdAt', 'updatedAt', 'createdBy', 'updatedBy'].includes(a.name));
+
+  // Generate state and fetch for each belongsTo relationship
+  const relStateDefs = belongsToRels.map(r => {
+    const relLower = r.target.charAt(0).toLowerCase() + r.target.slice(1);
+    return `const [${relLower}Options, set${r.target}Options] = useState<any[]>([]);`;
+  }).join('\n  ');
+
+  const relFetches = belongsToRels.map(r => {
+    const relLower = r.target.charAt(0).toLowerCase() + r.target.slice(1);
+    return `fetch('/api/${relLower}s').then(r => r.json()).then(d => set${r.target}Options(d)).catch(() => {});`;
+  }).join('\n    ');
+
+  const relFields = belongsToRels.map(r => {
+    const fkField = `${r.name}Id`;
+    const relLower = r.target.charAt(0).toLowerCase() + r.target.slice(1);
+    return `        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">${r.target}</label>
+          <select
+            value={form.${fkField} ?? ''}
+            onChange={e => setForm({...form, ${fkField}: e.target.value})}
+            className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            required
+          >
+            <option value="">Select ${r.target}...</option>
+            {${relLower}Options.map((opt: any) => (
+              <option key={opt.id} value={opt.id}>{opt.name || opt.title || opt.guestName || opt.id}</option>
+            ))}
+          </select>
+        </div>`;
+  }).join('\n');
 
   return `import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -204,6 +244,7 @@ function ${name}() {
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  ${relStateDefs}
 
   useEffect(() => {
     if (!id) return;
@@ -212,6 +253,10 @@ function ${name}() {
       .then(data => { setForm(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    ${relFetches}
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,6 +287,7 @@ function ${name}() {
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
       <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-4">
+${relFields}
 ${editableAttrs.map(a => `        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">${a.name}</label>
           <input
