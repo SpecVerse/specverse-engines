@@ -731,7 +731,7 @@ async function validateDocument(document: vscode.TextDocument, diagnostics: vsco
     if (error.code === 'ENOENT') {
       const diagnostic = new vscode.Diagnostic(
         new vscode.Range(0, 0, 0, 0),
-        'SpecVerse CLI not found. Please install @specverse/lang or configure cli.path in settings',
+        'SpecVerse CLI not found. Please configure cli.path in settings or ensure specverse is on PATH',
         vscode.DiagnosticSeverity.Error
       );
       diagnostic.source = 'SpecVerse';

@@ -1,5 +1,5 @@
 /**
- * SpecVerse v3.1 Parser - Public API
+ * SpecVerse Parser - Public API
  * 
  * Unified parser architecture with backward compatibility
  * Simple, powerful YAML + conventions parser with optional imports

@@ -197,8 +197,8 @@ export function validateManifest(manifest: ManifestConfig | null | undefined): M
   // Required fields
   if (!manifest.specVersion) {
     errors.push('Missing required field: specVersion');
-  } else if (!manifest.specVersion.startsWith('3.3')) {
-    errors.push(`Invalid specVersion: ${manifest.specVersion}. Only v3.3.x is supported.`);
+  } else if (!manifest.specVersion.match(/^\d+\.\d+/)) {
+    errors.push(`Invalid specVersion format: ${manifest.specVersion}. Expected semver (e.g., 3.5.0).`);
   }
 
   if (!manifest.name) {

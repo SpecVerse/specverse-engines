@@ -31,10 +31,10 @@ export class ClaudeExecutor {
    */
   private detectClaudeBin(): string {
     // Try common locations
+    const home = process.env.HOME || process.env.USERPROFILE || '';
     const possiblePaths = [
-      '/Users/cainen/.claude/local/claude',
-      process.env.HOME + '/.claude/local/claude',
-      'claude' // Global install
+      join(home, '.claude/local/claude'),
+      'claude' // Global install via PATH
     ];
 
     for (const path of possiblePaths) {
@@ -47,7 +47,7 @@ export class ClaudeExecutor {
     }
 
     // Default to common location
-    return '/Users/cainen/.claude/local/claude';
+    return join(home, '.claude/local/claude');
   }
 
   /**

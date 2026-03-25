@@ -1,5 +1,5 @@
 /**
- * SpecVerse v3.1 Convention Processor
+ * SpecVerse Convention Processor
  *
  * Processes YAML + conventions into structured AST
  * Handles v3.1 container format with namespaces and "name: Type modifiers" patterns

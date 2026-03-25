@@ -71,15 +71,23 @@ export interface SubscriptionSpec {
   handlers: { [event: string]: string };
 }
 
-export interface CuredOperationsSpec {
+/**
+ * CURVED Operations: Create, Update, Retrieve, Validate, Evolve, Delete.
+ * The YAML keyword remains `cured:` for backward compatibility with existing specs.
+ * Use `CurvedOperationsSpec` in new code; `CuredOperationsSpec` is a legacy alias.
+ */
+export interface CurvedOperationsSpec {
   create?: ExecutablePropertiesSpec;
+  update?: ExecutablePropertiesSpec;
   retrieve?: ExecutablePropertiesSpec;
   retrieve_many?: ExecutablePropertiesSpec;
-  update?: ExecutablePropertiesSpec;
+  validate?: ExecutablePropertiesSpec;
   evolve?: ExecutablePropertiesSpec;
   delete?: ExecutablePropertiesSpec;
-  validate?: ExecutablePropertiesSpec;  // v3.3+ Unified validation operation
 }
+
+/** @deprecated Use CurvedOperationsSpec. YAML keyword remains `cured:` for compatibility. */
+export type CuredOperationsSpec = CurvedOperationsSpec;
 
 export interface ModelSpec {
   name: string;

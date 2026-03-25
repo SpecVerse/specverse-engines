@@ -57,15 +57,16 @@ export class EngineRegistry {
     ];
 
     // Auto-discover @specverse/engine-* packages
+    // This list is the discovery seed — engines self-register via SpecVerseEngine interface.
+    // New engines added via options.additionalEngines or by adding to this list.
     if (!this.options.disableAutoDiscovery) {
-      const knownEnginePackages = [
+      packagesToTry.push(
         '@specverse/engine-parser',
         '@specverse/engine-inference',
         '@specverse/engine-realize',
         '@specverse/engine-generators',
         '@specverse/engine-ai',
-      ];
-      packagesToTry.push(...knownEnginePackages);
+      );
     }
 
     for (const packageName of packagesToTry) {

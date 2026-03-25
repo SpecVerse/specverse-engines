@@ -1,5 +1,5 @@
 /**
- * SpecVerse v3.1 Namespace Utilities
+ * SpecVerse Namespace Utilities
  * 
  * Handles namespace parsing, validation, and reference resolution
  * Supports implicit string-based hierarchy: @org/package or @org/domain/module

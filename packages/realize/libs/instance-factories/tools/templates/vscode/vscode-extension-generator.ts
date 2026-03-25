@@ -131,7 +131,7 @@ function generatePackageJson(
     name: 'specverse',
     displayName: 'SpecVerse',
     description: 'SpecVerse specification language support — syntax highlighting, validation, IntelliSense',
-    version: '3.5.2',
+    version: context.spec?.version || '1.0.0',
     publisher: 'specverse',
     engines: { vscode: '^1.80.0' },
     categories: ['Programming Languages', 'Linters', 'Snippets'],
