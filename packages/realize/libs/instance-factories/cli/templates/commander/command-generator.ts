@@ -262,6 +262,24 @@ import type { ParserEngine, InferenceEngine, RealizeEngine } from '@specverse/ty
         const componentName = Object.keys(inferredYaml?.components || {})[0];
         const componentData = componentName ? inferredYaml.components[componentName] : {};
 
+        // Merge original spec's services/events/views that inference didn't generate
+        // (inference generates from models; explicit services in the spec are preserved here)
+        const origComponent = parseResult.ast!.components?.[0] || {};
+        for (const section of ['services', 'events', 'views']) {
+          const origData = (origComponent as any)[section];
+          if (origData && (!componentData[section] || JSON.stringify(componentData[section]) === '{}')) {
+            // Convert array form (from parser) to object form (for realize)
+            if (Array.isArray(origData)) {
+              componentData[section] = {};
+              for (const item of origData) {
+                componentData[section][item.name] = item;
+              }
+            } else {
+              componentData[section] = origData;
+            }
+          }
+        }
+
         // Inject key as name into entity maps, and expand convention-format attributes
         for (const section of ['models', 'controllers', 'services', 'events', 'views']) {
           if (componentData[section] && typeof componentData[section] === 'object' && !Array.isArray(componentData[section])) {

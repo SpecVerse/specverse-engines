@@ -177,11 +177,24 @@ function generateOperationParams(operation: any): string {
  * Falls back to placeholder if no behavioral data available.
  */
 function generateOperationLogic(operation: any, service: any): string {
-  // Check for behavioral metadata (from AI-optimized spec)
-  const impl = operation.implementation;
+  // Check for behavioral metadata — supports both AI-optimized format (implementation.preconditions)
+  // and SpecVerse convention format (requires/ensures/publishes)
+  const impl = operation.implementation || {};
   const meta = operation.metadata;
 
-  if (impl && (impl.preconditions?.length || impl.postconditions?.length || impl.steps?.length || impl.transactional)) {
+  // Map convention format to implementation format
+  if (!impl.preconditions && operation.requires) {
+    impl.preconditions = Array.isArray(operation.requires) ? operation.requires : [operation.requires];
+  }
+  if (!impl.postconditions && operation.ensures) {
+    impl.postconditions = Array.isArray(operation.ensures) ? operation.ensures : [operation.ensures];
+  }
+  if (!impl.sideEffects && operation.publishes) {
+    impl.sideEffects = (Array.isArray(operation.publishes) ? operation.publishes : [operation.publishes])
+      .map((e: string) => `Publish event: ${e}`);
+  }
+
+  if (impl.preconditions?.length || impl.postconditions?.length || impl.steps?.length || impl.transactional) {
     // L3: Generate from behavioral specification
     const modelName = inferModelFromServiceName(service.name);
     const context: BehaviorContext = {

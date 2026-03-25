@@ -95,9 +95,12 @@ function generateValidationLogic(model: any, dataParam: string = '_data', contex
   const attrList = Array.isArray(model.attributes)
     ? model.attributes.map((a: any) => [a.name, a])
     : Object.entries(model.attributes);
+  // Fields that are auto-generated and should not be required on create
+  const AUTO_FIELDS = new Set(['id', 'createdAt', 'updatedAt', 'created_at', 'updated_at', 'createdBy', 'updatedBy']);
+
   attrList.forEach(([name, attr]: [string, any]) => {
-    // Required validation
-    if (attr.required && !attr.auto) {
+    // Required validation — skip auto-generated fields
+    if (attr.required && !attr.auto && !AUTO_FIELDS.has(name)) {
       validations.push(`
     // ${name} is required
     if (${contextParam}.operation === 'create' && !${dataParam}.${name}) {
