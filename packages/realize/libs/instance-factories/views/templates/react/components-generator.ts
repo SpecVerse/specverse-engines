@@ -82,6 +82,15 @@ import { Link } from 'react-router-dom';
  * ${name}
  * ${view.description || `List view for ${model}`}
  */
+function formatCell(value: any): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'string' && /^\\d{4}-\\d{2}-\\d{2}T/.test(value)) {
+    return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  return String(value);
+}
+
 function ${name}() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,16 +123,25 @@ function ${name}() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-${columns.map(c => `                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${c}</th>`).join('\n')}
-${belongsToRels.map(r => `                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${r.target}</th>`).join('\n')}
+${columns.map(c => `                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">${c}</th>`).join('\n')}
+${belongsToRels.map(r => `                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">${r.target}</th>`).join('\n')}
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-${columns.map(c => `                  <td className="px-6 py-4 text-sm text-gray-900">{String(item.${c} ?? '')}</td>`).join('\n')}
-${belongsToRels.map(r => `                  <td className="px-6 py-4 text-sm text-blue-600">{item.${r.name}?.name || item.${r.name}?.title || item.${r.name}?.guestName || item.${r.name}?.id || '—'}</td>`).join('\n')}
+${columns.map(c => `                  <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{formatCell(item.${c})}</td>`).join('\n')}
+${belongsToRels.map(r => {
+    const targetLower = r.target.charAt(0).toLowerCase() + r.target.slice(1);
+    return `                  <td className="px-4 py-3 text-sm whitespace-nowrap">
+                    {item.${r.name} ? (
+                      <Link to={\`/${targetLower}detail?id=\${item.${r.name}.id}\`} className="text-blue-600 hover:text-blue-800 hover:underline">
+                        {item.${r.name}.name || item.${r.name}.title || item.${r.name}.guestName || item.${r.name}.id}
+                      </Link>
+                    ) : '—'}
+                  </td>`;
+  }).join('\n')}
                   <td className="px-6 py-4 text-right">
                     <Link to={\`/${lower}detail?id=\${item.id}\`} className="text-blue-600 hover:text-blue-800 mr-3">View</Link>
                     <Link to={\`/${lower}form?id=\${item.id}\`} className="text-green-600 hover:text-green-800">Edit</Link>
