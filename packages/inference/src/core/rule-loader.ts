@@ -66,45 +66,45 @@ export class RuleLoader {
       const registry = getEntityRegistry();
       const modules = registry.getInDependencyOrder();
 
-      // Collect all rule loader functions from entity modules
-      // Entity modules export functions like loadControllerRules(), loadServiceRules(), etc.
-      const ruleLoaderModules: Array<{ entity: string; path: string }> = [
-        { entity: 'models', path: '@specverse/engine-entities/core/models/inference/index.js' },
-        { entity: 'events', path: '@specverse/engine-entities/core/events/inference/index.js' },
-        { entity: 'views', path: '@specverse/engine-entities/core/views/inference/index.js' },
-        { entity: 'deployments', path: '@specverse/engine-entities/core/deployments/inference/index.js' },
-      ];
+      // Load rule JSON files from entity module inference directories
+      // Uses the registry to find module locations, then reads JSON files directly
+      const { createRequire } = await import('module');
+      const require2 = createRequire(import.meta.url);
+      const entitiesPackagePath = require2.resolve('@specverse/engine-entities/package.json');
+      const entitiesSrcDir = path.join(path.dirname(entitiesPackagePath), 'src');
 
-      for (const { entity, path: modulePath } of ruleLoaderModules) {
-        try {
-          const mod = await import(modulePath);
-          // Each module exports load*Rules() functions that return parsed JSON
-          for (const [key, fn] of Object.entries(mod)) {
-            if (typeof fn === 'function' && key.startsWith('load') && key.endsWith('Rules')) {
-              const content = (fn as () => any)();
-              if (content) {
-                const fileType = detectRuleFileType(content);
-                const source = `entity:${entity}/${key}`;
-                if (fileType === 'legacy') {
-                  const { ruleSet, validation: v } = this.loadLegacyRuleSet(content, source, {
-                    valid: true, errors: [], warnings: []
-                  });
-                  if (v.valid) ruleSets.push(ruleSet);
-                  validation.errors.push(...v.errors);
-                  validation.warnings.push(...v.warnings);
-                } else {
-                  const { ruleSet, validation: v } = this.loadDomainSpecificRuleSet(content as RuleFile, source, {
-                    valid: true, errors: [], warnings: []
-                  });
-                  if (v.valid) ruleSets.push(ruleSet);
-                  validation.errors.push(...v.errors);
-                  validation.warnings.push(...v.warnings);
-                }
-              }
+      for (const mod of modules) {
+        const subdir = mod.type === 'core' ? 'core' : 'extensions';
+        const inferenceDir = path.join(entitiesSrcDir, subdir, mod.name, 'inference');
+
+        if (!fs.existsSync(inferenceDir)) continue;
+
+        const jsonFiles = fs.readdirSync(inferenceDir).filter((f: string) => f.endsWith('.json'));
+        for (const file of jsonFiles) {
+          try {
+            const filePath = path.join(inferenceDir, file);
+            const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            const fileType = detectRuleFileType(content);
+            const source = `entity:${mod.name}/${file}`;
+
+            if (fileType === 'legacy') {
+              const { ruleSet, validation: v } = this.loadLegacyRuleSet(content, source, {
+                valid: true, errors: [], warnings: []
+              });
+              if (v.valid) ruleSets.push(ruleSet);
+              validation.errors.push(...v.errors);
+              validation.warnings.push(...v.warnings);
+            } else {
+              const { ruleSet, validation: v } = this.loadDomainSpecificRuleSet(content as RuleFile, source, {
+                valid: true, errors: [], warnings: []
+              });
+              if (v.valid) ruleSets.push(ruleSet);
+              validation.errors.push(...v.errors);
+              validation.warnings.push(...v.warnings);
             }
+          } catch {
+            // Individual rule file not loadable, skip
           }
-        } catch {
-          // Entity module not available, skip
         }
       }
 

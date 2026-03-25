@@ -51,7 +51,7 @@ export function resolvePromptPath(pver: string, basePath?: string): string {
     if (pver === 'default' && !existsSync(versionPath)) {
       // Fallback to latest version (v7)
       const latestVersion = 'v7';
-      versionPath = join(projectRoot, 'prompts/core/standard', latestVersion);
+      versionPath = join(promptsBase, 'core/standard', latestVersion);
       if (!existsSync(versionPath)) {
         throw new Error(`Default prompt version (${latestVersion}) not found at ${versionPath}`);
       }

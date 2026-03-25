@@ -1,7 +1,7 @@
 {
   "name": "@specverse/engine-realize",
   "version": "3.5.2",
-  "description": "SpecVerse realize engine — generate code from specifications",
+  "description": "SpecVerse realize engine \u2014 generate code from specifications",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,6 +24,19 @@
     "@types/node": "^20.8.0",
     "@types/semver": "^7.5.0"
   },
-  "files": ["dist", "libs", "schema", "assets"],
-  "license": "MIT"
+  "files": [
+    "dist",
+    "libs",
+    "schema",
+    "assets"
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
 }

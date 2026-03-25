@@ -1,7 +1,7 @@
 {
   "name": "@specverse/engine-inference",
   "version": "3.5.2",
-  "description": "SpecVerse inference engine — generate architecture from models",
+  "description": "SpecVerse inference engine \u2014 generate architecture from models",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,6 +17,16 @@
   "devDependencies": {
     "@types/node": "^20.8.0"
   },
-  "files": ["dist"],
-  "license": "MIT"
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
 }

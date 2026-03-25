@@ -1,7 +1,7 @@
 {
   "name": "@specverse/engine-ai",
   "version": "3.5.2",
-  "description": "SpecVerse AI engine — prompt building, suggestions, templates",
+  "description": "SpecVerse AI engine \u2014 prompt building, suggestions, templates",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,6 +16,17 @@
   "devDependencies": {
     "@types/node": "^20.8.0"
   },
-  "files": ["dist", "assets"],
-  "license": "MIT"
+  "files": [
+    "dist",
+    "assets"
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  }
 }

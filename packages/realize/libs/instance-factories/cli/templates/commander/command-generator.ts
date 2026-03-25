@@ -254,9 +254,14 @@ import type { ParserEngine, InferenceEngine, RealizeEngine } from '@specverse/ty
           generateEvents: true, generateViews: true,
         });
 
-        // Load AI-optimized spec from inferred YAML
+        // Load inferred YAML and flatten component data for realize
         const yaml = await import('js-yaml');
-        const inferredSpec = yaml.load(inferResult.yaml);
+        const inferredYaml = yaml.load(inferResult.yaml) as any;
+        // Inference output: { components: { Name: { models, controllers, ... } } }
+        // realizeAll expects: { models: {...}, controllers: {...}, ... } (flat component data)
+        const componentName = Object.keys(inferredYaml?.components || {})[0];
+        const componentData = componentName ? inferredYaml.components[componentName] : {};
+        const inferredSpec = { ...componentData, componentName };
 
         // Realize — let the realize engine handle its own library
         const manifestPath = options.manifest || resolve(process.cwd(), 'manifests/implementation.yaml');

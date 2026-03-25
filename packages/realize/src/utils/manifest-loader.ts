@@ -101,7 +101,7 @@ export interface ManifestConfig {
   _isDefault?: boolean;
 }
 
-export interface ValidationResult {
+export interface ManifestValidationResult {
   valid: boolean;
   errors: string[];
 }
@@ -186,7 +186,7 @@ export function getManifestValue(
 /**
  * Validate manifest structure (v3.3 only - no backward compatibility)
  */
-export function validateManifest(manifest: ManifestConfig | null | undefined): ValidationResult {
+export function validateManifest(manifest: ManifestConfig | null | undefined): ManifestValidationResult {
   const errors: string[] = [];
 
   if (!manifest) {
