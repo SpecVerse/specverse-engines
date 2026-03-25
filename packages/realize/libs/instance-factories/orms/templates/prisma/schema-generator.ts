@@ -303,6 +303,21 @@ function generateModelSchema(
     schema += `  ${generateField(attr, model)}\n`;
   });
 
+  // Add lifecycle status fields (if model has lifecycles)
+  const rawLifecycles = model.lifecycles || [];
+  const lifecycleList = Array.isArray(rawLifecycles)
+    ? rawLifecycles
+    : Object.entries(rawLifecycles).map(([name, lc]: [string, any]) => ({ name, ...(typeof lc === 'object' ? lc : {}) }));
+  for (const lifecycle of lifecycleList) {
+    const fieldName = lifecycle.name || 'status';
+    const exists = attributes.some((a: any) => a.name === fieldName);
+    if (!exists && lifecycle.states?.length > 0) {
+      const defaultState = lifecycle.states[0];
+      const padding = ' '.repeat(Math.max(1, 15 - fieldName.length));
+      schema += `  ${fieldName}${padding}String @default("${defaultState}")\n`;
+    }
+  }
+
   // Add relationships
   relationships.forEach((rel: any) => {
     const fields = generateRelationship(rel, model, relationMap, hasOneTargets, allModels);

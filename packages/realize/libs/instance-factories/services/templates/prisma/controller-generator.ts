@@ -269,12 +269,37 @@ function generateUpdateMethod(model: any, modelName: string, modelVar: string, c
  * Generate evolve method (lifecycle-aware updates)
  */
 function generateEvolveMethod(model: any, modelName: string, modelVar: string, controller: any): string {
-  const hasLifecycle = model.lifecycles && Object.keys(model.lifecycles).length > 0;
-  const lifecycleName = hasLifecycle ? Object.keys(model.lifecycles)[0] : 'status';
+  // Extract lifecycle — handle both array and object format
+  const lifecycles = Array.isArray(model.lifecycles) ? model.lifecycles :
+    (model.lifecycles ? Object.entries(model.lifecycles).map(([name, lc]: [string, any]) => ({ name, ...lc })) : []);
+  const lifecycle = lifecycles[0];
+  const lifecycleName = lifecycle?.name || 'status';
+  const states = lifecycle?.states || [];
+
+  // Build transition map from the lifecycle flow
+  const validTransitions: Record<string, string[]> = {};
+  if (states.length > 1) {
+    for (let i = 0; i < states.length - 1; i++) {
+      validTransitions[states[i]] = [states[i + 1]];
+    }
+  }
+  // Add cancel transitions if spec defines them
+  if (lifecycle?.transitions) {
+    const transitions = Array.isArray(lifecycle.transitions) ? lifecycle.transitions :
+      Object.entries(lifecycle.transitions).map(([name, t]: [string, any]) => ({ name, ...t }));
+    for (const t of transitions) {
+      const fromStates = Array.isArray(t.from) ? t.from : [t.from];
+      for (const from of fromStates) {
+        if (!validTransitions[from]) validTransitions[from] = [];
+        if (!validTransitions[from].includes(t.to)) validTransitions[from].push(t.to);
+      }
+    }
+  }
 
   return `
   /**
    * Evolve ${modelName} through lifecycle
+   * States: ${states.join(' → ')}
    */
   public async evolve(id: string, data: any): Promise<any> {
     // Validate input
@@ -283,16 +308,23 @@ function generateEvolveMethod(model: any, modelName: string, modelVar: string, c
       throw new Error(\`Validation failed: \${validationResult.errors.join(', ')}\`);
     }
 
-    ${hasLifecycle ? `
     // Get current record to check lifecycle state
     const current = await prisma.${modelVar}.findUnique({ where: { id: parseId(id) } });
     if (!current) {
       throw new Error('${modelName} not found');
     }
 
-    // TODO: Validate lifecycle transition
-    // Current state: current.${lifecycleName}
-    // New state: data.${lifecycleName}
+    ${states.length > 0 ? `
+    // Validate lifecycle transition
+    const currentState = (current as any).${lifecycleName};
+    const newState = data.${lifecycleName};
+    if (newState) {
+      const validTransitions: Record<string, string[]> = ${JSON.stringify(validTransitions)};
+      const allowed = validTransitions[currentState] || [];
+      if (!allowed.includes(newState)) {
+        throw new Error(\`Invalid transition: \${currentState} → \${newState}. Allowed: \${allowed.join(', ') || 'none'}\`);
+      }
+    }
     ` : ''}
 
     // Update record
