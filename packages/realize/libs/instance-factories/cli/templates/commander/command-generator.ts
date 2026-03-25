@@ -261,6 +261,34 @@ import type { ParserEngine, InferenceEngine, RealizeEngine } from '@specverse/ty
         // realizeAll expects: { models: {...}, controllers: {...}, ... } (flat component data)
         const componentName = Object.keys(inferredYaml?.components || {})[0];
         const componentData = componentName ? inferredYaml.components[componentName] : {};
+
+        // Inject key as name into entity maps, and expand convention-format attributes
+        for (const section of ['models', 'controllers', 'services', 'events', 'views']) {
+          if (componentData[section] && typeof componentData[section] === 'object' && !Array.isArray(componentData[section])) {
+            for (const [key, value] of Object.entries(componentData[section])) {
+              if (value && typeof value === 'object') {
+                (value as any).name = key;
+                // Expand convention-format attributes: { attrName: "Type modifiers" } → [{ name, type, ... }]
+                if ((value as any).attributes && typeof (value as any).attributes === 'object' && !Array.isArray((value as any).attributes)) {
+                  (value as any).attributes = Object.entries((value as any).attributes).map(([attrName, attrDef]: [string, any]) => {
+                    if (typeof attrDef === 'string') {
+                      const parts = attrDef.split(' ');
+                      return { name: attrName, type: parts[0], required: parts.includes('required'), unique: parts.includes('unique'), auto: parts.find((p: string) => p.startsWith('auto='))?.split('=')[1] };
+                    }
+                    return { name: attrName, ...(typeof attrDef === 'object' ? attrDef : {}) };
+                  });
+                }
+                // Expand convention-format relationships: { relName: { name, type, target } } → array
+                if ((value as any).relationships && typeof (value as any).relationships === 'object' && !Array.isArray((value as any).relationships)) {
+                  (value as any).relationships = Object.entries((value as any).relationships).map(([relName, relDef]: [string, any]) => {
+                    if (typeof relDef === 'object') return { name: relName, ...relDef };
+                    return { name: relName };
+                  });
+                }
+              }
+            }
+          }
+        }
         const inferredSpec = { ...componentData, componentName };
 
         // Realize — let the realize engine handle its own library
