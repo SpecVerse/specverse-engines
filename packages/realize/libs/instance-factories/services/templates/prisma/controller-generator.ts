@@ -163,9 +163,13 @@ function generateCreateMethod(model: any, modelName: string, modelVar: string, c
       throw new Error(\`Validation failed: \${validationResult.errors.join(', ')}\`);
     }
 
+    // Transform FK fields to Prisma connect format
+    const prismaData = { ...data };
+    ${generateFKTransform(model)}
+
     // Create record
     const ${modelVar} = await prisma.${modelVar}.create({
-      data${generateIncludeRelationships(model)}
+      data: prismaData${generateIncludeRelationships(model)}
     });
 
     ${createEvent ? `
@@ -382,6 +386,29 @@ function mapTypeToTypeScript(type: string): string {
   };
 
   return typeMap[type] || 'any';
+}
+
+/**
+ * Generate FK field transformation for Prisma create/update.
+ * Converts flat FK IDs (guesthouseId: "uuid") to Prisma connect format
+ * (guesthouse: { connect: { id: "uuid" } })
+ */
+function generateFKTransform(model: any): string {
+  const rels = Array.isArray(model.relationships)
+    ? model.relationships
+    : Object.values(model.relationships || {});
+
+  const belongsToRels = (rels as any[]).filter(r => r.type === 'belongsTo');
+  if (belongsToRels.length === 0) return '';
+
+  return belongsToRels.map((rel: any) => {
+    const relName = rel.name;
+    const fkField = `${relName}Id`;
+    return `if (prismaData.${fkField}) {
+      prismaData.${relName} = { connect: { id: prismaData.${fkField} } };
+      delete prismaData.${fkField};
+    }`;
+  }).join('\n    ');
 }
 
 /**
