@@ -323,6 +323,24 @@ class SpecVerseRealizeEngine implements RealizeEngine {
       if (frontendFiles.length) console.log(`   ✅ Frontend application: ${frontendFiles.join(', ')}`);
     }
 
+    // 9b. Runtime guards — transpiled from Quint specifications
+    try {
+      const { transpileEntityGuards, generateGuardsModule } = await import('@specverse/engine-inference');
+      const { createRequire } = await import('module');
+      const req = createRequire(import.meta.url);
+      const entitiesPkg = req.resolve('@specverse/engine-entities/package.json');
+      const entitiesSrc = join(dirname(entitiesPkg), 'src');
+      const guards = transpileEntityGuards(entitiesSrc);
+      if (guards.length > 0) {
+        const guardsCode = generateGuardsModule(guards);
+        const guardsPath = join(outputDir, 'backend', 'src', 'guards.ts');
+        const guardsDir = dirname(guardsPath);
+        if (!existsSync(guardsDir)) mkdirSync(guardsDir, { recursive: true });
+        writeFileSync(guardsPath, guardsCode);
+        console.log(`   ✅ Runtime guards: ${guards.length} guards (${guards.filter((g: any) => g.kind === 'function').length} functions, ${guards.filter((g: any) => g.kind === 'invariant').length} invariants) from Quint specs`);
+      }
+    } catch { /* guard generation is optional */ }
+
     // 10. Developer tools (VSCode extension, MCP server)
     try {
       const toolsDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'libs', 'instance-factories', 'tools', 'templates');

@@ -1,0 +1,301 @@
+/**
+ * Quint → TypeScript Transpiler
+ *
+ * Transpiles Quint `pure def` functions and `val` invariants into
+ * TypeScript guard functions for runtime validation.
+ *
+ * Handles a subset of Quint syntax:
+ * - pure def name(params): type = { body }
+ * - val name: bool = expression
+ * - if/else expressions
+ * - and/or/not/implies operators
+ * - comparison operators (==, !=, >=, <=, >, <)
+ * - arithmetic (+, -, *, /, %)
+ * - forall/exists quantifiers (transpiled to .every/.some)
+ * - set operations (.contains, .size, .filter, .map, .union)
+ */
+
+import { readFileSync, existsSync, readdirSync } from 'fs';
+import { join } from 'path';
+
+export interface TranspiledGuard {
+  name: string;
+  kind: 'function' | 'invariant';
+  quint: string;
+  typescript: string;
+  module: string;
+  entity: string;
+}
+
+/**
+ * Transpile all Quint files from entity modules into TypeScript guards.
+ */
+export function transpileEntityGuards(entitiesDir: string): TranspiledGuard[] {
+  const guards: TranspiledGuard[] = [];
+
+  for (const category of ['core', 'extensions']) {
+    const categoryDir = join(entitiesDir, category);
+    if (!existsSync(categoryDir)) continue;
+
+    for (const entity of readdirSync(categoryDir)) {
+      const behaviourDir = join(categoryDir, entity, 'behaviour');
+      if (!existsSync(behaviourDir)) continue;
+
+      for (const file of readdirSync(behaviourDir).filter(f => f.endsWith('.qnt'))) {
+        const filePath = join(behaviourDir, file);
+        const content = readFileSync(filePath, 'utf8');
+        const fileGuards = transpileQuintFile(content, entity, file);
+        guards.push(...fileGuards);
+      }
+    }
+  }
+
+  return guards;
+}
+
+/**
+ * Transpile a single Quint file into TypeScript guards.
+ */
+export function transpileQuintFile(content: string, entity: string, filename: string): TranspiledGuard[] {
+  const guards: TranspiledGuard[] = [];
+  const lines = content.split('\n');
+  const moduleName = extractModuleName(content) || entity;
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+
+    // Match: pure def name(params): returnType = {
+    const pureDef = line.match(/^pure\s+def\s+(\w+)\(([^)]*)\)\s*:\s*(\w+)\s*=\s*\{/);
+    if (pureDef) {
+      const [, name, params, returnType] = pureDef;
+      const body = extractBlock(lines, i);
+      const tsParams = transpileParams(params);
+      const tsReturn = mapType(returnType);
+      const tsBody = transpileBody(body);
+      guards.push({
+        name,
+        kind: 'function',
+        quint: `pure def ${name}(${params}): ${returnType} = { ${body} }`,
+        typescript: `export function ${name}(${tsParams}): ${tsReturn} {\n  ${tsBody}\n}`,
+        module: moduleName,
+        entity,
+      });
+      i = skipBlock(lines, i);
+      continue;
+    }
+
+    // Match: val name: bool = expression (single line or multiline)
+    const valDef = line.match(/^val\s+(\w+)\s*:\s*bool\s*=\s*$/);
+    if (valDef) {
+      // Multiline val — collect until we find a line that's not indented
+      const [, name] = valDef;
+      let body = '';
+      i++;
+      while (i < lines.length && (lines[i].startsWith('    ') || lines[i].trim() === '')) {
+        body += lines[i].trim() + ' ';
+        i++;
+      }
+      const tsBody = transpileExpression(body.trim());
+      guards.push({
+        name,
+        kind: 'invariant',
+        quint: `val ${name}: bool = ${body.trim()}`,
+        typescript: `export function check_${name}(data: any): boolean {\n  return ${tsBody};\n}`,
+        module: moduleName,
+        entity,
+      });
+      continue;
+    }
+
+    // Match: val name: bool = single-line-expression
+    const valDefSingle = line.match(/^val\s+(\w+)\s*:\s*bool\s*=\s*(.+)$/);
+    if (valDefSingle) {
+      const [, name, expr] = valDefSingle;
+      const tsExpr = transpileExpression(expr.trim());
+      guards.push({
+        name,
+        kind: 'invariant',
+        quint: `val ${name}: bool = ${expr}`,
+        typescript: `export function check_${name}(data: any): boolean {\n  return ${tsExpr};\n}`,
+        module: moduleName,
+        entity,
+      });
+    }
+
+    i++;
+  }
+
+  return guards;
+}
+
+/**
+ * Generate a TypeScript guards module from transpiled guards.
+ */
+export function generateGuardsModule(guards: TranspiledGuard[]): string {
+  if (guards.length === 0) return '// No guards generated\nexport {};\n';
+
+  const functions = guards.filter(g => g.kind === 'function');
+  const invariants = guards.filter(g => g.kind === 'invariant');
+
+  const lines: string[] = [
+    '/**',
+    ' * Runtime Guards — Transpiled from Quint Specifications',
+    ' *',
+    ' * These functions are automatically generated from the formal Quint invariants',
+    ' * and pure functions defined in the entity modules. They provide runtime',
+    ' * validation that mirrors the formal specification.',
+    ' *',
+    ` * Source: ${guards.length} guards from ${new Set(guards.map(g => g.entity)).size} entity modules`,
+    ' * Generated by: @specverse/engine-inference quint-transpiler',
+    ' */',
+    '',
+  ];
+
+  // Group by entity
+  const byEntity = new Map<string, TranspiledGuard[]>();
+  for (const g of guards) {
+    if (!byEntity.has(g.entity)) byEntity.set(g.entity, []);
+    byEntity.get(g.entity)!.push(g);
+  }
+
+  for (const [entity, entityGuards] of byEntity) {
+    lines.push(`// ═══════════════════════════════════════════════════`);
+    lines.push(`// ${entity} guards`);
+    lines.push(`// ═══════════════════════════════════════════════════`);
+    lines.push('');
+
+    for (const guard of entityGuards) {
+      lines.push(`/** ${guard.kind === 'function' ? 'Pure function' : 'Invariant'}: ${guard.name} (from ${guard.module}) */`);
+      lines.push(guard.typescript);
+      lines.push('');
+    }
+  }
+
+  return lines.join('\n');
+}
+
+// ─── Internal Helpers ────────────────────────────────────────────────
+
+function extractModuleName(content: string): string | null {
+  const match = content.match(/module\s+(\w+)/);
+  return match ? match[1] : null;
+}
+
+function extractBlock(lines: string[], startLine: number): string {
+  let depth = 0;
+  let body = '';
+  let capturing = false;
+
+  for (let i = startLine; i < lines.length; i++) {
+    for (let j = 0; j < lines[i].length; j++) {
+      const char = lines[i][j];
+      if (char === '{') {
+        depth++;
+        if (depth === 1) { capturing = true; continue; } // skip opening brace
+      }
+      if (char === '}') {
+        depth--;
+        if (depth === 0) return body.trim();
+      }
+      if (capturing && depth >= 1) {
+        body += char;
+      }
+    }
+    if (capturing && depth >= 1) body += '\n';
+  }
+  return body.trim();
+}
+
+function skipBlock(lines: string[], startLine: number): number {
+  let depth = 0;
+  for (let i = startLine; i < lines.length; i++) {
+    for (const char of lines[i]) {
+      if (char === '{') depth++;
+      if (char === '}') depth--;
+      if (depth === 0 && i > startLine) return i + 1;
+    }
+  }
+  return lines.length;
+}
+
+function transpileParams(params: string): string {
+  if (!params.trim()) return '';
+  return params.split(',').map(p => {
+    const [name, type] = p.trim().split(':').map(s => s.trim());
+    return `${name}: ${mapType(type)}`;
+  }).join(', ');
+}
+
+function mapType(quintType: string): string {
+  switch (quintType?.trim()) {
+    case 'int': return 'number';
+    case 'str': return 'string';
+    case 'bool': return 'boolean';
+    case 'Set': return 'Set<any>';
+    default: return quintType || 'any';
+  }
+}
+
+function transpileBody(body: string): string {
+  let ts = body;
+
+  // Strip the function signature line if present (pure def ... = {)
+  ts = ts.replace(/^pure\s+def\s+\w+\([^)]*\)\s*:\s*\w+\s*=\s*\{\s*/m, '');
+
+  // Remove trailing }
+  ts = ts.replace(/\}\s*$/, '');
+
+  // Normalize — join multiline into single line, collapse whitespace
+  ts = ts.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // Replace Quint operators with TypeScript
+  ts = ts.replace(/\band\b/g, '&&');
+  ts = ts.replace(/\bor\b/g, '||');
+  ts = ts.replace(/\bnot\b/g, '!');
+
+  // Clean up comments
+  ts = ts.replace(/\/\/.*?(?=\bif\b|\belse\b|$)/g, '');
+
+  // Replace if/else chains → ternary (from innermost out)
+  let prev = '';
+  let safety = 10;
+  while (ts !== prev && safety-- > 0) {
+    prev = ts;
+    // Match: if (cond) thenExpr else elseExpr
+    // thenExpr/elseExpr can be multi-word but stop at 'else' or end
+    ts = ts.replace(/if\s*\(([^)]+)\)\s+(.+?)\s+else\s+(.+?)(?=\s*;|\s*$)/g, '(($1) ? ($2) : ($3))');
+  }
+
+  return `return ${ts.trim()};`;
+}
+
+function transpileExpression(expr: string): string {
+  let ts = expr;
+
+  // Quint operators → TypeScript
+  ts = ts.replace(/\band\b/g, '&&');
+  ts = ts.replace(/\bor\b/g, '||');
+  ts = ts.replace(/\bnot\b/g, '!');
+
+  // forall → .every
+  ts = ts.replace(/(\w+)\.forall\((\w+)\s*=>\s*/g, '$1.every(($2: any) => ');
+
+  // exists → .some
+  ts = ts.replace(/(\w+)\.exists\((\w+)\s*=>\s*/g, '$1.some(($2: any) => ');
+
+  // .size() → .length or .size
+  ts = ts.replace(/\.size\(\)/g, '.length');
+
+  // .contains → .includes (for arrays) or .has (for Sets)
+  ts = ts.replace(/\.contains\(/g, '.includes(');
+
+  // Set("a", "b") → ["a", "b"]
+  ts = ts.replace(/Set\(([^)]+)\)/g, '[$1]');
+
+  // != → !==, == → ===
+  ts = ts.replace(/([^!<>])==/g, '$1===');
+  ts = ts.replace(/!=/g, '!==');
+
+  return ts;
+}
