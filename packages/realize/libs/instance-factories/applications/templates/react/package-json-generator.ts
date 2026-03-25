@@ -34,7 +34,6 @@ export default function generatePackageJson(context: TemplateContext): string {
       "react-hook-form": "^7.48.0",
       "zod": "^3.22.0",
       "@hookform/resolvers": "^3.3.0",
-      "@specverse/lang": "^3.4.0",
       "zustand": "^4.4.0"
     },
     devDependencies: {

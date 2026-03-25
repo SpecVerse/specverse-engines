@@ -16,7 +16,7 @@ import { renderProps } from '../../shared/adapter-types.js';
 export const shadcnAdapter: ComponentLibraryAdapter = {
   name: 'shadcn/ui',
   version: 'latest',
-  description: 'shadcn/ui component library adapter for SpecVerse v3.4.0',
+  description: 'shadcn/ui component library adapter',
 
   baseDependencies: [
     { name: 'react', version: '^18.2.0' },

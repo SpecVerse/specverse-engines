@@ -41,7 +41,7 @@ export class ClaudeExecutor {
       try {
         execSync(`${path} --version`, { stdio: 'pipe' });
         return path;
-      } catch {
+      } catch { // Binary not at this path — try next
         // Try next path
       }
     }
@@ -173,7 +173,7 @@ export class ClaudeExecutor {
     try {
       execSync(`${this.claudeBin} --version`, { stdio: 'pipe' });
       return true;
-    } catch {
+    } catch { // Claude binary not available
       return false;
     }
   }
@@ -188,7 +188,7 @@ export class ClaudeExecutor {
         stdio: 'pipe'
       });
       return result.trim();
-    } catch {
+    } catch { // Version check failed
       return null;
     }
   }

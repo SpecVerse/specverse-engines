@@ -1,5 +1,5 @@
 /**
- * Material-UI (MUI) Adapter for SpecVerse v3.4.0
+ * Material-UI (MUI) Adapter
  *
  * Maps all 49 atomic component types to Material-UI components.
  *
@@ -30,7 +30,7 @@ function renderProps(properties: Record<string, any>, exclude: string[] = []): s
 export const muiAdapter: ComponentLibraryAdapter = {
   name: 'Material-UI',
   version: '5.x',
-  description: 'Material-UI (MUI) component library adapter for SpecVerse v3.4.0',
+  description: 'Material-UI (MUI) component library adapter',
 
   baseDependencies: [
     { name: '@mui/material', version: '^5.15.0' },

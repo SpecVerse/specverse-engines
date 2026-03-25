@@ -1,5 +1,5 @@
 /**
- * Ant Design (antd) Adapter for SpecVerse v3.4.0
+ * Ant Design (antd) Adapter
  *
  * Maps all 49 atomic component types to Ant Design components.
  *
@@ -30,7 +30,7 @@ function renderProps(properties: Record<string, any>, exclude: string[] = []): s
 export const antdAdapter: ComponentLibraryAdapter = {
   name: 'Ant Design',
   version: '5.x',
-  description: 'Ant Design (antd) component library adapter for SpecVerse v3.4.0',
+  description: 'Ant Design (antd) component library adapter',
 
   baseDependencies: [
     { name: 'antd', version: '^5.15.0' },

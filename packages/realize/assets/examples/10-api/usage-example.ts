@@ -19,7 +19,7 @@ import {
   AIViewGenerator,
   UMLGenerator,
   DocumentationGenerator,
-  DiagramGeneratorV31,
+  UnifiedDiagramGenerator,
   
   // Types
   ModelSpec,
@@ -209,7 +209,7 @@ async function generateDocumentation(ast: SpecVerseAST): Promise<void> {
 // ============================================
 
 async function generateMermaidDiagrams(filePath: string): Promise<void> {
-  const generator = new DiagramGeneratorV31();
+  const generator = new UnifiedDiagramGenerator();
   
   // Generate all diagram types
   const outputDir = 'output/diagrams';

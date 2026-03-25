@@ -1,7 +1,7 @@
 /**
  * Atomic Components Registry
  *
- * Defines all 49 atomic component types from SpecVerse v3.4.0 schema.
+ * Defines all 49 atomic component types.
  * Each type has metadata about its purpose, properties, and usage patterns.
  *
  * This registry is framework-agnostic. UI library adapters (shadcn, MUI, etc.)

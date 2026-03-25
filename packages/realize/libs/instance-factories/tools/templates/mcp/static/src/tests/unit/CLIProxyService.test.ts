@@ -65,7 +65,7 @@ const mockAPI = {
 };
 
 // Mock the published package
-vi.mock('@specverse/lang', () => mockAPI);
+vi.mock('@specverse/engine-entities', () => mockAPI);
 
 // Mock the local development path
 vi.mock('../../../../../dist/index.js', () => mockAPI);

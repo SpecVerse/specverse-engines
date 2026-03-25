@@ -51,7 +51,7 @@ export async function generate(context: PatternAdapterGeneratorContext): Promise
 
   if (adapterSource) {
     // Successfully read the adapter - return it with a header comment
-    // The imports from @specverse/lang/browser are valid and exported
+    // The imports from @specverse/engine-realize are valid and exported
     return `/**
  * ReactPatternAdapter - Pattern-Based View Rendering
  *
@@ -62,7 +62,7 @@ export async function generate(context: PatternAdapterGeneratorContext): Promise
  * tech-independent composite patterns. It is bundled with generated code
  * for standalone deployment.
  *
- * Imports COMPOSITE_VIEW_PATTERNS and types from @specverse/lang/browser
+ * Imports COMPOSITE_VIEW_PATTERNS and types from @specverse/engine-realize
  * which are exported from the published npm package.
  *
  * DO NOT EDIT: Changes will be overwritten on next generation.
@@ -73,13 +73,13 @@ ${adapterSource}
 `;
   }
 
-  // Fallback: Return stub that imports from @specverse/lang/browser
+  // Fallback: Return stub that imports from @specverse/engine-realize
   return `/**
  * ReactPatternAdapter - Pattern-Based View Rendering (STUB)
  *
  * ⚠️ WARNING: Could not locate react-pattern-adapter.tsx source file.
  *
- * This is a stub implementation that imports from @specverse/lang/browser.
+ * This is a stub implementation that imports from @specverse/engine-realize.
  * For full functionality, ensure specverse-app-demo is available at generation time.
  *
  * Attempted paths:
@@ -91,7 +91,7 @@ import {
   COMPOSITE_VIEW_PATTERNS,
   type CompositeViewPattern,
   type CURVEDOperation
-} from '@specverse/lang/browser';
+} from '@specverse/engine-realize';
 
 /**
  * React-specific protocol mapping for CURVED operations (STUB)
@@ -172,7 +172,7 @@ export function usePatternAdapter() {
   }), []);
 }
 
-export { COMPOSITE_VIEW_PATTERNS } from '@specverse/lang/browser';
+export { COMPOSITE_VIEW_PATTERNS } from '@specverse/engine-realize';
 
 console.warn('⚠️ Using stub ReactPatternAdapter - full source file not found during generation');
 `;

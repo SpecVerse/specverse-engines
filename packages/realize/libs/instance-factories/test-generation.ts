@@ -4,11 +4,8 @@
  * Tests the complete flow from spec to generated code
  */
 
-import { createDefaultLibrary } from '../../src/realize/library/index.js';
-import { createResolver } from '../../src/realize/library/index.js';
-import { createCodeGenerator } from '../../src/realize/engines/index.js';
-import { loadManifest } from '../../src/realize/utils/manifest-loader.js';
-import { UnifiedSpecVerseParser } from '../../src/parser/unified-parser.js';
+import { createDefaultLibrary, createResolver, createCodeGenerator, loadManifest } from '@specverse/engine-realize';
+import { UnifiedSpecVerseParser } from '@specverse/engine-parser';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 

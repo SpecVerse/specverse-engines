@@ -281,7 +281,12 @@ import type { ParserEngine, InferenceEngine, RealizeEngine } from '@specverse/ty
         }
 
         // Inject key as name into entity maps, and expand convention-format attributes
-        for (const section of ['models', 'controllers', 'services', 'events', 'views']) {
+        // Iterate all object-valued sections (not hardcoded — covers any entity type)
+        const entitySections = Object.keys(componentData).filter(k =>
+          componentData[k] && typeof componentData[k] === 'object' && !Array.isArray(componentData[k])
+          && !['version', 'description', 'name', 'componentName', 'commonDefinitions'].includes(k)
+        );
+        for (const section of entitySections) {
           if (componentData[section] && typeof componentData[section] === 'object' && !Array.isArray(componentData[section])) {
             for (const [key, value] of Object.entries(componentData[section])) {
               if (value && typeof value === 'object') {

@@ -2,7 +2,7 @@
  * EntityModuleService
  *
  * Provides entity module metadata as MCP resources and tools.
- * Loads the entity registry from @specverse/lang and exposes:
+ * Loads the entity registry from @specverse/engine-entities and exposes:
  * - Entity module registry (all modules, their facets, dependencies)
  * - Convention grammars per entity (what behavioural constraints are available)
  * - Inference rules per entity (what gets generated from what)
@@ -41,7 +41,7 @@ export class EntityModuleService {
   private loaded = false;
 
   /**
-   * Attempt to load the entity registry from @specverse/lang.
+   * Attempt to load the entity registry from @specverse/engine-entities.
    * Fails gracefully if not available.
    */
   async initialize(): Promise<boolean> {
