@@ -709,6 +709,87 @@ import { EngineRegistry } from '@specverse/engine-entities';`,
           console.log(template);
         }`
   },
+  // === session subcommands ===
+  'session.create': {
+    imports: `import { EngineRegistry } from '@specverse/engine-entities';`,
+    handler: `const registry = new EngineRegistry();
+        await registry.discover();
+        const aiEngine = registry.getEngineForCapability('ai-prompts') as any;
+        if (!aiEngine) { console.error('AI engine not available.'); process.exit(1); }
+        await aiEngine.initialize();
+
+        const { SessionManager } = await import('@specverse/engine-ai');
+        const manager = new SessionManager();
+        const session = await manager.create({ name: options.name, pver: options.pver });
+
+        if (options.json) {
+          console.log(JSON.stringify(session, null, 2));
+        } else {
+          console.log('Session created: ' + session.sessionId);
+          console.log('Status: ' + session.status);
+          if (session.name) console.log('Name: ' + session.name);
+          console.log('Prompt version: ' + session.pver);
+        }`
+  },
+  'session.list': {
+    imports: ``,
+    handler: `const { SessionManager } = await import('@specverse/engine-ai');
+        const manager = new SessionManager();
+        const sessions = await manager.list({ all: options.all });
+
+        if (options.json) {
+          console.log(JSON.stringify(sessions, null, 2));
+        } else if (sessions.length === 0) {
+          console.log('No sessions found. Create one with: specverse session create');
+        } else {
+          console.log('Sessions (' + sessions.length + '):');
+          for (const s of sessions) {
+            console.log('  ' + (s.status === 'active' ? '*' : ' ') + ' ' + s.sessionId + (s.name ? ' (' + s.name + ')' : '') + ' — ' + s.status + ', ' + s.jobsProcessed + ' jobs');
+          }
+        }`
+  },
+  'session.delete': {
+    imports: ``,
+    handler: `const { SessionManager } = await import('@specverse/engine-ai');
+        const manager = new SessionManager();
+        await manager.delete(sessionId, { force: options.force });
+        console.log('Session deleted: ' + sessionId);`
+  },
+  'session.submit': {
+    imports: ``,
+    handler: `const { SessionManager } = await import('@specverse/engine-ai');
+        const manager = new SessionManager();
+        const job = await manager.submit(sessionId, requirements, {
+          jobId: options.jobId,
+          outputPath: options.output,
+          operation: options.operation,
+        });
+        console.log('Job submitted: ' + job.jobId);
+        console.log('Status: ' + job.status);
+        if (options.output) console.log('Output: ' + options.output);`
+  },
+  'session.status': {
+    imports: ``,
+    handler: `const { SessionManager } = await import('@specverse/engine-ai');
+        const manager = new SessionManager();
+        const status = await manager.status(id);
+        if (options.json) {
+          console.log(JSON.stringify(status, null, 2));
+        } else {
+          console.log('ID: ' + (status.sessionId || status.jobId));
+          console.log('Status: ' + status.status);
+          if (status.created) console.log('Created: ' + new Date(status.created).toLocaleString());
+          if (status.jobsProcessed !== undefined) console.log('Jobs: ' + status.jobsProcessed);
+        }`
+  },
+  'session.process': {
+    imports: ``,
+    handler: `const { SessionManager } = await import('@specverse/engine-ai');
+        const manager = new SessionManager();
+        console.log('Processing job: ' + jobId);
+        await manager.process(jobId);
+        console.log('Job processed successfully');`
+  },
 };
 
 function generateLeafCommand(

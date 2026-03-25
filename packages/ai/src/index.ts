@@ -7,6 +7,8 @@ export * from './commands/index.js';
 export * from './core/ecosystem-prompt-manager.js';
 export * from './types/index.js';
 export * from './config-loader.js';
+export { SessionManager } from './session/session-manager.js';
+export type { SessionInfo, JobRequest, JobStatus, CreateSessionOptions } from './session/types.js';
 
 // ============================================================================
 // Engine adapter — implements SpecVerseEngine for discovery via EngineRegistry
