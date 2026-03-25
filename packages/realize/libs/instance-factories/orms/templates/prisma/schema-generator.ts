@@ -259,7 +259,7 @@ function getRelationName(
  * Generate Prisma schema header
  */
 function generateHeader(implType: any): string {
-  const provider = implType?.configuration?.orm?.provider || 'postgresql';
+  const provider = implType?.configuration?.orm?.provider || 'sqlite';
 
   return `// Generated Prisma schema from SpecVerse specification
 // This is your Prisma schema file
@@ -271,7 +271,7 @@ generator client {
 
 datasource db {
   provider = "${provider}"
-  url      = env("DATABASE_URL")
+  url      = ${provider === 'sqlite' ? '"file:./dev.db"' : 'env("DATABASE_URL")'}
 }`;
 }
 
@@ -329,8 +329,8 @@ function generateModelSchema(
 function generateField(attr: any, model: any): string {
   const name = attr.name;
   const prismaType = mapTypeToPrisma(attr.type, attr.dbMapping?.columnType);
-  const isOptional = !attr.constraints?.required;
-  const isUnique = attr.constraints?.unique;
+  const isOptional = !(attr.required || attr.constraints?.required);
+  const isUnique = attr.unique || attr.constraints?.unique;
   const metadata = model?.metadata || {};
 
   let modifiers = '';

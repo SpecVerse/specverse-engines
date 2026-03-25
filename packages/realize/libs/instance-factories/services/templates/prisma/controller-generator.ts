@@ -92,7 +92,10 @@ function generateValidationLogic(model: any, dataParam: string = '_data', contex
 
   const validations: string[] = [];
 
-  Object.entries(model.attributes).forEach(([name, attr]: [string, any]) => {
+  const attrList = Array.isArray(model.attributes)
+    ? model.attributes.map((a: any) => [a.name, a])
+    : Object.entries(model.attributes);
+  attrList.forEach(([name, attr]: [string, any]) => {
     // Required validation
     if (attr.required && !attr.auto) {
       validations.push(`

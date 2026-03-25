@@ -273,7 +273,7 @@ class SpecVerseRealizeEngine implements RealizeEngine {
       if (scaffoldFiles.length) console.log(`   ✅ Project scaffolding: ${scaffoldFiles.join(', ')}`);
     }
 
-    // 8. Backend app entry point
+    // 8. Backend app entry point + Fastify server with route wiring
     const appResolved = tryResolve('app.entrypoint');
     if (appResolved?.instanceFactory?.codeTemplates) {
       const appFiles: string[] = [];
@@ -286,6 +286,22 @@ class SpecVerseRealizeEngine implements RealizeEngine {
           appFiles.push(basename(output.filePath));
         } catch { /* app generation is optional */ }
       }
+
+      // Generate Fastify server with auto-wired routes
+      try {
+        const serverGenPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'libs', 'instance-factories', 'controllers', 'templates', 'fastify', 'server-generator.ts');
+        if (existsSync(serverGenPath) || existsSync(serverGenPath.replace('.ts', '.js'))) {
+          const genPath = existsSync(serverGenPath) ? serverGenPath : serverGenPath.replace('.ts', '.js');
+          const { default: generateServer } = await import(genPath);
+          const serverCode = generateServer({ spec, models: allModels });
+          const serverPath = join(outputDir, 'backend', 'src', 'main.ts');
+          const serverDir = dirname(serverPath);
+          if (!existsSync(serverDir)) mkdirSync(serverDir, { recursive: true });
+          writeFileSync(serverPath, serverCode);
+          appFiles.push('main.ts');
+        }
+      } catch { /* server generation is optional */ }
+
       if (appFiles.length) console.log(`   ✅ Backend application: ${appFiles.join(', ')}`);
     }
 
