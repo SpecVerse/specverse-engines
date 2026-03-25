@@ -18,7 +18,6 @@ import { ControllerGenerator } from './generators/controller-generator.js';
 import { ServiceGenerator } from './generators/service-generator.js';
 import { EventGenerator } from './generators/event-generator.js';
 import { ViewGenerator } from './generators/view-generator.js';
-import { PromotionGenerator } from './generators/promotion-generator.js';
 import * as fs from 'fs';
 
 export interface LogicalInferenceResult {
@@ -59,9 +58,9 @@ export class LogicalInferenceEngine {
     this.generators.set('events', { generator: new EventGenerator(debugMode), configKey: 'generateEvents' });
     this.generators.set('views', { generator: new ViewGenerator(debugMode), configKey: 'generateViews' });
 
-    // Extension entity generators — registered with a special prefix
-    // These run after core generators and merge results into existing categories
-    this.generators.set('_ext_promotions', { generator: new PromotionGenerator(debugMode), configKey: 'generatePromotions' });
+    // Extension entity generators — auto-discovered at runtime
+    // Call discoverExtensionGenerators() after construction to load them
+    this.discoverExtensionGenerators(debugMode);
 
     if (debugMode) {
       console.log('🚀 Logical Inference Engine initialized');
@@ -71,10 +70,66 @@ export class LogicalInferenceEngine {
 
   /**
    * Register an additional generator for extension entity types.
-   * Called after construction to plug in domain-specific inference.
    */
   registerGenerator(category: string, generator: any, configKey: string): void {
     this.generators.set(category, { generator, configKey });
+  }
+
+  /**
+   * Auto-discover extension entity generators from the generators/ directory.
+   * Scans for files matching *-generator.js that aren't core generators.
+   */
+  private discoverExtensionGenerators(debugMode: boolean): void {
+    try {
+      const generatorsDir = new URL('./generators/', import.meta.url);
+      const generatorsDirPath = generatorsDir.pathname;
+
+      if (!fs.existsSync(generatorsDirPath)) return;
+
+      const coreGenerators = new Set(['controller-generator', 'service-generator', 'event-generator', 'view-generator',
+                                       'component-type-resolver', 'specialist-view-expander']);
+
+      for (const file of fs.readdirSync(generatorsDirPath)) {
+        if (!file.endsWith('-generator.js')) continue;
+        const baseName = file.replace('.js', '');
+        if (coreGenerators.has(baseName)) continue;
+
+        const category = baseName.replace(/-generator$/, '') + 's';
+        const configKey = `generate${category.charAt(0).toUpperCase() + category.slice(1)}`;
+
+        // Queue async discovery — will be resolved before first generate() call
+        this._pendingExtGenerators.push({ file, category, configKey, debugMode });
+      }
+    } catch {
+      // Discovery not available in all contexts
+    }
+  }
+
+  private _pendingExtGenerators: Array<{ file: string; category: string; configKey: string; debugMode: boolean }> = [];
+
+  /**
+   * Load any pending extension generators (async, called before first inference run)
+   */
+  private async loadPendingExtGenerators(): Promise<void> {
+    if (this._pendingExtGenerators.length === 0) return;
+
+    const pending = this._pendingExtGenerators;
+    this._pendingExtGenerators = [];
+
+    for (const { file, category, configKey, debugMode } of pending) {
+      try {
+        const mod = await import(new URL(`./generators/${file}`, import.meta.url).href);
+        const GeneratorClass = mod.PromotionGenerator || mod.default ||
+          Object.values(mod).find((v: any) => typeof v === 'function' && v.prototype?.generate);
+        if (GeneratorClass && typeof GeneratorClass === 'function') {
+          const generator = new (GeneratorClass as any)(debugMode);
+          this.generators.set(`_ext_${category}`, { generator, configKey });
+          if (debugMode) console.log(`   Discovered extension generator: ${category}`);
+        }
+      } catch {
+        // Generator not loadable — skip
+      }
+    }
   }
 
   /**
@@ -231,6 +286,9 @@ export class LogicalInferenceEngine {
     componentName: string = 'GeneratedComponent',
     metadata: Record<string, any> = {}
   ): Promise<LogicalInferenceResult> {
+    // Load any auto-discovered extension generators (async one-time)
+    await this.loadPendingExtGenerators();
+
     const startTime = Date.now();
     let rulesApplied = 0;
 

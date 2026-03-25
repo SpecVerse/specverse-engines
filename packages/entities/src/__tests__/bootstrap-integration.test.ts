@@ -200,8 +200,9 @@ describe('Entity Module Bootstrap & Integration', () => {
   // --------------------------------------------------------------------------
 
   describe('manifest-registry consistency', () => {
-    const moduleNames = ['models', 'controllers', 'services', 'events', 'views', 'deployments',
-                         'commands', 'measures', 'conventions'];
+    // Derive module names from registry — no hardcoded list
+    bootstrapEntityModules();
+    const moduleNames = getEntityRegistry().getInDependencyOrder().map(m => m.name);
 
     for (const moduleName of moduleNames) {
       it(`should have consistent manifest for ${moduleName}`, () => {

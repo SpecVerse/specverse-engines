@@ -36,12 +36,11 @@ export class ConventionProcessor implements ProcessorContext {
     bootstrapEntityModules();
     this.entityProcessors = getEntityRegistry().getConventionProcessors();
     // Derive component entity types from registered convention processors.
-    // Filter to types that have completed schema integration (in root.schema.json
-    // ComponentsContainer and in ComponentSpec AST type). Top-level types (deployments)
-    // and extension types not yet in the component schema (conventions, measures) are excluded.
-    const COMPONENT_ENTITY_TYPES = new Set(['models', 'controllers', 'services', 'views', 'events', 'commands', 'promotions']);
+    // Exclude top-level types (deployments) and types not yet in the component schema.
+    // This is an exclude-list (small, stable) rather than an include-list (grows with each entity).
+    const NON_COMPONENT_TYPES = new Set(['deployments', 'conventions', 'measures']);
     this.componentEntityTypes = Array.from(this.entityProcessors.keys())
-      .filter(name => COMPONENT_ENTITY_TYPES.has(name));
+      .filter(name => !NON_COMPONENT_TYPES.has(name));
 
     // Load behavioural convention grammars from entity modules
     this.behaviouralProcessor = new BehaviouralConventionProcessor();
@@ -156,16 +155,18 @@ export class ConventionProcessor implements ProcessorContext {
     };
 
     // Process each component section via entity registry convention processors.
-    // Core types (models, controllers, etc.) default to [] when absent.
-    // Extension types (commands) are only included when present in the source.
-    const CORE_DEFAULTS = new Set(['models', 'controllers', 'services', 'views', 'events']);
+    // Core entity types default to [] when absent; extension types are only included when present.
+    const registry = getEntityRegistry();
+    const coreModuleNames = new Set(
+      registry.getInDependencyOrder().filter(m => m.type === 'core').map(m => m.name)
+    );
     for (const entityType of this.componentEntityTypes) {
       if (componentData[entityType]) {
         const processor = this.entityProcessors.get(entityType);
         if (processor) {
           processedComponent[entityType] = processor.process(componentData[entityType], this);
         }
-      } else if (CORE_DEFAULTS.has(entityType)) {
+      } else if (coreModuleNames.has(entityType)) {
         processedComponent[entityType] = [];
       }
       // Extension types omitted when not present — avoids schema type mismatches

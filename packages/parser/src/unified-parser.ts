@@ -905,8 +905,10 @@ export class UnifiedSpecVerseParser {
     }
     
     // Check for conflicts between imported types and locally defined entities
-    // Uses entity type names dynamically (not hardcoded) — covers models, controllers, services, events, views, and any extensions
-    const entityTypes = ['models', 'controllers', 'services', 'events', 'views'];
+    // Derive entity type names from the component's own keys (covers any entity type, including extensions)
+    const entityTypes = Object.keys(component).filter(k =>
+      Array.isArray((component as any)[k]) && (component as any)[k].length > 0 && (component as any)[k][0]?.name
+    );
     for (const entityType of entityTypes) {
       const localNames = new Set(((component as any)[entityType] || []).map((item: any) => item.name));
       for (const importedType of importedTypes) {

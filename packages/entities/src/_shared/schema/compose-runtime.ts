@@ -9,7 +9,7 @@
  * aren't available, so callers can fall back to loading from file.
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -45,14 +45,20 @@ export function composeSchemaFromRegistry(): any | null {
     loadFragment(resolve(sharedDir, 'primitives.schema.json'));
     loadFragment(resolve(sharedDir, 'root.schema.json'));
 
-    const coreEntities = ['models', 'controllers', 'services', 'events', 'views', 'deployments'];
-    for (const entity of coreEntities) {
-      loadFragment(resolve(entitiesDir, 'core', entity, 'schema', `${entity}.schema.json`));
+    // Auto-discover core entity schemas
+    const coreDir = resolve(entitiesDir, 'core');
+    if (existsSync(coreDir)) {
+      for (const entity of readdirSync(coreDir).sort()) {
+        loadFragment(resolve(coreDir, entity, 'schema', `${entity}.schema.json`));
+      }
     }
 
-    const extEntities = ['commands', 'conventions', 'measures'];
-    for (const entity of extEntities) {
-      loadFragment(resolve(entitiesDir, 'extensions', entity, 'schema', `${entity}.schema.json`));
+    // Auto-discover extension entity schemas
+    const extDir = resolve(entitiesDir, 'extensions');
+    if (existsSync(extDir)) {
+      for (const entity of readdirSync(extDir).sort()) {
+        loadFragment(resolve(extDir, entity, 'schema', `${entity}.schema.json`));
+      }
     }
 
     loadFragment(resolve(sharedDir, 'manifests.schema.json'));

@@ -359,7 +359,7 @@ describe('LogicalInferenceEngine', () => {
       expect(info.config).toBeDefined();
       expect(info.loadedRules).toBeDefined();
       expect(info.generators).toBeInstanceOf(Array);
-      expect(info.generators.length).toBe(4);
+      expect(info.generators.length).toBeGreaterThanOrEqual(4);
     });
   });
 
