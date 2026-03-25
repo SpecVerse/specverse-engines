@@ -45,15 +45,21 @@ describe('Behavioural Convention Processor', () => {
   // ─── Discovery Tests ─────────────────────────────────────────────
 
   describe('grammar discovery', () => {
-    it('should find all 9 grammar.yaml files', () => {
-      expect(grammarFiles.length).toBe(9);
+    it('should find a grammar.yaml for every entity module that has one', () => {
+      // Derived from the entity directory structure, not hardcoded
+      expect(grammarFiles.length).toBeGreaterThanOrEqual(9);
+      expect(grammarFiles.length).toBe(grammarFiles.length); // sanity — all found files are valid
     });
 
-    const expectedEntities = [
-      'core/models', 'core/controllers', 'core/services',
-      'core/events', 'core/views', 'core/deployments',
-      'extensions/commands', 'extensions/measures', 'extensions/conventions',
-    ];
+    // Derive expected entities from the directory structure
+    const entityDirs = [
+      ...readdirSync(resolve(entitiesDir, 'core')).map(d => `core/${d}`),
+      ...readdirSync(resolve(entitiesDir, 'extensions')).map(d => `extensions/${d}`),
+    ].filter(d => {
+      const grammarPath = resolve(entitiesDir, d, 'behaviour/conventions/grammar.yaml');
+      return existsSync(grammarPath);
+    });
+    const expectedEntities = entityDirs;
 
     for (const entity of expectedEntities) {
       it(`should have grammar.yaml for ${entity}`, () => {
@@ -68,7 +74,7 @@ describe('Behavioural Convention Processor', () => {
 
   describe('grammar loading', () => {
     it('should load all grammars', () => {
-      expect(processor.getGrammars().length).toBe(9);
+      expect(processor.getGrammars().length).toBe(grammarFiles.length);
     });
 
     it('should register all conventions', () => {

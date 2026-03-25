@@ -80,8 +80,14 @@ class SpecVerseInferenceEngine implements InferenceEngine {
       metadata: model.metadata || {},
     }));
 
+    // Collect extension entity data (promotions, etc.) from components
+    const extensionData: Record<string, any> = {};
+    for (const component of ast.components || []) {
+      if (component.promotions) extensionData.promotions = component.promotions;
+    }
+
     const result = await this._engine.inferCompleteSpecification(
-      models, ast.components?.[0]?.name, options?.targetEnvironment || 'development'
+      models, ast.components?.[0]?.name, options?.targetEnvironment || 'development', extensionData
     );
     // Serialize to YAML format
     const yaml = await import('js-yaml');

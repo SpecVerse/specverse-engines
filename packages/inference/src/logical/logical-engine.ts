@@ -18,6 +18,7 @@ import { ControllerGenerator } from './generators/controller-generator.js';
 import { ServiceGenerator } from './generators/service-generator.js';
 import { EventGenerator } from './generators/event-generator.js';
 import { ViewGenerator } from './generators/view-generator.js';
+import { PromotionGenerator } from './generators/promotion-generator.js';
 import * as fs from 'fs';
 
 export interface LogicalInferenceResult {
@@ -58,10 +59,22 @@ export class LogicalInferenceEngine {
     this.generators.set('events', { generator: new EventGenerator(debugMode), configKey: 'generateEvents' });
     this.generators.set('views', { generator: new ViewGenerator(debugMode), configKey: 'generateViews' });
 
+    // Extension entity generators — registered with a special prefix
+    // These run after core generators and merge results into existing categories
+    this.generators.set('_ext_promotions', { generator: new PromotionGenerator(debugMode), configKey: 'generatePromotions' });
+
     if (debugMode) {
       console.log('🚀 Logical Inference Engine initialized');
       console.log(`   Configuration: ${JSON.stringify(this.config.logical, null, 2)}`);
     }
+  }
+
+  /**
+   * Register an additional generator for extension entity types.
+   * Called after construction to plug in domain-specific inference.
+   */
+  registerGenerator(category: string, generator: any, configKey: string): void {
+    this.generators.set(category, { generator, configKey });
   }
 
   /**
@@ -252,8 +265,17 @@ export class LogicalInferenceEngine {
         if ((this.config.logical as any)[configKey] !== false) {
           const result = await generator.generate(models, baseContext);
 
-          // Each generator returns { [category]: Record<string, Spec>, rulesUsed, validation }
-          (specification as any)[category] = result[category];
+          if (category.startsWith('_ext_')) {
+            // Extension generators return multiple categories — merge into existing
+            for (const [key, value] of Object.entries(result)) {
+              if (key === 'rulesUsed' || key === 'validation') continue;
+              const existing = (specification as any)[key] || {};
+              (specification as any)[key] = { ...existing, ...(value as any) };
+            }
+          } else {
+            // Core generators return { [category]: Record<string, Spec>, ... }
+            (specification as any)[category] = result[category];
+          }
           rulesApplied += result.rulesUsed;
           validation.errors.push(...result.validation.errors);
           validation.warnings.push(...result.validation.warnings);

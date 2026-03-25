@@ -27,23 +27,26 @@ describe('Entity Module Bootstrap & Integration', () => {
   // --------------------------------------------------------------------------
 
   describe('bootstrap', () => {
-    it('should register all 9 modules (6 core + 3 extension)', () => {
+    it('should register all core + extension modules', () => {
       const registry = bootstrapEntityModules();
-      expect(registry.size).toBe(9);
+      const coreCount = getCoreModuleNames().length;
+      const extCount = getExtensionModuleNames().length;
+      expect(registry.size).toBe(coreCount + extCount);
     });
 
     it('should be idempotent', () => {
       bootstrapEntityModules();
       bootstrapEntityModules();
       const registry = getEntityRegistry();
-      expect(registry.size).toBe(9);
+      const coreCount = getCoreModuleNames().length;
+      const extCount = getExtensionModuleNames().length;
+      expect(registry.size).toBe(coreCount + extCount);
     });
 
     it('should register all expected modules', () => {
       bootstrapEntityModules();
       const registry = getEntityRegistry();
-      const allNames = ['models', 'controllers', 'services', 'events', 'views', 'deployments',
-                        'commands', 'measures', 'conventions'];
+      const allNames = [...getCoreModuleNames(), ...getExtensionModuleNames()];
       for (const name of allNames) {
         expect(registry.hasModule(name), `Missing module: ${name}`).toBe(true);
       }
@@ -71,12 +74,13 @@ describe('Entity Module Bootstrap & Integration', () => {
       expect(names).toContain('deployments');
     });
 
-    it('should list all 3 extension module names', () => {
+    it('should list all extension module names', () => {
       const names = getExtensionModuleNames();
-      expect(names).toHaveLength(3);
+      expect(names.length).toBeGreaterThanOrEqual(3);
       expect(names).toContain('commands');
       expect(names).toContain('measures');
       expect(names).toContain('conventions');
+      expect(names).toContain('promotions');
     });
 
     it('should match registered modules after bootstrap', () => {
@@ -98,7 +102,7 @@ describe('Entity Module Bootstrap & Integration', () => {
       bootstrapEntityModules();
       const registry = getEntityRegistry();
       const ordered = registry.getInDependencyOrder();
-      expect(ordered).toHaveLength(9);
+      expect(ordered).toHaveLength(getCoreModuleNames().length + getExtensionModuleNames().length);
     });
 
     it('should place models first (no dependencies)', () => {
@@ -123,9 +127,9 @@ describe('Entity Module Bootstrap & Integration', () => {
       bootstrapEntityModules();
       const registry = getEntityRegistry();
       const processors = registry.getConventionProcessors();
-      expect(processors.size).toBe(9);
-      for (const name of ['models', 'controllers', 'services', 'events', 'views', 'deployments',
-                           'commands', 'measures', 'conventions']) {
+      const allModuleNames = [...getCoreModuleNames(), ...getExtensionModuleNames()];
+      expect(processors.size).toBe(allModuleNames.length);
+      for (const name of allModuleNames) {
         expect(processors.has(name), `Missing processor: ${name}`).toBe(true);
       }
     });
