@@ -263,9 +263,16 @@ function ${name}() {
     setSaving(true);
     setError(null);
     try {
+      // Convert datetime-local values to full ISO-8601 for Prisma
+      const submitData = { ...form };
+      for (const [key, val] of Object.entries(submitData)) {
+        if (typeof val === 'string' && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$/.test(val)) {
+          submitData[key] = new Date(val).toISOString();
+        }
+      }
       const method = id ? 'PUT' : 'POST';
       const url = id ? \`${api}/\${id}\` : '${api}';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(submitData) });
       if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Save failed'); }
       navigate('/${lower}list');
     } catch (e: any) { setError(e.message); }
