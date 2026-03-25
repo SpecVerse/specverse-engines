@@ -11,7 +11,7 @@ import type { TemplateContext } from '@specverse/engine-realize';
  * Generate Prisma controller for a model
  */
 export default function generatePrismaController(context: TemplateContext): string {
-  const { controller, model, spec } = context;
+  const { controller, model, spec, models: allModels } = context;
 
   if (!controller) {
     throw new Error('Controller is required in template context');
@@ -56,9 +56,9 @@ function parseId(id: string): ${needsIntParse ? 'number' : 'string'} {
  */
 export class ${controllerName} {
   ${generateValidateMethod(model, modelName)}
-  ${curedOps.create ? generateCreateMethod(model, modelName, modelVar, controller) : ''}
+  ${curedOps.create ? generateCreateMethod(model, modelName, modelVar, controller, allModels) : ''}
   ${curedOps.retrieve ? generateRetrieveMethod(model, modelName, modelVar) : ''}
-  ${curedOps.update ? generateUpdateMethod(model, modelName, modelVar, controller) : ''}
+  ${curedOps.update ? generateUpdateMethod(model, modelName, modelVar, controller, allModels) : ''}
   ${curedOps.evolve ? generateEvolveMethod(model, modelName, modelVar, controller) : ''}
   ${curedOps.delete ? generateDeleteMethod(model, modelName, modelVar, controller) : ''}
   ${generateCustomActions(controller, modelName, modelVar)}
@@ -159,7 +159,7 @@ function generateValidationLogic(model: any, dataParam: string = '_data', contex
 /**
  * Generate create method
  */
-function generateCreateMethod(model: any, modelName: string, modelVar: string, controller: any): string {
+function generateCreateMethod(model: any, modelName: string, modelVar: string, controller: any, allModels?: any[]): string {
   const hasEvents = controller.publishes && Array.isArray(controller.publishes);
   const createEvent = hasEvents ? controller.publishes.find((e: string) => e.includes('Created')) : null;
 
@@ -176,7 +176,7 @@ function generateCreateMethod(model: any, modelName: string, modelVar: string, c
 
     // Transform FK fields to Prisma connect format
     const prismaData = { ...data };
-    ${generateFKTransform(model)}
+    ${generateFKTransform(model, 'prismaData', allModels)}
 
     // Create record
     const ${modelVar} = await prisma.${modelVar}.create({
@@ -231,7 +231,7 @@ function generateRetrieveMethod(model: any, modelName: string, modelVar: string)
 /**
  * Generate update method
  */
-function generateUpdateMethod(model: any, modelName: string, modelVar: string, controller: any): string {
+function generateUpdateMethod(model: any, modelName: string, modelVar: string, controller: any, allModels?: any[]): string {
   const hasEvents = controller.publishes && Array.isArray(controller.publishes);
   const updateEvent = hasEvents ? controller.publishes.find((e: string) => e.includes('Updated')) : null;
 
@@ -256,7 +256,7 @@ function generateUpdateMethod(model: any, modelName: string, modelVar: string, c
     }
 
     // Transform FK fields to Prisma connect format
-    ${generateFKTransform(model, 'updateData')}
+    ${generateFKTransform(model, 'updateData', allModels)}
 
     // Update record
     const ${modelVar} = await prisma.${modelVar}.update({
@@ -448,7 +448,7 @@ function mapTypeToTypeScript(type: string): string {
  * Converts flat FK IDs (guesthouseId: "uuid") to Prisma connect format
  * (guesthouse: { connect: { id: "uuid" } })
  */
-function generateFKTransform(model: any, varName: string = 'prismaData'): string {
+function generateFKTransform(model: any, varName: string = 'prismaData', allModels?: any[]): string {
   const rels = Array.isArray(model.relationships)
     ? model.relationships
     : Object.values(model.relationships || {});
@@ -459,8 +459,23 @@ function generateFKTransform(model: any, varName: string = 'prismaData'): string
   return belongsToRels.map((rel: any) => {
     const relName = rel.name;
     const fkField = `${relName}Id`;
+
+    // Determine target model's ID type for correct parsing
+    let parseExpr = `${varName}.${fkField}`;
+    if (allModels) {
+      const targetModel = allModels.find((m: any) => m.name === rel.target);
+      if (targetModel) {
+        const idAttr = (Array.isArray(targetModel.attributes) ? targetModel.attributes : Object.values(targetModel.attributes || {}))
+          .find((a: any) => a.name === 'id');
+        const idType = idAttr?.type || 'String';
+        if (idType === 'Integer' || idType === 'Int' || idType === 'Number') {
+          parseExpr = `parseInt(${varName}.${fkField}, 10)`;
+        }
+      }
+    }
+
     return `if (${varName}.${fkField}) {
-      ${varName}.${relName} = { connect: { id: ${varName}.${fkField} } };
+      ${varName}.${relName} = { connect: { id: ${parseExpr} } };
       delete ${varName}.${fkField};
     }`;
   }).join('\n    ');
