@@ -44,7 +44,7 @@ export default function generatePrismaSchema(context: TemplateContext): string {
 
   // Generate models
   const modelSchemas = allModels.map((model: any) =>
-    generateModelSchema(model, relationMap, backRefs, hasOneTargets)
+    generateModelSchema(model, relationMap, backRefs, hasOneTargets, allModels)
   ).join('\n\n');
 
   return `${header}\n\n${modelSchemas}`;
@@ -282,7 +282,8 @@ function generateModelSchema(
   model: any,
   relationMap: Map<string, string | null>,
   backRefs: Map<string, string[]>,
-  hasOneTargets: Set<string>
+  hasOneTargets: Set<string>,
+  allModels?: any[]
 ): string {
   const modelName = model.name;
   let schema = `model ${modelName} {\n`;
@@ -304,7 +305,7 @@ function generateModelSchema(
 
   // Add relationships
   relationships.forEach((rel: any) => {
-    const fields = generateRelationship(rel, model, relationMap, hasOneTargets);
+    const fields = generateRelationship(rel, model, relationMap, hasOneTargets, allModels);
     fields.forEach(field => {
       schema += `  ${field}\n`;
     });
@@ -410,7 +411,7 @@ function generateField(attr: any, model: any): string {
 /**
  * Generate relationship fields
  */
-function generateRelationship(rel: any, model: any, relationMap: Map<string, string | null>, hasOneTargets: Set<string>): string[] {
+function generateRelationship(rel: any, model: any, relationMap: Map<string, string | null>, hasOneTargets: Set<string>, allModels?: any[]): string[] {
   const fields: string[] = [];
   const name = rel.name || rel.target.toLowerCase();
   const padding = ' '.repeat(Math.max(1, 15 - name.length));
@@ -427,7 +428,20 @@ function generateRelationship(rel: any, model: any, relationMap: Map<string, str
       const fkPadding = ' '.repeat(Math.max(1, 15 - fkBase.length));
       // Add @unique if the parent has a hasOne relation pointing to this model
       const isUniqueFK = hasOneTargets.has(`${rel.target}->${model.name}`);
-      fields.push(`${fkBase}${fkPadding}String${isOptional ? '?' : ''}${isUniqueFK ? ' @unique' : ''}`);
+      // FK type must match the target model's ID type
+      let fkType = 'String';
+      if (allModels) {
+        const targetModel = allModels.find((m: any) => m.name === rel.target);
+        if (targetModel) {
+          const idAttr = (Array.isArray(targetModel.attributes) ? targetModel.attributes : Object.values(targetModel.attributes || {}))
+            .find((a: any) => a.name === 'id');
+          if (idAttr) {
+            const idType = idAttr.type || 'String';
+            fkType = mapTypeToPrisma(idType);
+          }
+        }
+      }
+      fields.push(`${fkBase}${fkPadding}${fkType}${isOptional ? '?' : ''}${isUniqueFK ? ' @unique' : ''}`);
 
       // Relation field with @relation including fields/references + optional name
       let relationDef = `${name}${padding}${rel.target}${isOptional ? '?' : ''}`;
