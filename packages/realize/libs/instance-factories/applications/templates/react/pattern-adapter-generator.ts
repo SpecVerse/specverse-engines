@@ -23,16 +23,15 @@ export async function generate(context: PatternAdapterGeneratorContext): Promise
 
   // Possible locations for the source file
   const possiblePaths = [
-    // PRIORITY 1: Bundled with package (in libs/ directory)
-    // From dist/libs/instance-factories/applications/templates/react/ to libs/instance-factories/applications/templates/react/
+    // PRIORITY 0: Same directory as this generator (source)
+    join(__dirname, 'react-pattern-adapter.tsx'),
+    // PRIORITY 1: Bundled with package (in libs/ directory, from dist/)
     join(__dirname, '../../../../../../libs/instance-factories/applications/templates/react/react-pattern-adapter.tsx'),
-    // PRIORITY 2: Development environment (specverse-app-demo sibling)
-    // Relative to instance factories in development
+    // Up from dist to package root then into libs
+    join(__dirname, '../../../../../libs/instance-factories/applications/templates/react/react-pattern-adapter.tsx'),
+    join(__dirname, '../../../../libs/instance-factories/applications/templates/react/react-pattern-adapter.tsx'),
+    // Development environment (specverse-app-demo sibling)
     join(__dirname, '../../../../../../../specverse-app-demo/frontend-react/src/lib/react-pattern-adapter.tsx'),
-    // Relative to specverse-lang root
-    join(__dirname, '../../../../../../specverse-app-demo/frontend-react/src/lib/react-pattern-adapter.tsx'),
-    // Sibling to specverse-lang
-    join(__dirname, '../../../../../../../specverse-app-demo/frontend-react/src/lib/react-pattern-adapter.tsx')
   ];
 
   let adapterSource: string | null = null;
