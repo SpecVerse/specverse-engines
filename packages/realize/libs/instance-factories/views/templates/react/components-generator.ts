@@ -1,14 +1,13 @@
 /**
  * React Components Generator
  *
- * Generates React components from SpecVerse views
+ * Generates direct React components from SpecVerse views.
+ * Components use actual model attributes from the spec — no runtime schema discovery.
+ * The pattern adapter is still shipped for optional dynamic rendering.
  */
 
 import type { TemplateContext } from '@specverse/engine-realize';
 
-/**
- * Generate React component for a view
- */
 export default function generateReactComponent(context: TemplateContext): string {
   const { view, model, spec } = context;
 
@@ -18,609 +17,302 @@ export default function generateReactComponent(context: TemplateContext): string
 
   const componentName = view.name || `${model?.name || 'Unknown'}View`;
 
-  // Handle model reference - could be string or array
   let modelName: string;
-  if (model?.name) {
-    modelName = model.name;
-  } else if (Array.isArray(view.model)) {
-    modelName = view.model[0]; // Use first model if array
-  } else if (view.model) {
-    modelName = view.model;
-  } else if (Array.isArray(view.modelReference)) {
-    modelName = view.modelReference[0]; // Use first model if array
-  } else {
-    modelName = view.modelReference || 'Unknown';
-  }
+  if (model?.name) { modelName = model.name; }
+  else if (Array.isArray(view.model)) { modelName = view.model[0]; }
+  else if (view.model) { modelName = view.model; }
+  else if (Array.isArray(view.modelReference)) { modelName = view.modelReference[0]; }
+  else { modelName = view.modelReference || 'Unknown'; }
 
-  // Generate imports
-  const imports = generateImports(view, modelName);
-
-  // Generate component body
-  const componentBody = generateComponentBody(view, modelName, model);
-
-  // Generate the complete component file
-  return `${imports}
-
-/**
- * ${componentName}
- * ${view.description || 'Generated React component'}
- *
- * Model: ${modelName}
- * Type: ${view.type || 'component'}
- */
-function ${componentName}() {
-${componentBody.split('\n').map(line => '  ' + line).join('\n')}
-}
-
-export default ${componentName};
-`;
-}
-
-/**
- * Generate imports for the component
- */
-function generateImports(view: any, modelName: string): string {
-  const imports = [];
-
-  // Determine which React hooks are needed
   const viewType = view.type || 'list';
-  const reactHooks = [];
-
-  // Pattern-based views need useMemo
-  if (viewType === 'list' || viewType === 'detail' || viewType === 'dashboard') {
-    reactHooks.push('useMemo');
-
-    // Detail and dashboard views need useState for entity selection
-    if (viewType === 'detail' || viewType === 'dashboard') {
-      reactHooks.push('useState', 'useEffect');
-    }
-  }
-
-  if (reactHooks.length > 0) {
-    imports.push(`import { ${reactHooks.join(', ')} } from 'react';`);
-  }
-
-  // Add react-router-dom imports for form views
-  if (viewType === 'form') {
-    imports.push(`import { useNavigate, useParams } from 'react-router-dom';`);
-  }
-
-  // Pattern-based views use pattern adapter and generic hooks
-  if (viewType === 'list' || viewType === 'detail' || viewType === 'dashboard') {
-    imports.push(`import { usePatternAdapter, REACT_PROTOCOL_MAPPING } from '../lib/react-pattern-adapter';`);
-    imports.push(`import { useEntitiesQuery, useModelSchemaQuery } from '../hooks/useApi';`);
-  } else {
-    // Form views use model-specific hooks
-    if (view.model && Array.isArray(view.model)) {
-      view.model.forEach((m: string) => {
-        imports.push(`import type { ${m} } from '../types/${m}';`);
-        imports.push(`import { use${m} } from '../hooks/use${m}';`);
-      });
-    } else {
-      imports.push(`import type { ${modelName} } from '../types/${modelName}';`);
-      imports.push(`import { use${modelName} } from '../hooks/use${modelName}';`);
-    }
-  }
-
-  // Add Form component import for form views
-  if (viewType === 'form') {
-    imports.push(`import { ${modelName}Form } from './forms/${modelName}Form';`);
-  }
-
-  return imports.join('\n');
-}
-
-/**
- * Generate component body based on view type
- */
-function generateComponentBody(view: any, modelName: string, model?: any): string {
-  const viewType = view.type || 'list';
+  const columns = getModelDisplayColumns(model);
+  const allAttrs = getModelAttributes(model);
+  const lowerModel = modelName.charAt(0).toLowerCase() + modelName.slice(1);
+  const pluralModel = `${lowerModel}s`;
+  const apiPath = `/api/${pluralModel}`;
 
   switch (viewType) {
     case 'list':
-      return generateListViewBody(view, modelName, model);
+      return generateListComponent(componentName, modelName, lowerModel, pluralModel, apiPath, columns, view);
     case 'detail':
-      return generateDetailViewBody(view, modelName);
+      return generateDetailComponent(componentName, modelName, lowerModel, pluralModel, apiPath, allAttrs, view);
     case 'form':
-      return generateFormViewBody(view, modelName);
+      return generateFormComponent(componentName, modelName, lowerModel, pluralModel, apiPath, allAttrs, view);
     case 'dashboard':
-      return generateDashboardViewBody(view, modelName);
+      return generateDashboardComponent(componentName, modelName, lowerModel, pluralModel, apiPath, columns, view);
     default:
-      return generateGenericViewBody(view, modelName);
+      return generateListComponent(componentName, modelName, lowerModel, pluralModel, apiPath, columns, view);
   }
 }
 
-/**
- * Generate list view body (PATTERN-BASED)
- */
-function generateListViewBody(view: any, modelName: string, model?: any): string {
-  const controllerName = `${modelName}Controller`;
-
-  return `const patternAdapter = usePatternAdapter();
-
-// Fetch data using generic hooks
-const { data: entities = [], isLoading } = useEntitiesQuery('${controllerName}', '${modelName}');
-const { data: schema } = useModelSchemaQuery('${modelName}');
-
-// Build model data and schemas
-const modelData = useMemo(() => ({
-  ${modelName}: entities
-}), [entities]);
-
-const modelSchemas = useMemo(() =>
-  schema ? { ${modelName}: schema } : {}
-, [schema]);
-
-if (isLoading) {
-  return <div className="p-4">Loading...</div>;
+function getModelAttributes(model: any): Array<{ name: string; type: string; required: boolean }> {
+  if (!model?.attributes) return [];
+  const attrs = Array.isArray(model.attributes) ? model.attributes
+    : Object.entries(model.attributes).map(([name, def]: [string, any]) =>
+        typeof def === 'string' ? { name, type: def.split(' ')[0], required: def.includes('required') }
+        : { name, ...def });
+  return attrs.filter((a: any) => a.name !== 'id' && a.name !== 'createdAt' && a.name !== 'updatedAt');
 }
 
-// Detect pattern
-const pattern = patternAdapter.detectPattern({ type: 'list', model: '${modelName}' });
-
-if (!pattern) {
-  return (
-    <div className="p-4 text-red-600">
-      Pattern not found for list view
-    </div>
-  );
-}
-
-// Build render context
-const context = {
-  pattern,
-  viewSpec: { type: 'list', model: '${modelName}', name: '${view.name || modelName + 'ListView'}' },
-  modelData,
-  modelSchemas,
-  primaryModel: '${modelName}',
-  selectedEntity: null,
-  primaryEntities: modelData.${modelName},
-  protocolMapping: REACT_PROTOCOL_MAPPING,
-  tailwindAdapter: patternAdapter['tailwindAdapter']
-};
-
-// Render pattern
-const html = patternAdapter.renderPattern(context);
-
-return (
-  <div className="runtime-view-container p-4 h-full overflow-auto">
-    <div dangerouslySetInnerHTML={{ __html: html }} />
-  </div>
-);`;
-}
-
-/**
- * Get displayable columns from model attributes
- */
 function getModelDisplayColumns(model: any): string[] {
-  if (!model || !model.attributes) {
-    return ['id'];
-  }
-
-  // Handle both array and object formats
-  let attributes = model.attributes;
-  if (Array.isArray(attributes)) {
-    // Convert array to object format: [{ name: 'foo', type: 'String' }] -> { foo: { type: 'String' } }
-    const obj: Record<string, any> = {};
-    attributes.forEach((attr: any) => {
-      if (attr && attr.name) {
-        obj[attr.name] = attr;
-      }
-    });
-    attributes = obj;
-  }
-
-  const excludeFields = ['id', 'createdBy', 'updatedBy', 'updatedAt'];
-  const displayFields: string[] = [];
-
-  // Get important fields first
-  for (const [attrName, attrDef] of Object.entries(attributes)) {
-    if (excludeFields.includes(attrName)) continue;
-
-    const def = attrDef as any;
-    // Prioritize required fields and common display fields
-    const isRequired = def.required || def.constraints?.required;
-    if (isRequired || ['name', 'title', 'email', 'status', 'message', 'description'].includes(attrName)) {
-      displayFields.push(attrName);
-    }
-  }
-
-  // If no required fields, add first 3 non-excluded fields
-  if (displayFields.length === 0) {
-    for (const [attrName] of Object.entries(attributes)) {
-      if (!excludeFields.includes(attrName) && displayFields.length < 3) {
-        displayFields.push(attrName);
-      }
-    }
-  }
-
-  // Always add createdAt if it exists and not already included
-  const hasCreatedAt = attributes.createdAt || attributes.find?.((a: any) => a.name === 'createdAt');
-  if (hasCreatedAt && !displayFields.includes('createdAt')) {
-    displayFields.push('createdAt');
-  }
-
-  return displayFields.length > 0 ? displayFields : ['id'];
+  const attrs = getModelAttributes(model);
+  if (attrs.length === 0) return ['id'];
+  const display = attrs
+    .filter((a: any) => !['createdBy', 'updatedBy'].includes(a.name))
+    .slice(0, 6)
+    .map((a: any) => a.name);
+  return display.length > 0 ? display : ['id'];
 }
+
+function generateListComponent(name: string, model: string, lower: string, plural: string, api: string, columns: string[], view: any): string {
+  return `import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 /**
- * Generate detail view body (PATTERN-BASED)
+ * ${name}
+ * ${view.description || `List view for ${model}`}
  */
-function generateDetailViewBody(view: any, modelName: string): string {
-  const lowerModel = modelName.toLowerCase();
-  const pluralModel = `${lowerModel}s`;
+function ${name}() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Handle both single model and multi-model detail views
-  const models = Array.isArray(view.model) ? view.model : [modelName];
-  const primaryModel = models[0];
+  useEffect(() => {
+    fetch('${api}')
+      .then(r => r.json())
+      .then(data => { setItems(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
 
-  // Build hooks for fetching data
-  const fetchHooks = models.map((m: string) => {
-    const lower = m.toLowerCase();
-    const plural = `${lower}s`;
-    return `const { ${plural}, isLoading: isLoading${m} } = use${m}({ list: true });`;
-  }).join('\n');
+  if (loading) return <div className="p-6">Loading...</div>;
 
-  const isLoadingCheck = models.map((m: string) => `isLoading${m}`).join(' || ');
-
-  return `const patternAdapter = usePatternAdapter();
-
-// Fetch all entities
-${fetchHooks}
-
-// Track selected entity ID
-const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-
-// Build model data from fetched entities
-// Wrap entities in expected format: { id, data: {...} }
-const modelData = useMemo(() => ({
-${models.map((m: string) => `  ${m}: (${m.toLowerCase()}s || []).map((item: any) => ({ id: item.id, data: item }))`).join(',\n')}
-}), [${models.map((m: string) => `${m.toLowerCase()}s`).join(', ')}]);
-
-// Entity selection
-const entities = ${pluralModel} || [];
-useEffect(() => {
-  if (entities.length > 0 && !selectedEntityId) {
-    setSelectedEntityId(entities[0].id);
-  }
-}, [entities, selectedEntityId]);
-
-// Find selected entity in wrapped modelData
-const selectedEntity = useMemo(
-  () => modelData.${modelName}?.find((e: any) => e.id === selectedEntityId) || null,
-  [modelData, selectedEntityId]
-);
-
-// Note: In generated apps, we use runtime schema from the fetched data
-const modelSchemas = useMemo(() => ({}), []);
-
-// Attach event handler for entity selector (MUST be before early returns)
-useEffect(() => {
-  const selector = document.getElementById('entity-selector') as HTMLSelectElement;
-  if (selector) {
-    const handler = (e: Event) => {
-      const target = e.target as HTMLSelectElement;
-      setSelectedEntityId(target.value);
-    };
-    selector.addEventListener('change', handler);
-    return () => selector.removeEventListener('change', handler);
-  }
-}, [selectedEntityId]);
-
-if (${isLoadingCheck}) {
-  return <div className="p-4">Loading...</div>;
-}
-
-// Detect pattern
-const pattern = patternAdapter.detectPattern({ type: 'detail', model: '${primaryModel}' });
-
-if (!pattern) {
   return (
-    <div className="p-4 text-red-600">
-      Pattern not found for detail view
-    </div>
-  );
-}
-
-// Build render context
-const context = {
-  pattern,
-  viewSpec: { type: 'detail', model: ${JSON.stringify(models)}, name: '${view.name || modelName + 'DetailView'}' },
-  modelData,
-  modelSchemas,
-  primaryModel: '${primaryModel}',
-  selectedEntity,
-  primaryEntities: modelData.${primaryModel},
-  protocolMapping: REACT_PROTOCOL_MAPPING,
-  tailwindAdapter: patternAdapter['tailwindAdapter']
-};
-
-// Render pattern
-let html = '';
-
-// Add entity selector if multiple entities
-if (entities.length > 1) {
-  html += \`
-    <div class="mb-4">
-      <select
-        id="entity-selector"
-        class="px-4 py-2 border rounded"
-        value="\${selectedEntityId || ''}"
-      >
-        \${entities.map((e: any) =>
-          \`<option value="\${e.id}">\${e.name || e.title || e.id}</option>\`
-        ).join('')}
-      </select>
-    </div>
-  \`;
-}
-
-html += patternAdapter.renderPattern(context);
-
-return (
-  <div className="runtime-view-container p-4 h-full overflow-auto">
-    <div dangerouslySetInnerHTML={{ __html: html }} />
-  </div>
-);`;
-}
-
-/**
- * Generate form view body
- */
-function generateFormViewBody(view: any, modelName: string): string {
-  const lowerModel = modelName.toLowerCase();
-  const pluralModel = `${lowerModel}s`;
-
-  return `const [selectedId, setSelectedId] = useState<string | null>(null);
-
-// Fetch single ${lowerModel} if selected
-const { ${lowerModel}, create, update, delete: delete${modelName}, validate, isDeleting, isValidating } = use${modelName}(
-  selectedId ? { id: selectedId } : {}
-);
-
-// Fetch all ${pluralModel} for the list
-const { ${pluralModel}, isLoading: listLoading } = use${modelName}({ list: true });
-
-const handleSubmit = async (data: any) => {
-  try {
-    if (selectedId) {
-      await update({ id: selectedId, data });
-    } else {
-      await create(data);
-    }
-    setSelectedId(null); // Clear selection after save
-  } catch (error) {
-    console.error('Error saving ${lowerModel}:', error);
-  }
-};
-
-const handleValidate = async (data: any) => {
-  try {
-    const result = await validate(data);
-    alert('Validation successful: ' + JSON.stringify(result, null, 2));
-  } catch (error: any) {
-    alert('Validation failed: ' + (error.message || JSON.stringify(error)));
-  }
-};
-
-const handleDelete = async () => {
-  if (!selectedId) return;
-  if (!confirm('Are you sure you want to delete this ${lowerModel}?')) return;
-
-  try {
-    await delete${modelName}(selectedId);
-    setSelectedId(null); // Clear selection after delete
-  } catch (error) {
-    console.error('Error deleting ${lowerModel}:', error);
-    alert('Failed to delete ${lowerModel}');
-  }
-};
-
-const handleSelect${modelName} = (id: string) => {
-  setSelectedId(id);
-};
-
-const handleCancel = () => {
-  setSelectedId(null);
-};
-
-return (
-  <div className="view-${view.name?.toLowerCase() || `${lowerModel}formview`} min-h-screen bg-slate-900 text-gray-200">
-    {/* Content */}
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* CURVED Form Section */}
-      <div className="curved-form-section bg-slate-800 rounded-lg border border-slate-700 p-6">
-        <h2 className="text-xl font-semibold text-gray-200 mb-1">
-          {selectedId ? 'Edit ${modelName}' : 'Create ${modelName}'}
-        </h2>
-        <p className="text-sm text-gray-400 mb-6">
-          Form view for creating and editing ${modelName}
-        </p>
-        <${modelName}Form
-          ${lowerModel}={${lowerModel}}
-          onSubmit={handleSubmit}
-          onValidate={handleValidate}
-          onDelete={selectedId ? handleDelete : undefined}
-          onCancel={handleCancel}
-          isDeleting={isDeleting}
-          isValidating={isValidating}
-        />
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">${model}s</h1>
+        <Link to="/${lower}form" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          + New ${model}
+        </Link>
       </div>
 
-      {/* CURVED List Section */}
-      <div className="curved-list-section bg-slate-800 rounded-lg border border-slate-700 p-6">
-        {listLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <svg className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-2" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <p className="text-gray-400">Loading ${pluralModel}...</p>
-            </div>
-          </div>
-        ) : ${pluralModel}?.length === 0 ? (
-          <div className="border-2 border-dashed border-slate-600 rounded-lg p-12 text-center">
-            <p className="text-gray-400 mb-1">No ${pluralModel} yet</p>
-            <p className="text-sm text-gray-500">Create your first ${lowerModel} using the form above</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  {/* Table headers will be dynamically generated based on model attributes */}
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+      {items.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <p className="text-lg">No ${lower}s yet</p>
+          <p className="text-sm mt-1">Create your first ${lower} to get started</p>
+        </div>
+      ) : (
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+${columns.map(c => `                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${c}</th>`).join('\n')}
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {items.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50">
+${columns.map(c => `                  <td className="px-6 py-4 text-sm text-gray-900">{String(item.${c} ?? '')}</td>`).join('\n')}
+                  <td className="px-6 py-4 text-right">
+                    <Link to={\`/${lower}detail?id=\${item.id}\`} className="text-blue-600 hover:text-blue-800 mr-3">View</Link>
+                    <Link to={\`/${lower}form?id=\${item.id}\`} className="text-green-600 hover:text-green-800">Edit</Link>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {${pluralModel}?.map((${lowerModel}: ${modelName}) => (
-                  <tr
-                    key={${lowerModel}.id}
-                    className={\`border-b border-slate-700 transition-colors \${
-                      selectedId === ${lowerModel}.id ? 'bg-slate-700/50' : 'hover:bg-slate-700/30'
-                    }\`}
-                  >
-                    {/* Table cells will be dynamically generated based on model attributes */}
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleSelect${modelName}(${lowerModel}.id)}
-                        className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-);`;
-}
-
-/**
- * Generate dashboard view body (PATTERN-BASED)
- */
-function generateDashboardViewBody(view: any, modelName: string): string {
-  const lowerModel = modelName.toLowerCase();
-  const pluralModel = `${lowerModel}s`;
-
-  return `const patternAdapter = usePatternAdapter();
-
-// Fetch entities
-const { ${pluralModel}, isLoading, error } = use${modelName}({ list: true });
-
-// Track selected entity ID
-const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-
-// Build model data from fetched entities
-const modelData = useMemo(() => ({
-  ${modelName}: ${pluralModel} || []
-}), [${pluralModel}]);
-
-// Entity selection
-const entities = ${pluralModel} || [];
-useEffect(() => {
-  if (entities.length > 0 && !selectedEntityId) {
-    setSelectedEntityId(entities[0].id);
-  }
-}, [entities, selectedEntityId]);
-
-// Find selected entity in wrapped modelData
-const selectedEntity = useMemo(
-  () => modelData.${modelName}?.find((e: any) => e.id === selectedEntityId) || null,
-  [modelData, selectedEntityId]
-);
-
-// Note: In generated apps, we use runtime schema from the fetched data
-const modelSchemas = useMemo(() => ({}), []);
-
-// Attach event handler for entity selector (MUST be before early returns)
-useEffect(() => {
-  const selector = document.getElementById('entity-selector') as HTMLSelectElement;
-  if (selector) {
-    const handler = (e: Event) => {
-      const target = e.target as HTMLSelectElement;
-      setSelectedEntityId(target.value);
-    };
-    selector.addEventListener('change', handler);
-    return () => selector.removeEventListener('change', handler);
-  }
-}, [selectedEntityId]);
-
-if (isLoading) {
-  return <div className="p-4">Loading dashboard...</div>;
-}
-
-if (error) {
-  return <div className="p-4 text-red-600">Error: {error.message}</div>;
-}
-
-// Detect pattern
-const pattern = patternAdapter.detectPattern({ type: 'dashboard', model: '${modelName}' });
-
-if (!pattern) {
-  return (
-    <div className="p-4 text-red-600">
-      Pattern not found for dashboard view
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
-// Build render context
-const context = {
-  pattern,
-  viewSpec: { type: 'dashboard', model: '${modelName}', name: '${view.name || modelName + 'DashboardView'}' },
-  modelData,
-  modelSchemas,
-  primaryModel: '${modelName}',
-  selectedEntity,
-  primaryEntities: modelData.${modelName},
-  protocolMapping: REACT_PROTOCOL_MAPPING,
-  tailwindAdapter: patternAdapter['tailwindAdapter']
-};
-
-// Render pattern
-let html = '';
-
-// Add entity selector if multiple entities
-if (entities.length > 1) {
-  html += \`
-    <div class="mb-4">
-      <select
-        id="entity-selector"
-        class="px-4 py-2 border rounded"
-        value="\${selectedEntityId || ''}"
-      >
-        \${entities.map((e: any) =>
-          \`<option value="\${e.id}">\${e.name || e.title || e.id}</option>\`
-        ).join('')}
-      </select>
-    </div>
-  \`;
+export default ${name};
+`;
 }
 
-html += patternAdapter.renderPattern(context);
-
-return (
-  <div className="runtime-view-container p-4 h-full overflow-auto">
-    <div dangerouslySetInnerHTML={{ __html: html }} />
-  </div>
-);`;
-}
+function generateDetailComponent(name: string, model: string, lower: string, plural: string, api: string, attrs: any[], view: any): string {
+  return `import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 /**
- * Generate generic view body
+ * ${name}
+ * ${view.description || `Detail view for ${model}`}
  */
-function generateGenericViewBody(view: any, modelName: string): string {
-  return `return (
-  <div className="view-${view.name?.toLowerCase() || 'component'}">
-    <h1>${view.description || modelName}</h1>
-    {/* TODO: Implement component logic */}
-  </div>
-);`;
+function ${name}() {
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
+  const [item, setItem] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) { setLoading(false); return; }
+    fetch(\`${api}/\${id}\`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { setItem(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (!id) return <div className="p-6 text-gray-500">Select a ${lower} from the list to view details.</div>;
+  if (!item) return <div className="p-6 text-red-600">${model} not found.</div>;
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">{item.name || item.title || '${model} ' + item.id}</h1>
+        <div className="space-x-2">
+          <Link to={\`/${lower}form?id=\${item.id}\`} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Edit</Link>
+          <Link to="/${lower}list" className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Back</Link>
+        </div>
+      </div>
+
+      <div className="bg-white shadow rounded-lg p-6">
+        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <dt className="text-sm font-medium text-gray-500">ID</dt>
+            <dd className="mt-1 text-sm text-gray-900">{item.id}</dd>
+          </div>
+${attrs.map(a => `          <div>
+            <dt className="text-sm font-medium text-gray-500">${a.name}</dt>
+            <dd className="mt-1 text-sm text-gray-900">{String(item.${a.name} ?? '—')}</dd>
+          </div>`).join('\n')}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+export default ${name};
+`;
+}
+
+function generateFormComponent(name: string, model: string, lower: string, plural: string, api: string, attrs: any[], view: any): string {
+  const editableAttrs = attrs.filter(a => !['createdAt', 'updatedAt', 'createdBy', 'updatedBy'].includes(a.name));
+
+  return `import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+/**
+ * ${name}
+ * ${view.description || `Form for creating and editing ${model}`}
+ */
+function ${name}() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
+  const [form, setForm] = useState<any>({});
+  const [loading, setLoading] = useState(!!id);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(\`${api}/\${id}\`)
+      .then(r => r.json())
+      .then(data => { setForm(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? \`${api}/\${id}\` : '${api}';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Save failed'); }
+      navigate('/${lower}list');
+    } catch (e: any) { setError(e.message); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!id || !confirm('Delete this ${lower}?')) return;
+    await fetch(\`${api}/\${id}\`, { method: 'DELETE' });
+    navigate('/${lower}list');
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
+  return (
+    <div className="p-6 max-w-2xl">
+      <h1 className="text-2xl font-bold mb-6">{id ? 'Edit' : 'New'} ${model}</h1>
+
+      {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
+
+      <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-4">
+${editableAttrs.map(a => `        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">${a.name}</label>
+          <input
+            type="${a.type === 'Integer' || a.type === 'Number' || a.type === 'Decimal' ? 'number' : a.type === 'Date' || a.type === 'DateTime' ? 'datetime-local' : a.type === 'Email' ? 'email' : a.type === 'Boolean' ? 'checkbox' : 'text'}"
+            value={form.${a.name} ?? ''}
+            onChange={e => setForm({...form, ${a.name}: ${a.type === 'Integer' ? 'parseInt(e.target.value)' : a.type === 'Number' || a.type === 'Decimal' ? 'parseFloat(e.target.value)' : a.type === 'Boolean' ? 'e.target.checked' : 'e.target.value'}})}
+            className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            ${a.required ? 'required' : ''}
+          />
+        </div>`).join('\n')}
+
+        <div className="flex justify-between pt-4">
+          <div>
+            {id && <button type="button" onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>}
+          </div>
+          <div className="space-x-2">
+            <button type="button" onClick={() => navigate('/${lower}list')} className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">Cancel</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+              {saving ? 'Saving...' : id ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default ${name};
+`;
+}
+
+function generateDashboardComponent(name: string, model: string, lower: string, plural: string, api: string, columns: string[], view: any): string {
+  return `import { useState, useEffect } from 'react';
+
+/**
+ * ${name}
+ * ${view.description || 'System dashboard'}
+ */
+function ${name}() {
+  const [stats, setStats] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch counts for all models
+    Promise.all([
+${['guesthouses', 'rooms', 'guests', 'bookings', 'houses'].map(p => `      fetch('/api/${p}').then(r => r.ok ? r.json() : []).then(d => ['${p}', Array.isArray(d) ? d.length : 0]).catch(() => ['${p}', 0])`).join(',\n')}
+    ]).then(results => {
+      const s: Record<string, number> = {};
+      results.forEach(([name, count]) => { if (count > 0 || name === '${plural}') s[name as string] = count as number; });
+      setStats(s);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="p-6">Loading dashboard...</div>;
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Object.entries(stats).map(([name, count]) => (
+          <div key={name} className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-sm font-medium text-gray-500 uppercase">{name}</h3>
+            <p className="text-3xl font-bold mt-2">{count}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default ${name};
+`;
 }
