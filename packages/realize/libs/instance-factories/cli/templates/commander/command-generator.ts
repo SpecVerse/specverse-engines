@@ -220,33 +220,22 @@ import type { ParserEngine, InferenceEngine } from '@specverse/types';`,
   },
   realize: {
     imports: `import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 import { EngineRegistry } from '@specverse/engine-entities';
-import type { ParserEngine, RealizeEngine } from '@specverse/types';`,
+import type { ParserEngine, InferenceEngine, RealizeEngine } from '@specverse/types';`,
     handler: `if (!existsSync(file)) {
           console.error('File not found:', file);
           process.exit(1);
         }
 
-        const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
         // Discover engines
         const registry = new EngineRegistry();
         await registry.discover();
 
-        // Parse the spec
+        // Parse — let the parser engine handle its own schema
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
-
-        // Infer full architecture
-        const inferEngine = registry.getEngineForCapability('infer') as any;
-        if (!inferEngine) { console.error('No inference engine found.'); process.exit(1); }
-        await inferEngine.initialize();
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const parseResult = parser.parseContent(content, file);
@@ -256,6 +245,10 @@ import type { ParserEngine, RealizeEngine } from '@specverse/types';`,
           process.exit(1);
         }
 
+        // Infer — let the inference engine handle its own rules
+        const inferEngine = registry.getEngineForCapability('infer') as InferenceEngine;
+        if (!inferEngine) { console.error('No inference engine found.'); process.exit(1); }
+        await inferEngine.initialize();
         const inferResult = await inferEngine.infer(parseResult.ast!, {
           generateControllers: true, generateServices: true,
           generateEvents: true, generateViews: true,
@@ -265,14 +258,14 @@ import type { ParserEngine, RealizeEngine } from '@specverse/types';`,
         const yaml = await import('js-yaml');
         const inferredSpec = yaml.load(inferResult.yaml);
 
-        // Initialize realize engine with manifest
-        const realizeEngine = registry.getEngineForCapability('realize') as RealizeEngine;
-        if (!realizeEngine) { console.error('No realize engine found.'); process.exit(1); }
+        // Realize — let the realize engine handle its own library
         const manifestPath = options.manifest || resolve(process.cwd(), 'manifests/implementation.yaml');
         if (!existsSync(manifestPath)) {
           console.error('Manifest not found:', manifestPath);
           process.exit(1);
         }
+        const realizeEngine = registry.getEngineForCapability('realize') as RealizeEngine;
+        if (!realizeEngine) { console.error('No realize engine found.'); process.exit(1); }
         await realizeEngine.initialize({ manifestPath, workingDir: process.cwd() });
 
         const outputDir = options.output || resolve(process.cwd(), 'generated/code');
@@ -386,16 +379,11 @@ import { resolve, dirname, basename, join } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const parseResult = parser.parseContent(content, file);
@@ -424,16 +412,11 @@ import { resolve, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const parseResult = parser.parseContent(content, file);
@@ -459,16 +442,11 @@ import { resolve, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const parseResult = parser.parseContent(content, file);
@@ -494,16 +472,11 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const result = parser.parseContent(content, file);
@@ -527,16 +500,11 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         console.log('Watching ' + file + ' for changes...');
         const doValidate = () => {
@@ -561,16 +529,11 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const result = parser.parseContent(content, file);
@@ -621,16 +584,11 @@ import { resolve, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const parseResult = parser.parseContent(content, file);
@@ -657,16 +615,11 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { EngineRegistry } from '@specverse/engine-entities';
 import type { ParserEngine } from '@specverse/types';`,
-    handler: `const __fn = fileURLToPath(import.meta.url);
-        const __dn = dirname(__fn);
-        const schemaPath = resolve(__dn, '../../../schema/SPECVERSE-SCHEMA.json');
-
-        const registry = new EngineRegistry();
+    handler: `const registry = new EngineRegistry();
         await registry.discover();
         const parser = registry.getEngineForCapability('parse') as ParserEngine;
         if (!parser) { console.error('No parser engine found.'); process.exit(1); }
-        const schema = existsSync(schemaPath) ? JSON.parse(readFileSync(schemaPath, 'utf8')) : {};
-        await parser.initialize({ schema });
+        await parser.initialize();
 
         const content = readFileSync(file, 'utf8');
         const parseResult = parser.parseContent(content, file);

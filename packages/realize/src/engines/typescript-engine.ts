@@ -70,14 +70,31 @@ export class TypeScriptTemplateEngine implements TemplateEngine {
   private async ensureTsxRegistered(): Promise<void> {
     if (!this.tsxRegistered) {
       try {
-        // Resolve tsx from @specverse/lang package's node_modules
+        // Find tsx — search multiple locations
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
-        // From dist/realize/engines/ go up to package root
-        const packageRoot = path.resolve(__dirname, '../../..');
-        const tsxPath = path.join(packageRoot, 'node_modules/tsx/dist/esm/api/index.mjs');
+        const tsxSubpath = 'tsx/dist/esm/api/index.mjs';
+        const candidates = [
+          path.resolve(__dirname, '../../..', 'node_modules', tsxSubpath),       // Package root
+          path.resolve(__dirname, '../../../..', 'node_modules', tsxSubpath),     // Workspace root
+          path.resolve(__dirname, '../../../../..', 'node_modules', tsxSubpath),  // Parent workspace
+          path.join(process.cwd(), 'node_modules', tsxSubpath),                  // CWD
+        ];
 
-        // Use dynamic import with absolute path
+        // Also try global npm location
+        try {
+          const { execSync } = await import('child_process');
+          const globalPrefix = execSync('npm prefix -g', { encoding: 'utf8' }).trim();
+          candidates.push(path.join(globalPrefix, 'lib/node_modules', tsxSubpath));
+        } catch { /* no global npm */ }
+
+        let tsxPath: string | null = null;
+        const { existsSync } = await import('fs');
+        for (const candidate of candidates) {
+          if (existsSync(candidate)) { tsxPath = candidate; break; }
+        }
+        if (!tsxPath) throw new Error('tsx not found in any location');
+
         const tsx = await import(pathToFileURL(tsxPath).href) as any;
         // Register tsx with options to allow node_modules processing
         tsx.register({
