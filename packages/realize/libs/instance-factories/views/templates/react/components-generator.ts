@@ -33,7 +33,7 @@ export default function generateReactComponent(context: TemplateContext): string
 
   switch (viewType) {
     case 'list':
-      return generateListComponent(componentName, modelName, lowerModel, pluralModel, apiPath, columns, view);
+      return generateListComponent(componentName, modelName, lowerModel, pluralModel, apiPath, columns, view, getBelongsToRelationships(model));
     case 'detail':
       return generateDetailComponent(componentName, modelName, lowerModel, pluralModel, apiPath, allAttrs, view);
     case 'form':
@@ -74,7 +74,7 @@ function getModelDisplayColumns(model: any): string[] {
   return display.length > 0 ? display : ['id'];
 }
 
-function generateListComponent(name: string, model: string, lower: string, plural: string, api: string, columns: string[], view: any): string {
+function generateListComponent(name: string, model: string, lower: string, plural: string, api: string, columns: string[], view: any, belongsToRels: Array<{ name: string; target: string }> = []): string {
   return `import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -115,6 +115,7 @@ function ${name}() {
             <thead className="bg-gray-50">
               <tr>
 ${columns.map(c => `                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${c}</th>`).join('\n')}
+${belongsToRels.map(r => `                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">${r.target}</th>`).join('\n')}
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
@@ -122,6 +123,7 @@ ${columns.map(c => `                <th className="px-6 py-3 text-left text-xs f
               {items.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
 ${columns.map(c => `                  <td className="px-6 py-4 text-sm text-gray-900">{String(item.${c} ?? '')}</td>`).join('\n')}
+${belongsToRels.map(r => `                  <td className="px-6 py-4 text-sm text-blue-600">{item.${r.name}?.name || item.${r.name}?.title || item.${r.name}?.guestName || item.${r.name}?.id || '—'}</td>`).join('\n')}
                   <td className="px-6 py-4 text-right">
                     <Link to={\`/${lower}detail?id=\${item.id}\`} className="text-blue-600 hover:text-blue-800 mr-3">View</Link>
                     <Link to={\`/${lower}form?id=\${item.id}\`} className="text-green-600 hover:text-green-800">Edit</Link>
