@@ -1,0 +1,31 @@
+{
+  "repo": "specverse-engines",
+  "description": "7 engine packages — the source of truth for all engine code",
+
+  "contentAreas": {
+    "examples":             "packages/realize/assets/examples/",
+    "prompts":              "packages/ai/assets/prompts/",
+    "templates":            "packages/realize/assets/templates/",
+    "instance-factories":   "packages/realize/libs/instance-factories/",
+    "schema/parser":        "packages/parser/schema/",
+    "schema/realize":       "packages/realize/schema/",
+    "engine/types":         "packages/types/src/",
+    "engine/entities":      "packages/entities/src/",
+    "engine/parser":        "packages/parser/src/",
+    "engine/inference":     "packages/inference/src/",
+    "engine/realize":       "packages/realize/src/",
+    "engine/generators":    "packages/generators/src/",
+    "engine/ai":            "packages/ai/src/",
+    "tools/vscode/static":  "packages/realize/libs/instance-factories/tools/templates/vscode/static/",
+    "tools/mcp/static":     "packages/realize/libs/instance-factories/tools/templates/mcp/static/"
+  },
+
+  "originRules": [
+    { "pattern": "dist/**",  "origin": "built" }
+  ],
+
+  "exclude": [
+    "*.vsix",
+    "package-lock.json"
+  ]
+}
