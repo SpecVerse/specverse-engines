@@ -1,6 +1,6 @@
 {
   "name": "@specverse/engine-parser",
-  "version": "3.5.3",
+  "version": "4.0.0",
   "description": "SpecVerse parser engine \u2014 parse .specly files into SpecVerseAST",
   "type": "module",
   "main": "dist/index.js",
@@ -18,8 +18,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specverse/types": "3.5.3",
-    "@specverse/engine-entities": "3.5.3",
+    "@specverse/types": "4.0.0",
+    "@specverse/engine-entities": "4.0.0",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "js-yaml": "^4.1.0"

@@ -1,6 +1,6 @@
 {
   "name": "@specverse/engine-realize",
-  "version": "3.5.3",
+  "version": "4.0.0",
   "description": "SpecVerse realize engine \u2014 generate code from specifications",
   "type": "module",
   "main": "dist/index.js",
@@ -10,9 +10,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specverse/types": "3.5.3",
-    "@specverse/engine-parser": "3.5.3",
-    "@specverse/engine-generators": "3.5.3",
+    "@specverse/types": "4.0.0",
+    "@specverse/engine-parser": "4.0.0",
+    "@specverse/engine-generators": "4.0.0",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "glob": "^10.3.10",
