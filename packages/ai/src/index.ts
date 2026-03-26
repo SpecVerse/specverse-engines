@@ -10,6 +10,22 @@ export * from './config-loader.js';
 export { SessionManager } from './session/session-manager.js';
 export type { SessionInfo, JobRequest, JobStatus, CreateSessionOptions } from './session/types.js';
 
+// Providers — LLM execution layer
+export { LLMProvider, LLMProviderRegistry } from './providers/llm-provider.js';
+export type { LLMMessage, LLMCompletionOptions, LLMCompletionResponse, LLMProviderConfig, LLMStreamChunk } from './providers/llm-provider.js';
+export { ProviderFactory } from './providers/provider-factory.js';
+export { OpenAIProvider } from './providers/openai-provider.js';
+export { AnthropicProvider } from './providers/anthropic-provider.js';
+export { InteractiveProvider } from './providers/interactive-provider.js';
+
+// Orchestrator — multi-step workflow engine
+export { SpecVerseOrchestrator } from './orchestrator/specverse-orchestrator.js';
+export { InteractiveWorkflow } from './orchestrator/interactive-workflow.js';
+
+// Config — provider and workflow configuration
+export { ConfigLoader, configLoader } from './config/index.js';
+export type { SpecVerseConfig } from './config/index.js';
+
 // ============================================================================
 // Engine adapter — implements SpecVerseEngine for discovery via EngineRegistry
 // ============================================================================
@@ -25,7 +41,7 @@ export interface AIEngine extends SpecVerseEngine {
 class SpecVerseAIEngine implements AIEngine {
   name = 'ai';
   version = '3.5.2';
-  capabilities = ['ai-prompts', 'ai-suggestions', 'ai-templates'];
+  capabilities = ['ai-prompts', 'ai-suggestions', 'ai-templates', 'ai-orchestration', 'ai-execution'];
 
   private manager: any = null;
 
