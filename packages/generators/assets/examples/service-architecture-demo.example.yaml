@@ -1,0 +1,8 @@
+title: "Service Architecture Diagram"
+description: "Service layer architecture visualization showing service organization, dependencies, and data access patterns"
+difficulty: intermediate
+concepts: [diagrams, mermaid, service-architecture]
+prerequisites: []
+category: diagrams
+order: 8
+companionFiles: [service-architecture-demo.md]

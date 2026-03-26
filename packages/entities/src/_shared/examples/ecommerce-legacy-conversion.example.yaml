@@ -1,0 +1,8 @@
+title: "E-Commerce Legacy Conversion"
+description: "E-commerce system converted from legacy JSON format demonstrating migration steps and advanced features"
+difficulty: intermediate
+concepts: [legacy, conversion, ecommerce]
+prerequisites: []
+category: legacy
+order: 1
+companionFiles: [ecommerce-legacy-conversion.md]

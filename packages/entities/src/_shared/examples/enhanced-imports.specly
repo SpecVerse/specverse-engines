@@ -1,0 +1,113 @@
+components:
+  EnhancedImportDemo:
+    version: "2.0.0"
+    description: "Example 03-01: Demonstrates import system with granular selection"
+    
+    export:
+      models: [UserProfile, OrganizationModel]
+      events: [ProfileUpdated, OrganizationChanged]
+    
+    import:
+      # Import base types and utilities
+      - from: "@specverse/primitives"
+        select: [Money, PhoneNumber]
+    
+    models:
+      UserProfile:
+        description: "User profile with imported types"
+        attributes:
+          id: UUID required
+          email: Email required
+          phone: PhoneNumber
+          userId: String required
+          sessionToken: String
+        relationships:
+          organization: belongsTo OrganizationModel
+        lifecycles:
+          status:
+            states: [draft, active, suspended, archived]
+            transitions:
+              activate: draft -> active
+              suspend: active -> suspended
+        behaviors:
+          updateProfile:
+            description: "Update user profile with audit trail"
+            parameters:
+              updateData: String required
+            requires:
+              - "user has update permission"
+              - "profile is not archived"
+            ensures:
+              - "audit trail is created"
+              - "notification is sent"
+            publishes: [ProfileUpdated]
+            returns: UserProfile
+      
+      OrganizationModel:
+        description: "Organization model"
+        attributes:
+          id: UUID required
+          name: String required
+          adminUser: String required
+        relationships:
+          profiles: hasMany UserProfile
+        behaviors:
+          validateAdmin:
+            description: "Validate admin user permissions"
+            parameters:
+              user: String required
+            requires: ["user is active"]
+            ensures: ["permission is verified"]
+            returns: Boolean
+    
+    controllers:
+      ProfileController:
+        model: UserProfile
+        actions:
+          updateProfile:
+            description: "Update user profile endpoint"
+            parameters:
+              profileId: UUID required
+              updateData: String required
+            requires: ["authenticated user"]
+            ensures: ["profile is updated"]
+            publishes: [ProfileUpdated]
+            returns: UserProfile
+    
+    services:
+      ProfileService:
+        description: "Profile business logic service"
+        operations:
+          processProfileUpdate:
+            description: "Process profile update with validation"
+            parameters:
+              profile: UserProfile required
+              updateData: String required
+            publishes: [ProfileUpdated]
+            returns: UserProfile
+    
+    events:
+      ProfileUpdated:
+        description: "Published when a user profile is updated"
+        attributes:
+          profileId: UUID required
+          updatedFields: String required
+          timestamp: String required
+      
+      OrganizationChanged:
+        description: "Published when organization details change"
+        attributes:
+          organizationId: UUID required
+          changeType: String required
+          timestamp: String required
+
+    views:
+      ProfileView:
+        description: "User profile display view"
+        type: detail
+        model: UserProfile
+        uiComponents:
+          DetailView: UI.DetailView
+          FormView: UI.FormView
+
+deployments: {}

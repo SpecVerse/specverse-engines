@@ -1,0 +1,8 @@
+title: "Models with Relations"
+description: "Demonstrates data relationships between models using belongsTo and hasMany"
+difficulty: beginner
+concepts: [models, relationships, belongsTo, hasMany]
+prerequisites: []
+category: fundamentals
+order: 4
+companionFiles: [models-with-relations.md]

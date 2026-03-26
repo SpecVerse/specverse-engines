@@ -1,0 +1,8 @@
+title: "Behaviors with Steps"
+description: "Defines multi-step behavioral workflows on an OrderProcessor model"
+difficulty: beginner
+concepts: [models, behaviors, steps, workflows]
+prerequisites: []
+category: fundamentals
+order: 5
+companionFiles: [behaviors-with-steps.md]

@@ -1,0 +1,11 @@
+title: "Promotions Extension"
+description: "Custom entity type demonstrating domain-specific promotional offers, discounts, and campaigns"
+difficulty: advanced
+concepts:
+  - extensions
+  - promotions
+  - custom-entities
+prerequisites: []
+category: domain-extensions
+order: 1
+companionFiles: []

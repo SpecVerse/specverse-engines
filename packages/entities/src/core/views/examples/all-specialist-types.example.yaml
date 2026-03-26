@@ -1,0 +1,8 @@
+title: "All Specialist View Types"
+description: "Demonstrates all specialist view types including dashboard, form, report, map, and timeline"
+difficulty: intermediate
+concepts: [views, dashboard, form, report, map, timeline]
+prerequisites: []
+category: view-inference
+order: 4
+companionFiles: [all-specialist-types.md]

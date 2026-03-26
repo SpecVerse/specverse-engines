@@ -1,0 +1,8 @@
+title: "Enhanced Imports"
+description: "Demonstrates the import system with granular selection, aliasing, and cross-component references"
+difficulty: intermediate
+concepts: [imports, modules, cross-component]
+prerequisites: []
+category: architecture
+order: 1
+companionFiles: [enhanced-imports.md]

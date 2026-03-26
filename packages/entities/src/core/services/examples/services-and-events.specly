@@ -1,0 +1,171 @@
+components:
+  ServicesAndEvents:
+    version: "2.0.0"
+    description: "Example 03-03: Services and event-driven architecture"
+    
+    export:
+      models: [Product, Customer, Order]
+      services: [InventoryService, PaymentService, NotificationService]
+      events: [OrderCreated, StockReserved, PaymentProcessed, LowStockAlert, NotificationSent]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Product:
+        description: "Product in catalog"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required
+          stock: Integer default=0
+      
+      Order:
+        description: "Customer order"
+        attributes:
+          id: UUID required
+          customerId: UUID required
+          total: Money required
+          status: String required values=["pending","confirmed","shipped","delivered"]
+      
+      Customer:
+        description: "Customer account"
+        attributes:
+          id: UUID required
+          email: Email required
+          name: String required
+          preferences: String
+    
+    services:
+      PaymentService:
+        description: "Handle payment processing and transactions"
+        operations:
+          processPayment:
+            description: "Process payment for order"
+            parameters:
+              orderId: UUID required
+              amount: Money required
+              paymentMethod: String required
+            returns: String
+            requires: ["Order exists", "Payment method is valid", "Amount matches order total"]
+            ensures: ["Payment is processed", "Order status updated", "Receipt generated"]
+            publishes: [PaymentProcessed]
+          
+          refundPayment:
+            description: "Process refund for payment"
+            parameters:
+              paymentId: UUID required
+              amount: Money required
+              reason: String required
+            returns: String
+            requires: ["Payment exists", "Refund amount is valid"]
+            ensures: ["Refund is processed", "Customer notified"]
+            publishes: [PaymentProcessed]
+      
+      InventoryService:
+        description: "Manage product inventory and stock levels"
+        operations:
+          reserveStock:
+            description: "Reserve stock for order"
+            parameters:
+              productId: UUID required
+              quantity: Integer required
+              orderId: UUID required
+            returns: Boolean
+            requires: ["Product exists", "Sufficient stock available"]
+            ensures: ["Stock is reserved", "Inventory updated"]
+            publishes: [StockReserved]
+          
+          checkStockLevel:
+            description: "Check current stock level"
+            parameters:
+              productId: UUID required
+            returns: Integer
+            requires: ["Product exists"]
+            ensures: ["Returns current stock count"]
+          
+          updateStock:
+            description: "Update product stock level"
+            parameters:
+              productId: UUID required
+              newStock: Integer required
+              reason: String required
+            returns: Boolean
+            requires: ["Product exists", "New stock >= 0"]
+            ensures: ["Stock level updated", "Low stock alerts triggered if needed"]
+            publishes: [LowStockAlert]
+      
+      NotificationService:
+        description: "Send notifications across channels"
+        operations:
+          sendEmail:
+            description: "Send email notification"
+            parameters:
+              recipientEmail: Email required
+              subject: String required
+              message: String required
+              template: String
+            returns: Boolean
+            requires: ["Valid email address", "Subject not empty", "Message not empty"]
+            ensures: ["Email is sent", "Delivery status recorded"]
+            publishes: [NotificationSent]
+          
+          sendOrderConfirmation:
+            description: "Send order confirmation notification"
+            parameters:
+              orderId: UUID required
+              customerEmail: Email required
+            returns: Boolean
+            requires: ["Order exists", "Customer email is valid"]
+            ensures: ["Confirmation email sent", "Customer notified"]
+            publishes: [NotificationSent]
+    
+    events:
+      OrderCreated:
+        description: "New order was placed by customer"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          total: Money required
+          itemCount: Integer required
+          createdAt: DateTime required
+      
+      StockReserved:
+        description: "Product stock was reserved for order"
+        attributes:
+          productId: UUID required
+          orderId: UUID required
+          quantity: Integer required
+          reservedAt: DateTime required
+      
+      PaymentProcessed:
+        description: "Payment was successfully processed"
+        attributes:
+          paymentId: UUID required
+          orderId: UUID required
+          amount: Money required
+          method: String required
+          status: String required
+          processedAt: DateTime required
+      
+      LowStockAlert:
+        description: "Product stock level is below threshold"
+        attributes:
+          productId: UUID required
+          currentStock: Integer required
+          threshold: Integer required
+          alertLevel: String required
+          triggeredAt: DateTime required
+      
+      NotificationSent:
+        description: "Notification was sent to recipient"
+        attributes:
+          notificationId: UUID required
+          recipientId: UUID required
+          channel: String required
+          type: String required
+          status: String required
+          sentAt: DateTime required
+
+deployments: {}

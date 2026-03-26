@@ -1,0 +1,8 @@
+title: "Digital Product Catalog"
+description: "Complete digital product catalog with subscription management, download capabilities, and payment processing"
+difficulty: intermediate
+concepts: [models, controllers, services, domain-modeling]
+prerequisites: []
+category: domains
+order: 1
+companionFiles: [digital-product-catalog.md]

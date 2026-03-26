@@ -1,0 +1,8 @@
+title: "Using Profiles"
+description: "Introduces the profile attachment system for composable model extensions"
+difficulty: intermediate
+concepts: [models, profiles]
+prerequisites: []
+category: profiles
+order: 1
+companionFiles: [using-profiles.md]

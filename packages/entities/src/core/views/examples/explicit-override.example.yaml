@@ -1,0 +1,8 @@
+title: "Explicit Override"
+description: "Explicit component override for full control over view generation"
+difficulty: intermediate
+concepts: [views, override, customization]
+prerequisites: []
+category: view-inference
+order: 3
+companionFiles: [explicit-override.md]

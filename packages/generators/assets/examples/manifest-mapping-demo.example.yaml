@@ -1,0 +1,8 @@
+title: "Manifest Mapping Diagram"
+description: "Manifest mapping visualization showing how specifications map to implementation manifests"
+difficulty: intermediate
+concepts: [diagrams, mermaid, manifest-mapping]
+prerequisites: []
+category: diagrams
+order: 12
+companionFiles: [manifest-mapping-demo.md]

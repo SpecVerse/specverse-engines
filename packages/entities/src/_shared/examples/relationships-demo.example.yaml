@@ -1,0 +1,8 @@
+title: "Relationships Demo"
+description: "Demonstrates relationship types in SpecVerse v3.2 including hasMany, belongsTo, and manyToMany with inference"
+difficulty: intermediate
+concepts: [relationships, models, controllers, inference]
+prerequisites: []
+category: architecture
+order: 7
+companionFiles: [relationships-demo.md]

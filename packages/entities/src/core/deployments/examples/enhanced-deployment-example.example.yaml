@@ -1,0 +1,12 @@
+title: "Enhanced Deployment"
+description: "Enhanced deployment for e-commerce platform with caching, monitoring, and comprehensive deployment features"
+difficulty: intermediate
+concepts:
+  - deployments
+  - caching
+  - monitoring
+prerequisites: []
+category: deploy
+order: 2
+companionFiles:
+  - enhanced-deployment-example.md

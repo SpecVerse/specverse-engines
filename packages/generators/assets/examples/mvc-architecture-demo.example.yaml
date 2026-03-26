@@ -1,0 +1,8 @@
+title: "MVC Architecture Diagram"
+description: "MVC architecture visualization showing the traditional three-tier pattern with separation of concerns"
+difficulty: intermediate
+concepts: [diagrams, mermaid, mvc-architecture]
+prerequisites: []
+category: diagrams
+order: 7
+companionFiles: [mvc-architecture-demo.md]

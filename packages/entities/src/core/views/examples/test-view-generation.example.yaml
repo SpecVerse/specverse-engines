@@ -1,0 +1,8 @@
+title: "Test View Generation"
+description: "Test fixture for view generation validation"
+difficulty: intermediate
+concepts: [views, testing, generation]
+prerequisites: []
+category: view-inference
+order: 5
+companionFiles: [test-view-generation.md]

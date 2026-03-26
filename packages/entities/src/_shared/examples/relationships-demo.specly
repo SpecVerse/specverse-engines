@@ -1,0 +1,160 @@
+components:
+  RelationshipDemo:
+    version: "2.0.0"
+    description: "Example 03-07: Demonstrates relationships in SpecVerse v3.2"
+    
+    export:
+      models: [Customer, Order, OrderItem, Product, Category, Comment, ProductCategory]
+      controllers: [OrderController, CustomerController, ProductController]
+      events: [OrderCreated]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Customer:
+        description: "Customer with various relationships"
+        attributes:
+          id: UUID required
+          name: String required
+          email: Email required
+          creditLimit: Money default=1000.00
+        relationships:
+          orders: hasMany Order
+          recentOrders: hasMany Order
+      
+      Order:
+        description: "Order with relationships"
+        attributes:
+          id: UUID required
+          orderNumber: String required
+          customerId: UUID required
+          total: Money required
+          status: String required values=["pending", "confirmed", "shipped", "delivered"]
+        relationships:
+          customer: belongsTo Customer
+          items: hasMany OrderItem
+      
+      OrderItem:
+        description: "Order line item"
+        attributes:
+          id: UUID required
+          orderId: UUID required
+          productId: UUID required
+          quantity: Integer required
+          unitPrice: Money required
+          lineTotal: Money required
+        relationships:
+          order: belongsTo Order
+          product: belongsTo Product
+      
+      Product:
+        description: "Product with relationships"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required
+          categoryId: UUID required
+          stock: Integer default=0
+        relationships:
+          category: belongsTo Category
+          orderItems: hasMany OrderItem
+          categories: manyToMany Category through=ProductCategory
+      
+      Category:
+        description: "Product category with hierarchical relationships"
+        attributes:
+          id: UUID required
+          name: String required
+          parentId: UUID
+          isActive: Boolean default=true
+        relationships:
+          parent: belongsTo Category
+          children: hasMany Category
+          products: hasMany Product
+          productCategories: hasMany ProductCategory
+      
+      Comment:
+        description: "Polymorphic comments that can be attached to multiple model types"
+        attributes:
+          id: UUID required
+          content: String required
+          commentableType: String required
+          commentableId: UUID required
+          authorName: String required
+          createdAt: DateTime required
+      
+      ProductCategory:
+        description: "Rich join table with additional attributes"
+        attributes:
+          productId: UUID required
+          categoryId: UUID required
+          isPrimary: Boolean default=false
+          sortOrder: Integer default=0
+          addedAt: DateTime required
+        relationships:
+          product: belongsTo Product
+          category: belongsTo Category
+    
+    controllers:
+      OrderController:
+        description: "Handle order operations with relationship management"
+        model: Order
+        actions:
+          createOrder:
+            description: "Create new order with items"
+            parameters:
+              customerId: UUID required
+              items: String required
+            returns: Order
+            requires: ["Customer exists", "Products available"]
+            ensures: ["Order created", "Order items created"]
+            publishes: [OrderCreated]
+      
+      CustomerController:
+        description: "Customer relationship operations"
+        model: Customer
+        actions:
+          getCustomerWithOrders:
+            description: "Get customer with all orders and order items"
+            parameters:
+              customerId: UUID required
+            returns: Customer
+            requires: ["Customer exists"]
+            ensures: ["Customer with orders and items loaded"]
+      
+      ProductController:
+        description: "Product and category relationship operations"
+        model: Product
+        actions:
+          getProductsByCategory:
+            description: "Get products by category with full relationships"
+            parameters:
+              categoryId: UUID required
+            returns: String
+            requires: ["Category exists"]
+            ensures: ["Products with category relations loaded"]
+          
+          assignToCategory:
+            description: "Assign product to category with metadata"
+            parameters:
+              productId: UUID required
+              categoryId: UUID required
+              isPrimary: Boolean
+            returns: Boolean
+            requires: ["Product exists", "Category exists"]
+            ensures: ["Product-category relationship created"]
+    
+    events:
+      OrderCreated:
+        description: "Order created event with relationship data"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          customerEmail: Email required
+          total: Money required
+          itemCount: Integer required
+          createdAt: DateTime required
+
+deployments: {}

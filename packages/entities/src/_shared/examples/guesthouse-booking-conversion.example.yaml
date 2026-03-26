@@ -1,0 +1,8 @@
+title: "Guesthouse Booking Conversion"
+description: "Multi-property guest house booking management system with visual timeline interface, converted from legacy format"
+difficulty: intermediate
+concepts: [legacy, conversion, booking]
+prerequisites: []
+category: legacy
+order: 3
+companionFiles: [guesthouse-booking-conversion.md]

@@ -1,0 +1,8 @@
+title: "Docker Compose Deployment Manifest"
+description: "Docker Compose implementation manifest for local and staging deployment"
+difficulty: intermediate
+concepts: [manifests, docker-compose, deployment]
+prerequisites: []
+category: deploy
+order: 4
+companionFiles: [docker-compose-manifest.md]

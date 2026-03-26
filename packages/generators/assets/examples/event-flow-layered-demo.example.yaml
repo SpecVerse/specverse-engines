@@ -1,0 +1,8 @@
+title: "Event Flow Layered Diagram"
+description: "5-layer architecture with dual event bus pattern showing layered event flow visualization"
+difficulty: intermediate
+concepts: [diagrams, mermaid, event-flow]
+prerequisites: []
+category: diagrams
+order: 1
+companionFiles: [event-flow-layered-demo.md]

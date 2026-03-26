@@ -1,0 +1,8 @@
+title: "Profile Attachment"
+description: "Advanced profile attachment scenarios with multiple profiles and behaviors"
+difficulty: intermediate
+concepts: [models, profiles, behaviors]
+prerequisites: []
+category: profiles
+order: 2
+companionFiles: [profile-attachment.md]

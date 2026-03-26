@@ -1,0 +1,126 @@
+components:
+  StepsExample:
+    version: "1.0.0"
+    models:
+      OrderProcessor:
+        attributes:
+          id: "UUID required unique"
+          status: "String required"
+          total: "Integer required"
+          createdAt: "DateTime"
+        behaviors:
+          processOrder:
+            description: "Process customer order with detailed steps"
+            parameters:
+              orderId: "UUID required"
+              customerData: "Object required"
+            returns: "OrderResult"
+            steps:
+              - "Validate customer information and order data"
+              - "Check inventory availability for all items"
+              - "Calculate pricing with applicable discounts"
+              - "Reserve inventory for order items"
+              - "Process payment authorization"
+              - "Generate order confirmation"
+              - "Send confirmation email to customer"
+            requires:
+              - "Customer exists and is active"
+              - "All order items are available"
+            ensures:
+              - "Order is created with confirmed status"
+              - "Inventory is reserved"
+              - "Customer receives confirmation"
+            publishes:
+              - "OrderProcessed"
+          validatePayment:
+            description: "Validate payment method and process transaction"
+            parameters:
+              paymentMethod: "PaymentMethod required"
+              amount: "Decimal required"
+            returns: "PaymentResult"
+            steps:
+              - "Validate payment method credentials"
+              - "Check payment limits and restrictions"
+              - "Contact payment processor for authorization"
+              - "Process transaction securely"
+              - "Update payment records"
+            requires:
+              - "Payment method is valid and active"
+              - "Amount is within allowed limits"
+            ensures:
+              - "Payment is processed or rejected with clear reason"
+              - "Transaction is logged for audit"
+    controllers:
+      OrderController:
+        model: "OrderProcessor"
+        actions:
+          validateAndCreate:
+            description: "Comprehensive order validation and creation"
+            parameters:
+              orderRequest: "OrderRequest required"
+            returns: "OrderResponse"
+            steps:
+              - "Validate request format and required fields"
+              - "Check customer authentication and permissions"
+              - "Validate product availability and pricing"
+              - "Create order draft for processing"
+              - "Execute order processing workflow"
+            requires:
+              - "User is authenticated"
+              - "Order request is valid"
+            ensures:
+              - "Order is created or validation errors are returned"
+            publishes:
+              - "OrderValidationCompleted"
+    services:
+      OrderProcessingService:
+        description: "Core order processing business logic"
+        operations:
+          executeFullWorkflow:
+            description: "Execute complete order processing workflow"
+            parameters:
+              order: "Order required"
+              context: "ProcessingContext required"
+            returns: "WorkflowResult"
+            steps:
+              - "Initialize processing context and logging"
+              - "Execute pre-processing validations"
+              - "Process order through business rules engine"
+              - "Execute post-processing operations"
+              - "Update order status and notify stakeholders"
+              - "Archive processing logs and metrics"
+            requires:
+              - "Order is in processable state"
+              - "Processing context is valid"
+            ensures:
+              - "Order processing is completed or rolled back"
+              - "All state changes are atomic"
+              - "Processing history is maintained"
+          handlePaymentProcessing:
+            description: "Handle secure payment processing with detailed steps"
+            parameters:
+              paymentRequest: "PaymentRequest required"
+            returns: "PaymentProcessingResult"
+            steps:
+              - "Encrypt sensitive payment data"
+              - "Validate payment processor connection"
+              - "Submit payment for authorization"
+              - "Monitor processing status"
+              - "Handle success or failure scenarios"
+              - "Update order and customer records"
+            requires:
+              - "Payment data is valid and complete"
+              - "Payment processor is available"
+            ensures:
+              - "Payment is processed securely"
+              - "Customer is notified of payment status"
+    events:
+      OrderProcessed:
+        description: "Event published when order processing is completed"
+        attributes:
+          orderId: "UUID required"
+          customerId: "UUID required"
+          status: "String required"
+          totalAmount: "Decimal required"
+          processedAt: "DateTime required"
+          processingSteps: "Array required"

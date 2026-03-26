@@ -1,0 +1,99 @@
+components:
+  SpecVerseAdvancedProfiles:
+    version: "1.0.0"
+    description: "Example 02-02: Advanced profile attachment scenarios"
+    
+    export:
+      models: [Product, DigitalProduct, AuditProfile, ActiveProductProfile, SubscriptionProfile, DiscountProfile]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Product:
+        description: "Base product that can have multiple profiles attached"
+        attributes:
+          id: UUID required
+          name: String required
+          basePrice: Money required
+          category: String required
+          isPublished: Boolean default=false
+        behaviors:
+          calculateFinalPrice:
+            description: "Calculate price with all attached profile modifications"
+            requires: ["basePrice > 0"]
+            returns: Money
+            ensures: ["Returns price after all profile price modifications are applied"]
+      
+      DigitalProduct:
+        description: "Digital product profile for downloadable items"
+        attributes:
+          downloadUrl: URL required
+          fileSize: Integer required
+          licenseType: String required
+        profile-attachment:
+          profiles: [Product]
+        behaviors:
+          generateDownloadLink:
+            description: "Generate secure, time-limited download link"
+            returns: URL
+            ensures: ["Returns secure download URL with expiration"]
+      
+      AuditProfile:
+        description: "Audit trail profile for compliance tracking"
+        attributes:
+          createdBy: UUID required
+          createdAt: DateTime required
+          lastModifiedBy: UUID
+          lastModifiedAt: DateTime
+        profile-attachment:
+          profiles: [Product]
+        behaviors:
+          recordChange:
+            description: "Record a change in the audit trail"
+            parameters:
+              field: String required
+              newValue: String required
+              userId: UUID required
+            ensures: ["Change is recorded with timestamp and user ID"]
+      
+      ActiveProductProfile:
+        description: "Profile for products in active lifecycle state"
+        attributes:
+          activatedAt: DateTime required
+          activatedBy: UUID required
+        profile-attachment:
+          profiles: [Product]
+        behaviors:
+          performActiveTasks:
+            description: "Tasks only available for active products"
+            requires: ["Product is in active state"]
+      
+      SubscriptionProfile:
+        description: "Profile for subscription-based products"
+        attributes:
+          subscriptionType: String required
+          billingCycle: String required
+          recurringPrice: Money required
+        profile-attachment:
+          profiles: [Product]
+        behaviors:
+          applyRecurring:
+            description: "Apply recurring billing logic"
+            returns: Money
+      
+      DiscountProfile:
+        description: "Profile for applying discounts to products"
+        attributes:
+          discountType: String required
+          discountValue: Money required
+          validUntil: DateTime
+        profile-attachment:
+          profiles: [Product]
+        behaviors:
+          applyDiscount:
+            description: "Apply discount to base price"
+            returns: Money
+
+deployments: {}

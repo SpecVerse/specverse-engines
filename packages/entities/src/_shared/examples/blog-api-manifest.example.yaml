@@ -1,0 +1,8 @@
+title: "Blog API Manifest"
+description: "Simple blog API deployment example demonstrating v3.3 hybrid manifest mapping"
+difficulty: intermediate
+concepts: [manifests, blog, deployment]
+prerequisites: []
+category: service-layer
+order: 2
+companionFiles: [blog-api-manifest.md]

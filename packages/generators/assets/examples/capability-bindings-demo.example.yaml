@@ -1,0 +1,8 @@
+title: "Capability Bindings Diagram"
+description: "Capability bindings visualization showing how capabilities bind to implementation components"
+difficulty: intermediate
+concepts: [diagrams, mermaid, capability-bindings]
+prerequisites: []
+category: diagrams
+order: 14
+companionFiles: [capability-bindings-demo.md]

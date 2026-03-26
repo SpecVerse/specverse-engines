@@ -1,0 +1,8 @@
+title: "Minimal Syntax Reference"
+description: "Auto-generated reference showing minimal valid syntax for every SpecVerse entity type"
+difficulty: reference
+concepts: [syntax, reference, all-entities]
+prerequisites: []
+category: reference
+order: 1
+companionFiles: [minimal-syntax-reference.md]

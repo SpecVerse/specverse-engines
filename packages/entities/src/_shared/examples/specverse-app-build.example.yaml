@@ -1,0 +1,8 @@
+title: "SpecVerse App Build"
+description: "Realistic build system meta-model based on actual SpecVerse project structure with TypeScript, Vitest, and CI/CD pipeline"
+difficulty: advanced
+concepts: [meta-specification, build-system]
+prerequisites: []
+category: meta
+order: 1
+companionFiles: [specverse-app-build.md]

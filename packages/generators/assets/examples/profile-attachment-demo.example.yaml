@@ -1,0 +1,8 @@
+title: "Profile Attachment Diagram"
+description: "Advanced profile attachment scenarios showing profile visualization in diagrams"
+difficulty: intermediate
+concepts: [diagrams, mermaid, profile-attachment]
+prerequisites: []
+category: diagrams
+order: 5
+companionFiles: [profile-attachment-demo.md]

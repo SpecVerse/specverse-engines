@@ -1,0 +1,8 @@
+title: "Inventory Management Conversion"
+description: "Product catalog and inventory management system with real-time updates, converted from legacy format"
+difficulty: intermediate
+concepts: [legacy, conversion, inventory]
+prerequisites: []
+category: legacy
+order: 2
+companionFiles: [inventory-management-conversion.md]

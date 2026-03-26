@@ -1,0 +1,8 @@
+title: "Services and Events"
+description: "Services and event-driven architecture"
+difficulty: intermediate
+concepts: [services, events, event-driven]
+prerequisites: []
+category: architecture
+order: 3
+companionFiles: [services-and-events.md]

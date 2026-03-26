@@ -1,0 +1,51 @@
+components:
+  SpecVerseProfiles:
+    version: "1.0.0"
+    description: "Example 02-01: Profile attachment system (v3.2 feature)"
+    
+    export:
+      models: [Product, DigitalProductProfile, PhysicalProductProfile]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Product:
+        description: "Base product model that can be extended with profiles"
+        attributes:
+          id: UUID required unique
+          name: String required
+          productDescription: String
+          price: Money required
+          category: String required
+          productTags: String
+          createdAt: DateTime required
+          updatedAt: DateTime required
+      
+      DigitalProductProfile:
+        description: "Profile for digital products (downloads, software, etc.)"
+        attributes:
+          downloadUrl: String required
+          fileSize: String
+          fileFormat: String
+          license: String required
+          downloadLimit: Integer default=5
+          expirationDays: Integer default=30
+          minimumPrice: Money default=0.00
+        profile-attachment:
+          profiles: [Product]
+      
+      PhysicalProductProfile:
+        description: "Profile for physical products (shipping, inventory, etc.)"
+        attributes:
+          weight: Number required
+          dimensions: String
+          shippingClass: String required
+          fragile: Boolean default=false
+          stockLevel: Integer default=0
+          reorderPoint: Integer default=10
+        profile-attachment:
+          profiles: [Product]
+
+deployments: {}

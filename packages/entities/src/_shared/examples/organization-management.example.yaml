@@ -1,0 +1,8 @@
+title: "Organization Management"
+description: "Complete company and organization management system with HR, payroll, compliance, and employee profiles"
+difficulty: intermediate
+concepts: [models, controllers, services, domain-modeling]
+prerequisites: []
+category: domains
+order: 2
+companionFiles: [organization-management.md]

@@ -1,0 +1,8 @@
+title: "Component Dependencies Diagram"
+description: "Component dependency visualization showing how services interact through event-based communication"
+difficulty: intermediate
+concepts: [diagrams, mermaid, component-dependencies]
+prerequisites: []
+category: diagrams
+order: 9
+companionFiles: [component-dependencies-demo.md]

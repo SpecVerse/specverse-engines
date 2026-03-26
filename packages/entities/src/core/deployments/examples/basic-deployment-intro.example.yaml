@@ -1,0 +1,12 @@
+title: "Basic Deployment"
+description: "Introduction to deployment specifications - simple web application with environments and instances"
+difficulty: beginner
+concepts:
+  - deployments
+  - environments
+  - instances
+prerequisites: []
+category: deploy
+order: 1
+companionFiles:
+  - basic-deployment-intro.md

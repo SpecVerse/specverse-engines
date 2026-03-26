@@ -1,0 +1,8 @@
+title: "Blog Platform Features"
+description: "Blog platform demonstrating v3.3 features including metadata primitives, soft-delete, and validate operations"
+difficulty: intermediate
+concepts: [metadata-primitives, soft-delete, blog]
+prerequisites: []
+category: features
+order: 1
+companionFiles: [blog-platform-features.md]

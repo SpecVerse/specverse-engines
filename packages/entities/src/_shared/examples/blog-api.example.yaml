@@ -1,0 +1,8 @@
+title: "Blog API"
+description: "Blog API service layer with user management, posts, comments, and tag relationships"
+difficulty: intermediate
+concepts: [services, api, blog]
+prerequisites: []
+category: service-layer
+order: 1
+companionFiles: [blog-api.md]

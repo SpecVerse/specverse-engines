@@ -1,0 +1,8 @@
+title: "Model with Behaviors"
+description: "Defines declarative behaviors with contracts on a model including events"
+difficulty: beginner
+concepts: [models, behaviors, contracts]
+prerequisites: []
+category: fundamentals
+order: 3
+companionFiles: [model-with-behaviors.md]

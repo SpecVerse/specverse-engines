@@ -1,0 +1,8 @@
+title: "SpecVerse Self-Specification"
+description: "The SpecVerse specification language specified in itself, covering all five domain areas including formal verification"
+difficulty: advanced
+concepts: [self-specification, meta]
+prerequisites: []
+category: comprehensive
+order: 2
+companionFiles: []

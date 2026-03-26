@@ -1,0 +1,8 @@
+title: "Automatic CRUD Views"
+description: "Demonstrates automatic CRUD view generation with 49 atomic components"
+difficulty: intermediate
+concepts: [views, inference, CRUD]
+prerequisites: []
+category: view-inference
+order: 1
+companionFiles: [automatic-crud-views.md]

@@ -1,0 +1,8 @@
+title: "Controllers and Actions"
+description: "Controllers and actions for API design"
+difficulty: intermediate
+concepts: [controllers, actions, endpoints]
+prerequisites: []
+category: architecture
+order: 2
+companionFiles: [controllers-and-actions.md]

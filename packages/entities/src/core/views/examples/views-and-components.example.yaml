@@ -1,0 +1,8 @@
+title: "Views and Components"
+description: "Views and components for frontend architecture"
+difficulty: intermediate
+concepts: [views, components, UI]
+prerequisites: []
+category: architecture
+order: 4
+companionFiles: [views-and-components.md]

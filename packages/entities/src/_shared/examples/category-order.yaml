@@ -1,0 +1,103 @@
+# Global category ordering for composed example output
+# The composition script uses this to generate numbered directories.
+# Modules reference categories by slug; this file assigns the number.
+
+categories:
+  - slug: reference
+    number: "00"
+    title: "Syntax Reference"
+    description: "Auto-generated complete syntax reference"
+    targetAudience: reference
+
+  - slug: fundamentals
+    number: "01"
+    title: "SpecVerse Fundamentals"
+    description: "Learn the basic building blocks of SpecVerse specifications"
+    targetAudience: beginners
+    estimatedTime: "3-4 hours"
+
+  - slug: profiles
+    number: "02"
+    title: "Profile System"
+    description: "Reusable configuration profiles for models"
+    targetAudience: intermediate
+    estimatedTime: "2-3 hours"
+
+  - slug: architecture
+    number: "03"
+    title: "System Architecture"
+    description: "Controllers, services, events, views, and how they work together"
+    targetAudience: intermediate
+    estimatedTime: "5-6 hours"
+
+  - slug: domains
+    number: "04"
+    title: "Real-World Domains"
+    description: "Complete domain examples showing SpecVerse in practice"
+    targetAudience: intermediate
+
+  - slug: meta
+    number: "05"
+    title: "Meta-Specifications"
+    description: "SpecVerse specifying itself and build systems"
+    targetAudience: advanced
+
+  - slug: deploy
+    number: "06"
+    title: "Deployment Specifications"
+    description: "Deployment specs and implementation manifests"
+    targetAudience: intermediate
+
+  - slug: legacy
+    number: "07"
+    title: "Legacy Conversions"
+    description: "Converting existing systems to SpecVerse specifications"
+    targetAudience: intermediate
+
+  - slug: comprehensive
+    number: "08"
+    title: "Comprehensive Examples"
+    description: "Complete examples demonstrating the full language"
+    targetAudience: advanced
+
+  - slug: service-layer
+    number: "09"
+    title: "Service Layer"
+    description: "Service-oriented architecture examples"
+    targetAudience: intermediate
+
+  - slug: api
+    number: "10"
+    title: "API Integration"
+    description: "API usage examples and integration patterns"
+    targetAudience: advanced
+
+  - slug: view-inference
+    number: "11"
+    title: "View Inference"
+    description: "Automatic view generation from models"
+    targetAudience: intermediate
+
+  - slug: domain-extensions
+    number: "13"
+    title: "Domain Extensions"
+    description: "Extending SpecVerse with custom entity types"
+    targetAudience: advanced
+
+  - slug: diagrams
+    number: "13"
+    title: "Diagram Examples"
+    description: "Mermaid diagram generation from specifications"
+    targetAudience: intermediate
+
+  - slug: end-to-end
+    number: "14"
+    title: "End-to-End"
+    description: "Complete application examples from spec to code"
+    targetAudience: advanced
+
+  - slug: features
+    number: "15"
+    title: "Feature Showcases"
+    description: "New feature demonstrations"
+    targetAudience: intermediate

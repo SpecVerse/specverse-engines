@@ -1,0 +1,8 @@
+title: "Deployment Topology Diagram"
+description: "Deployment topology visualization showing logical architecture and infrastructure layout"
+difficulty: intermediate
+concepts: [diagrams, mermaid, deployment-topology]
+prerequisites: []
+category: diagrams
+order: 10
+companionFiles: [deployment-topology-demo.md]

@@ -1,0 +1,8 @@
+title: "Cloud Native Deployment Manifest"
+description: "Cloud-native implementation manifest for AWS EKS deployment"
+difficulty: advanced
+concepts: [manifests, aws, cloud-native, deployment]
+prerequisites: []
+category: deploy
+order: 5
+companionFiles: [cloud-native-manifest.md]

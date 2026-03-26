@@ -1,0 +1,8 @@
+title: "Basic Model Definition"
+description: "Defines a basic Product model with typed attributes demonstrating fundamental model structure"
+difficulty: beginner
+concepts: [models, attributes, types]
+prerequisites: []
+category: fundamentals
+order: 1
+companionFiles: [basic-model.md]

@@ -1,0 +1,8 @@
+title: "Event Flow Sequence Diagram"
+description: "Comprehensive event flow sequence demonstration showing temporal event flows"
+difficulty: intermediate
+concepts: [diagrams, mermaid, event-flow]
+prerequisites: []
+category: diagrams
+order: 2
+companionFiles: [event-flow-sequence-demo.md]

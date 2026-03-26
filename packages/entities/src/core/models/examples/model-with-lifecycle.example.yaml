@@ -1,0 +1,8 @@
+title: "Model with Lifecycle"
+description: "Adds lifecycle state management to a model with states and transitions"
+difficulty: beginner
+concepts: [models, lifecycles, states, transitions]
+prerequisites: []
+category: fundamentals
+order: 2
+companionFiles: [model-with-lifecycle.md]

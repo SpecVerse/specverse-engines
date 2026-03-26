@@ -1,0 +1,243 @@
+components:
+  MinimalSyntaxReference:
+    version: "1.0.0"
+    description: "Minimal complete SpecVerse specification showing essential syntax patterns for logical architecture"
+    tags:
+      - "reference"
+      - "minimal"
+      - "syntax"
+      - "template"
+    export:
+      models:
+        - "User"
+        - "Product"
+      controllers:
+        - "UserController"
+      services:
+        - "NotificationService"
+      events:
+        - "UserCreated"
+        - "ProductUpdated"
+    models:
+      User:
+        description: "Basic user model showing essential features"
+        attributes:
+          id: "UUID required"
+          name: "String required"
+          email: "Email required unique"
+          active: "Boolean default=true"
+          createdAt: "DateTime required auto=now"
+        relationships:
+          products: "hasMany Product"
+        lifecycles:
+          status:
+            flow: "pending -> active -> suspended -> inactive"
+        behaviors:
+          activate:
+            description: "Activate user account"
+            parameters:
+              reason: "String required"
+            returns: "Boolean"
+            requires:
+              - "User exists"
+              - "User not already active"
+            ensures:
+              - "User is active"
+            publishes:
+              - "UserCreated"
+      Product:
+        description: "Basic product model showing relationships"
+        attributes:
+          id: "UUID required auto=uuid4"
+          name: "String required"
+          price: "Number required min=0"
+          available: "Boolean default=true"
+        relationships:
+          owner: "belongsTo User"
+        behaviors:
+          updatePrice:
+            description: "Update product price"
+            parameters:
+              newPrice: "Number required min=0"
+            returns: "Boolean"
+            publishes:
+              - "ProductUpdated"
+    controllers:
+      UserController:
+        description: "Basic user management controller"
+        model: "User"
+        subscribes_to:
+          - "UserCreated"
+        cured:
+          create:
+            description: "Create new user"
+            parameters:
+              name: "String required"
+              email: "Email required"
+            returns: "User"
+            requires:
+              - "Email is valid"
+              - "Email not already used"
+            ensures:
+              - "User created"
+              - "Welcome email sent"
+            publishes:
+              - "UserCreated"
+          retrieve:
+            description: "Get user by ID"
+            parameters:
+              id: "UUID required"
+            returns: "User"
+          retrieve_many:
+            description: "List users"
+            parameters:
+              limit: "Integer default=10 max=100"
+              offset: "Integer default=0"
+            returns: "Array<User>"
+          update:
+            description: "Update user information"
+            parameters:
+              id: "UUID required"
+              changes: "String required"
+            returns: "User"
+            requires:
+              - "User exists"
+            ensures:
+              - "User updated"
+          delete:
+            description: "Delete user account"
+            parameters:
+              id: "UUID required"
+            returns: "Boolean"
+            requires:
+              - "User exists"
+            ensures:
+              - "User deleted"
+        actions:
+          activate:
+            description: "Activate user account"
+            parameters:
+              id: "UUID required"
+              reason: "String required"
+            returns: "Boolean"
+            requires:
+              - "User exists"
+              - "User not already active"
+            ensures:
+              - "User is active"
+            publishes:
+              - "UserCreated"
+    services:
+      NotificationService:
+        description: "Handle user notifications"
+        subscribes_to:
+          - "UserCreated"
+          - "ProductUpdated"
+        operations:
+          sendWelcomeEmail:
+            description: "Send welcome email to new user"
+            parameters:
+              userId: "UUID required"
+              email: "Email required"
+            returns: "Boolean"
+            requires:
+              - "User exists"
+              - "Email valid"
+            ensures:
+              - "Email sent"
+          notifyOwner:
+            description: "Notify product owner of updates"
+            parameters:
+              productId: "UUID required"
+              changes: "String required"
+            returns: "Boolean"
+            requires:
+              - "Product exists"
+            ensures:
+              - "Owner notified"
+            publishes:
+              - "ProductUpdated"
+    views:
+      UserListView:
+        description: "Display list of users"
+        type: "list"
+        model: "User"
+        subscribes_to:
+          - "UserCreated"
+        uiComponents:
+          userTable:
+            type: "table"
+            columns:
+              - "name"
+              - "email"
+              - "active"
+        properties:
+          sortable: true
+          filterable: true
+    events:
+      UserCreated:
+        description: "User account created"
+        attributes:
+          userId: "UUID required"
+          name: "String required"
+          email: "Email required"
+          timestamp: "DateTime required auto=now"
+      ProductUpdated:
+        description: "Product information updated"
+        attributes:
+          productId: "UUID required"
+          userId: "UUID required"
+          changes: "String required"
+          timestamp: "DateTime required auto=now"
+manifests:
+  BasicImplementationManifest:
+    specVersion: "3.5.0"
+    name: "BasicImplementationManifest"
+    description: "Basic implementation manifest showing minimal features"
+    version: "1.0.0"
+    deployment:
+      deploymentSource: "./11-11-capability-flow-demo.specly"
+      deploymentName: "development"
+    defaultMappings:
+      storage: "UserStorage"
+      controller: "ApiController"
+      service: "EventService"
+    capabilityMappings:
+      - capability: "models.*"
+        instanceFactory: "UserStorage"
+      - capability: "controllers.*"
+        instanceFactory: "ApiController"
+      - capability: "services.*"
+        instanceFactory: "EventService"
+      - capability: "events.*"
+        instanceFactory: "EventService"
+deployments:
+  development:
+    version: "1.0.0"
+    description: "Development environment deployment"
+    environment: "development"
+    instances:
+      controllers:
+        apiServer:
+          component: "MinimalSyntaxReference"
+          namespace: "api"
+          advertises: "*"
+          uses:
+            - "storage.mainDb.*"
+          scale: 1
+      storage:
+        mainDb:
+          component: "MinimalSyntaxReference"
+          namespace: "data"
+          type: "relational"
+          advertises:
+            - "persistence.*"
+            - "query.*"
+          persistence: "durable"
+          consistency: "strong"
+      communications:
+        eventBus:
+          namespace: "global"
+          capabilities:
+            - "*"
+          type: "pubsub"

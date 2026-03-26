@@ -1,0 +1,8 @@
+title: "One-Line Relationships"
+description: "Demonstrates comprehensive relationship patterns using compact convention syntax in SpecVerse v3.2"
+difficulty: intermediate
+concepts: [relationships, convention-syntax]
+prerequisites: []
+category: architecture
+order: 8
+companionFiles: [one-line-relationships.md]

@@ -1,0 +1,8 @@
+title: "Kubernetes Deployment Manifest"
+description: "Kubernetes implementation manifest for basic web application deployment"
+difficulty: intermediate
+concepts: [manifests, kubernetes, deployment]
+prerequisites: []
+category: deploy
+order: 3
+companionFiles: [kubernetes-deployment-manifest.md]

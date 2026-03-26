@@ -1,0 +1,291 @@
+Application:
+  Name: "SpecVerse Examples Index"
+  Version: "3.2.0"
+  Description: "Complete index and metadata for all SpecVerse examples with learning paths"
+
+# Master index of all examples with comprehensive metadata
+# This enables discoverability, learning progression, and concept mapping
+
+ExampleIndex:
+  totalExamples: 27
+  totalCategories: 9
+  supportedFormats: ["yaml", "specly"]
+  latestUpdate: "2025-08-26"
+  
+  categories:
+    - id: "00-reference"
+      title: "Syntax Reference"
+      description: "Complete and minimal syntax references"
+      difficulty: "reference"
+      exampleCount: 2
+      estimatedTime: "30 minutes (reference only)"
+      
+    - id: "01-fundamentals"
+      title: "SpecVerse Fundamentals"
+      description: "Basic building blocks - start here"
+      difficulty: "beginner"
+      exampleCount: 5
+      estimatedTime: "3-4 hours"
+      
+    - id: "02-profiles"
+      title: "Profile System"
+      description: "Advanced model composition"
+      difficulty: "intermediate"
+      exampleCount: 2
+      estimatedTime: "2-3 hours"
+      
+    - id: "03-architecture"
+      title: "System Architecture"
+      description: "Controllers, services, and views"
+      difficulty: "intermediate"
+      exampleCount: 8
+      estimatedTime: "5-6 hours"
+      
+    - id: "04-domains"
+      title: "Domain Examples"
+      description: "Real-world business scenarios"
+      difficulty: "advanced"
+      exampleCount: 2
+      estimatedTime: "6-8 hours"
+      
+    - id: "05-meta"
+      title: "Meta-Specifications"
+      description: "Advanced self-referential examples"
+      difficulty: "advanced"
+      exampleCount: 2
+      estimatedTime: "2-3 hours"
+      
+    - id: "06-deploy"
+      title: "Deployment Specifications"
+      description: "Production deployment patterns"
+      difficulty: "advanced"
+      exampleCount: 2
+      estimatedTime: "3-4 hours"
+      
+    - id: "07-legacy-conversions"
+      title: "Legacy Conversions"
+      description: "Migration from older versions"
+      difficulty: "intermediate"
+      exampleCount: 3
+      estimatedTime: "2-3 hours"
+      
+    - id: "08-comprehensive"
+      title: "Comprehensive Examples"
+      description: "Complete grammar coverage"
+      difficulty: "advanced"
+      exampleCount: 1
+      estimatedTime: "1-2 hours"
+
+  # Concept mapping for discoverability
+  conceptIndex:
+    reference: ["00-01-complete-specverse-reference", "00-02-minimal-syntax-reference"]
+    minimal: ["00-02-minimal-syntax-reference"]
+    models: ["00-01-complete-specverse-reference", "00-02-minimal-syntax-reference", "01-01-basic-model", "01-02-model-with-lifecycle", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+    attributes: ["01-01-basic-model", "01-04-models-with-relations"]
+    types: ["01-01-basic-model", "01-04-models-with-relations", "04-01-digital-product-catalog"]
+    lifecycles: ["01-02-model-with-lifecycle", "04-01-digital-product-catalog", "04-02-organization-management"]
+    behaviors: ["01-03-model-with-behaviors", "02-01-using-profiles", "02-02-profile-attachment"]
+    relations: ["01-04-models-with-relations", "04-01-digital-product-catalog", "04-02-organization-management"]
+    profiles: ["02-01-using-profiles", "02-02-profile-attachment", "04-01-digital-product-catalog", "04-02-organization-management"]
+    imports: ["03-01-enhanced-imports"]
+    controllers: ["03-02-controllers-and-actions", "04-01-digital-product-catalog", "04-02-organization-management"]
+    services: ["03-03-services-and-events", "04-01-digital-product-catalog"]
+    events: ["01-03-model-with-behaviors", "03-02-controllers-and-actions", "03-03-services-and-events", "03-05-complete-event-flow"]
+    views: ["03-04-views-and-components"]
+    eventflow: ["03-05-complete-event-flow"]
+    inference: ["03-06-inference-engine-demo"]
+    relationships: ["03-07-relationships-demo", "03-08-one-line-relationships"]
+    deployment: ["06-01-enhanced-deployment-example", "06-02-basic-deployment-intro"]
+    topology: ["06-01-enhanced-deployment-example", "06-02-basic-deployment-intro"]
+    orchestration: ["06-01-enhanced-deployment-example", "06-02-basic-deployment-intro"]
+    manifests: ["ecommerce-implementation"]
+
+  # Business domain mapping
+  domainIndex:
+    general: ["01-01-basic-model", "01-02-model-with-lifecycle", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+    e-commerce: ["02-01-using-profiles", "04-01-digital-product-catalog", "ecommerce-implementation"]
+    enterprise: ["02-02-profile-attachment", "04-02-organization-management"]
+    ui-design: ["03-04-views-and-components"]
+    architecture: ["03-01-enhanced-imports", "03-02-controllers-and-actions", "03-03-services-and-events", "03-04-views-and-components", "03-05-complete-event-flow", "03-06-inference-engine-demo", "03-07-relationships-demo", "03-08-one-line-relationships"]
+
+  # Difficulty progression
+  difficultyLevels:
+    beginner: ["01-01-basic-model", "01-02-model-with-lifecycle", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+    intermediate: ["02-01-using-profiles", "02-02-profile-attachment", "03-01-enhanced-imports", "03-02-controllers-and-actions", "03-03-services-and-events", "03-04-views-and-components", "03-05-complete-event-flow", "03-06-inference-engine-demo", "03-07-relationships-demo", "03-08-one-line-relationships", "06-02-basic-deployment-intro"]
+    advanced: ["04-01-digital-product-catalog", "04-02-organization-management", "06-01-enhanced-deployment-example", "ecommerce-implementation"]
+
+# Learning Paths for different audiences
+LearningPaths:
+  - name: "Complete Beginner"
+    description: "Start from zero SpecVerse knowledge"
+    targetAudience: "developers new to SpecVerse"
+    totalTime: "8-10 hours"
+    steps:
+      - order: 1
+        category: "01-fundamentals"
+        exampleIds: ["01-01-basic-model", "01-02-model-with-lifecycle"]
+        checkpoints: ["Can define models with attributes", "Can add lifecycle states"]
+        
+      - order: 2
+        category: "01-fundamentals"
+        exampleIds: ["01-03-model-with-behaviors", "01-04-models-with-relations"]
+        checkpoints: ["Can write behaviors with contracts", "Can create model relationships"]
+        
+      - order: 3
+        category: "02-profiles"
+        exampleIds: ["02-01-using-profiles"]
+        checkpoints: ["Understands ProfileAttachment concept"]
+        
+      - order: 4
+        category: "03-architecture"
+        exampleIds: ["03-02-controllers-and-actions"]
+        checkpoints: ["Can design API controllers"]
+
+  - name: "Business Analyst"
+    description: "Focus on domain modeling and business logic"
+    targetAudience: "business analysts and domain experts"
+    totalTime: "6-8 hours"
+    steps:
+      - order: 1
+        category: "01-fundamentals"
+        exampleIds: ["01-01-basic-model", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+        checkpoints: ["Understands domain modeling concepts"]
+        
+      - order: 2
+        category: "02-profiles"
+        exampleIds: ["02-01-using-profiles", "02-02-profile-attachment"]
+        checkpoints: ["Can model flexible business requirements"]
+        
+      - order: 3
+        category: "04-domains"
+        exampleIds: ["04-01-digital-product-catalog", "04-02-organization-management"]
+        checkpoints: ["Has seen complete domain examples"]
+
+  - name: "Software Architect"
+    description: "Focus on system design and implementation"
+    targetAudience: "software architects and senior developers"
+    totalTime: "10-12 hours"
+    steps:
+      - order: 1
+        category: "01-fundamentals"
+        exampleIds: ["01-01-basic-model", "01-02-model-with-lifecycle", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+        checkpoints: ["Solid foundation in SpecVerse modeling"]
+        
+      - order: 2
+        category: "02-profiles"
+        exampleIds: ["02-01-using-profiles", "02-02-profile-attachment"]
+        checkpoints: ["Understands advanced composition patterns"]
+        
+      - order: 3
+        category: "03-architecture"
+        exampleIds: ["03-02-controllers-and-actions", "03-03-services-and-events", "03-04-views-and-components"]
+        checkpoints: ["Can design complete system architectures"]
+        
+      - order: 4
+        category: "04-domains"
+        exampleIds: ["04-01-digital-product-catalog", "04-02-organization-management"]
+        checkpoints: ["Understands real-world application patterns"]
+        
+      - order: 5
+        category: "manifests"
+        exampleIds: ["ecommerce-implementation"]
+        checkpoints: ["Can plan production implementations"]
+
+  - name: "Quick Overview"
+    description: "Rapid introduction to key concepts"
+    targetAudience: "experienced developers wanting quick introduction"
+    totalTime: "3-4 hours"
+    steps:
+      - order: 1
+        category: "01-fundamentals"
+        exampleIds: ["01-01-basic-model", "01-03-model-with-behaviors"]
+        checkpoints: ["Understands basic SpecVerse concepts"]
+        
+      - order: 2
+        category: "02-profiles"
+        exampleIds: ["02-01-using-profiles"]
+        checkpoints: ["Grasps profile composition"]
+        
+      - order: 3
+        category: "03-architecture"
+        exampleIds: ["03-02-controllers-and-actions"]
+        checkpoints: ["Sees system architecture approach"]
+        
+      - order: 4
+        category: "04-domains"
+        exampleIds: ["04-01-digital-product-catalog"]
+        checkpoints: ["Understands complete application modeling"]
+
+# Feature coverage matrix
+SpecVerseFeatureCoverage:
+  coreLanguage:
+    models: ["01-01-basic-model", "01-02-model-with-lifecycle", "01-03-model-with-behaviors", "01-04-models-with-relations"]
+    attributes: ["01-01-basic-model", "01-04-models-with-relations"]
+    types: ["01-01-basic-model", "04-01-digital-product-catalog", "04-02-organization-management"]
+    constraints: ["01-01-basic-model", "01-03-model-with-behaviors"]
+    
+  behaviorSystem:
+    behaviors: ["01-03-model-with-behaviors", "02-01-using-profiles", "02-02-profile-attachment"]
+    contracts: ["01-03-model-with-behaviors", "03-02-controllers-and-actions"]
+    parameters: ["01-03-model-with-behaviors", "02-01-using-profiles"]
+    
+  profileSystem:
+    profileAttachment: ["02-01-using-profiles", "02-02-profile-attachment", "04-01-digital-product-catalog", "04-02-organization-management"]
+    multipleProfiles: ["02-02-profile-attachment", "04-01-digital-product-catalog", "04-02-organization-management"]
+    conditionalAttachment: ["02-02-profile-attachment", "04-01-digital-product-catalog"]
+    
+  lifecycleSystem:
+    states: ["01-02-model-with-lifecycle", "04-01-digital-product-catalog", "04-02-organization-management"]
+    transitions: ["01-02-model-with-lifecycle", "04-01-digital-product-catalog"]
+    multipleLifecycles: ["04-01-digital-product-catalog", "04-02-organization-management"]
+    
+  relationSystem:
+    hasMany: ["01-04-models-with-relations", "04-01-digital-product-catalog", "04-02-organization-management"]
+    belongsTo: ["01-04-models-with-relations", "04-01-digital-product-catalog", "04-02-organization-management"]
+    navigation: ["01-04-models-with-relations", "04-01-digital-product-catalog"]
+    
+  importSystem:
+    enhancedImports: ["03-01-enhanced-imports"]
+    granularSelection: ["03-01-enhanced-imports"]
+    
+  architectureSystem:
+    controllers: ["03-02-controllers-and-actions", "04-01-digital-product-catalog", "04-02-organization-management"]
+    services: ["03-03-services-and-events", "04-01-digital-product-catalog"]
+    events: ["01-03-model-with-behaviors", "03-02-controllers-and-actions", "03-03-services-and-events"]
+    views: ["03-04-views-and-components"]
+    eventFlow: ["03-05-complete-event-flow"]
+    inference: ["03-06-inference-engine-demo"]
+    relationships: ["03-07-relationships-demo", "03-08-one-line-relationships"]
+    
+  deploymentSystem:
+    deployment: ["06-01-basic-deployment-intro", "06-02-enhanced-deployment-example"]
+    
+  implementationSystem:
+    manifests: ["ecommerce-implementation"]
+    aiGeneration: ["ecommerce-implementation"]
+    metaSpecs: ["05-01-specverse-meta-specification"]
+    buildSystems: ["05-02-specverse-app-build"]
+
+# Quality metrics
+QualityMetrics:
+  validation:
+    allExamplesValidate: true
+    lastValidated: "2025-01-07"
+    validationCommands: 11
+    
+  documentation:
+    metadataComplete: true
+    learningObjectivesCovered: true
+    realWorldUseCasesMapped: true
+    
+  coverage:
+    specverseFeaturesPercentage: 95
+    businessDomainsCount: 4
+    difficultyLevelsCount: 3
+
+# This index enables:
+# 1. Automated discovery of examples by concept or domain
+# 2. Personalized learning paths for different audiences  
+# 3. Progress tracking and validation
+# 4. Feature coverage analysis
+# 5. Quality assurance and maintenance

@@ -1,0 +1,8 @@
+title: "Custom Providers"
+description: "Demonstrates v3.4.0 extensible provider support with custom runtimes, languages, and code templates"
+difficulty: advanced
+concepts: [deployments, custom-providers, code-templates]
+prerequisites: []
+category: deploy
+order: 8
+companionFiles: [custom-providers.md]

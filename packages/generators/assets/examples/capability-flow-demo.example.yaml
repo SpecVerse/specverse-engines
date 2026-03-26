@@ -1,0 +1,8 @@
+title: "Capability Flow Diagram"
+description: "Capability flow visualization showing logical architecture and capability relationships"
+difficulty: intermediate
+concepts: [diagrams, mermaid, capability-flow]
+prerequisites: []
+category: diagrams
+order: 11
+companionFiles: [capability-flow-demo.md]

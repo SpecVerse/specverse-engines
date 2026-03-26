@@ -1,0 +1,81 @@
+components:
+  SpecialistViewsDemo:
+    version: "3.4.0"
+    models:
+      Project:
+        attributes:
+          name: String required
+          description: Text
+          budget: Money
+          progress: Number default=0
+          startDate: DateTime required
+          endDate: DateTime
+          latitude: Number
+          longitude: Number
+          createdAt: DateTime
+          updatedAt: DateTime
+        lifecycles:
+          status:
+            flow: planning -> active -> testing -> completed -> archived
+        relationships:
+          tasks: hasMany Task
+          owner: belongsTo User
+
+      Task:
+        attributes:
+          title: String required
+          description: Text
+          priority: Integer default=1
+          estimatedHours: Number
+          actualHours: Number default=0
+          dueDate: DateTime
+          completedAt: DateTime
+          createdAt: DateTime
+          updatedAt: DateTime
+        lifecycles:
+          status:
+            flow: todo -> inProgress -> review -> done
+        relationships:
+          project: belongsTo Project
+          assignee: belongsTo User
+          attachments: hasMany Attachment
+
+      Event:
+        attributes:
+          name: String required
+          description: Text
+          scheduledAt: DateTime required
+          startDate: DateTime required
+          endDate: DateTime required
+          location: String
+          attendeeCount: Integer default=0
+          latitude: Number
+          longitude: Number
+        relationships:
+          organizer: belongsTo User
+
+      User:
+        attributes:
+          name: String required
+          email: Email unique
+          avatar: String
+          projectsCompleted: Integer default=0
+          tasksCompleted: Integer default=0
+          reputation: Number default=0
+          createdAt: DateTime
+          lastActivity: DateTime
+
+      Attachment:
+        attributes:
+          filename: String required
+          filesize: Integer
+          mimetype: String
+          uploadedAt: DateTime
+
+    # Views will be auto-generated with specialist types:
+    # - Dashboard: For Project, Task, Event, User (models with metrics)
+    # - Analytics: For Project, Task, Event, User (models with metrics or lifecycle)
+    # - Board: For Project, Task (models with lifecycle)
+    # - Timeline: For all models (models with temporal attributes)
+    # - Calendar: For Project, Task, Event (models with scheduling attributes)
+    # - Workflow: For Project, Task (models with complex lifecycle 3+ states)

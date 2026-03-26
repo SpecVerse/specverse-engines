@@ -1,0 +1,271 @@
+# Example 11-02: Event Flow Swimlane Diagram Demonstration
+#
+# This example demonstrates swimlane event flow visualization showing parallel
+# event processing across multiple components (controllers and services).
+#
+# Swimlane diagrams are ideal for:
+# - Visualizing parallel event processing across components
+# - Understanding component responsibilities in event-driven systems
+# - Identifying cross-component event flows and dependencies
+# - Analyzing event choreography patterns
+#
+# Key Concepts:
+# - Each component gets its own swimlane (horizontal lane)
+# - Operations within components are shown as nodes
+# - Events flow between swimlanes showing cross-component communication
+# - Publishers → Events → Subscribers pattern is visually clear
+#
+# Example Scenario: Multi-Stage Order Processing System
+# - OrderController receives order creation request
+# - PaymentService processes payment in parallel
+# - InventoryService reserves items concurrently
+# - FulfillmentService prepares shipment
+# - NotificationService sends updates to customer
+# - Each component operates independently, coordinated by events
+
+components:
+  EventSwimlaneDemo:
+    version: "3.2.0"
+    description: "Example 11-02: Comprehensive event flow swimlane demonstration"
+
+    models:
+      Order:
+        attributes:
+          id: UUID required
+          customerId: UUID required
+          total: Money required
+          status: String required values=["pending", "payment_processing", "inventory_reserved", "fulfillment_ready", "shipped", "delivered"]
+          createdAt: DateTime required
+          updatedAt: DateTime required
+
+      Payment:
+        attributes:
+          id: UUID required
+          orderId: UUID required
+          amount: Money required
+          status: String required values=["pending", "processing", "completed", "failed"]
+          paymentMethod: String required
+          transactionId: String
+
+      InventoryItem:
+        attributes:
+          id: UUID required
+          orderId: UUID required
+          productId: UUID required
+          quantity: Integer required
+          status: String required values=["pending", "reserved", "allocated", "released"]
+
+      Shipment:
+        attributes:
+          id: UUID required
+          orderId: UUID required
+          trackingNumber: String
+          carrier: String required
+          status: String required values=["pending", "preparing", "shipped", "in_transit", "delivered"]
+          estimatedDelivery: DateTime
+
+    controllers:
+      OrderController:
+        model: Order
+        cured:
+          create:
+            publishes: [OrderCreated]
+          update:
+            publishes: [OrderUpdated]
+        actions:
+          cancelOrder:
+            publishes: [OrderCancelled]
+
+    services:
+      PaymentService:
+        subscribes_to:
+          OrderCreated: processPayment
+        operations:
+          processPayment:
+            publishes: [PaymentProcessed, PaymentFailed]
+          retryPayment:
+            publishes: [PaymentRetryInitiated]
+          refundPayment:
+            publishes: [PaymentRefunded]
+
+      InventoryService:
+        subscribes_to:
+          PaymentProcessed: reserveItems
+          OrderCancelled: releaseItems
+        operations:
+          reserveItems:
+            publishes: [InventoryReserved, InsufficientStock]
+          releaseItems:
+            publishes: [InventoryReleased]
+          allocateItems:
+            publishes: [InventoryAllocated]
+
+      FulfillmentService:
+        subscribes_to:
+          InventoryReserved: prepareShipment
+          OrderCancelled: cancelShipment
+        operations:
+          prepareShipment:
+            publishes: [ShipmentPrepared, ShipmentDelayed]
+          shipOrder:
+            publishes: [OrderShipped]
+          cancelShipment:
+            publishes: [ShipmentCancelled]
+
+      NotificationService:
+        subscribes_to:
+          OrderCreated: sendOrderConfirmation
+          PaymentProcessed: sendPaymentConfirmation
+          PaymentFailed: sendPaymentFailureNotice
+          InventoryReserved: sendInventoryConfirmation
+          InsufficientStock: sendOutOfStockNotice
+          ShipmentPrepared: sendShipmentNotification
+          OrderShipped: sendTrackingInfo
+          OrderCancelled: sendCancellationNotice
+        operations:
+          sendOrderConfirmation:
+            publishes: [CustomerNotified]
+          sendPaymentConfirmation:
+            publishes: [CustomerNotified]
+          sendPaymentFailureNotice:
+            publishes: [CustomerNotified]
+          sendInventoryConfirmation:
+            publishes: [CustomerNotified]
+          sendOutOfStockNotice:
+            publishes: [CustomerNotified]
+          sendShipmentNotification:
+            publishes: [CustomerNotified]
+          sendTrackingInfo:
+            publishes: [CustomerNotified]
+          sendCancellationNotice:
+            publishes: [CustomerNotified]
+
+      AnalyticsService:
+        subscribes_to:
+          OrderCreated: trackOrderCreated
+          PaymentProcessed: trackPaymentSuccess
+          PaymentFailed: trackPaymentFailure
+          OrderShipped: trackOrderShipped
+        operations:
+          trackOrderCreated:
+            publishes: [AnalyticsEventRecorded]
+          trackPaymentSuccess:
+            publishes: [AnalyticsEventRecorded]
+          trackPaymentFailure:
+            publishes: [AnalyticsEventRecorded]
+          trackOrderShipped:
+            publishes: [AnalyticsEventRecorded]
+
+    events:
+      # Order Events
+      OrderCreated:
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          total: Money required
+          itemCount: Integer required
+          createdAt: DateTime required
+
+      OrderUpdated:
+        attributes:
+          orderId: UUID required
+          changes: JSON required
+          updatedAt: DateTime required
+
+      OrderCancelled:
+        attributes:
+          orderId: UUID required
+          reason: String required
+          cancelledAt: DateTime required
+
+      # Payment Events
+      PaymentProcessed:
+        attributes:
+          paymentId: UUID required
+          orderId: UUID required
+          amount: Money required
+          transactionId: String required
+          processedAt: DateTime required
+
+      PaymentFailed:
+        attributes:
+          paymentId: UUID required
+          orderId: UUID required
+          reason: String required
+          failedAt: DateTime required
+
+      PaymentRetryInitiated:
+        attributes:
+          paymentId: UUID required
+          retryAttempt: Integer required
+
+      PaymentRefunded:
+        attributes:
+          paymentId: UUID required
+          amount: Money required
+          refundedAt: DateTime required
+
+      # Inventory Events
+      InventoryReserved:
+        attributes:
+          orderId: UUID required
+          items: JSON required
+          reservedAt: DateTime required
+
+      InsufficientStock:
+        attributes:
+          orderId: UUID required
+          missingItems: JSON required
+          detectedAt: DateTime required
+
+      InventoryReleased:
+        attributes:
+          orderId: UUID required
+          releasedAt: DateTime required
+
+      InventoryAllocated:
+        attributes:
+          orderId: UUID required
+          allocatedAt: DateTime required
+
+      # Shipment Events
+      ShipmentPrepared:
+        attributes:
+          shipmentId: UUID required
+          orderId: UUID required
+          estimatedDelivery: DateTime required
+          preparedAt: DateTime required
+
+      ShipmentDelayed:
+        attributes:
+          shipmentId: UUID required
+          reason: String required
+          newEstimatedDelivery: DateTime required
+
+      OrderShipped:
+        attributes:
+          shipmentId: UUID required
+          orderId: UUID required
+          trackingNumber: String required
+          carrier: String required
+          shippedAt: DateTime required
+
+      ShipmentCancelled:
+        attributes:
+          shipmentId: UUID required
+          orderId: UUID required
+          cancelledAt: DateTime required
+
+      # Notification Events
+      CustomerNotified:
+        attributes:
+          customerId: UUID required
+          notificationType: String required
+          sentAt: DateTime required
+
+      # Analytics Events
+      AnalyticsEventRecorded:
+        attributes:
+          eventType: String required
+          eventData: JSON required
+          recordedAt: DateTime required

@@ -1,0 +1,8 @@
+title: "Event Flow Swimlane Diagram"
+description: "Swimlane event flow visualization showing parallel event processing across multiple components"
+difficulty: intermediate
+concepts: [diagrams, mermaid, event-flow]
+prerequisites: []
+category: diagrams
+order: 3
+companionFiles: [event-flow-swimlane-demo.md]

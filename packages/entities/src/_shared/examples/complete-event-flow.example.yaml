@@ -1,0 +1,8 @@
+title: "Complete Event Flow"
+description: "Demonstrates complete event subscription system across controllers, services, and models with compensation patterns"
+difficulty: intermediate
+concepts: [events, controllers, services, subscriptions]
+prerequisites: []
+category: architecture
+order: 5
+companionFiles: [complete-event-flow.md]

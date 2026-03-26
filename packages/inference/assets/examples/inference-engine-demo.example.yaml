@@ -1,0 +1,8 @@
+title: "Inference Engine Demo"
+description: "Complete e-commerce system to test inference engine"
+difficulty: intermediate
+concepts: [inference, automatic-generation, architecture]
+prerequisites: []
+category: architecture
+order: 6
+companionFiles: [inference-engine-demo.md]

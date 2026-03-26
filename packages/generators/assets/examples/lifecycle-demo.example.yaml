@@ -1,0 +1,8 @@
+title: "Lifecycle State Diagram"
+description: "Lifecycle state machine visualization for models showing state transitions and workflows"
+difficulty: intermediate
+concepts: [diagrams, mermaid, lifecycle]
+prerequisites: []
+category: diagrams
+order: 6
+companionFiles: [lifecycle-demo.md]

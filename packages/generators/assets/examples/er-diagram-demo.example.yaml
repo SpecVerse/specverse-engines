@@ -1,0 +1,8 @@
+title: "ER Diagram"
+description: "Comprehensive ER diagram demonstrating all attribute types and relationship patterns"
+difficulty: intermediate
+concepts: [diagrams, mermaid, er-diagram]
+prerequisites: []
+category: diagrams
+order: 4
+companionFiles: [er-diagram-demo.md]

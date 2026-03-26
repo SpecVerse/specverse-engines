@@ -1,0 +1,8 @@
+title: "Task Management App"
+description: "Complete fullstack task management application with real-time updates, React frontend, and event-driven architecture"
+difficulty: advanced
+concepts: [end-to-end, task-management, complete-app]
+prerequisites: []
+category: end-to-end
+order: 1
+companionFiles: [task-management-app.md]

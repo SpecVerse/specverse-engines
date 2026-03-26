@@ -1,0 +1,8 @@
+title: "Technology Stack Diagram"
+description: "Technology stack visualization showing the technology layers and their relationships"
+difficulty: intermediate
+concepts: [diagrams, mermaid, technology-stack]
+prerequisites: []
+category: diagrams
+order: 13
+companionFiles: [technology-stack-demo.md]

@@ -1,0 +1,151 @@
+components:
+  ControllersAndActions:
+    version: "2.0.0"
+    description: "Example 03-02: Controllers and actions for API design"
+    
+    export:
+      models: [Product, Order, OrderItem]
+      controllers: [ProductController, OrderController]
+      events: [ProductCreated, ProductUpdated, ProductDeleted, OrderCreated, OrderConfirmed]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Product:
+        description: "Product available for purchase"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required min=0
+          stock: Integer default=0
+          category: String required
+      
+      Order:
+        description: "Customer order"
+        attributes:
+          id: UUID required
+          customerId: UUID required
+          total: Money required
+          status: String required values=["pending", "confirmed", "shipped", "delivered", "cancelled"]
+        relationships:
+          items: hasMany OrderItem
+      
+      OrderItem:
+        description: "Individual item in an order"
+        attributes:
+          id: UUID required
+          productId: UUID required
+          quantity: Integer required min=1
+          unitPrice: Money required
+          lineTotal: Money required
+    
+    controllers:
+      ProductController:
+        model: Product
+        description: "Manage product operations"
+        actions:
+          createProduct:
+            description: "Create a new product"
+            parameters:
+              name: String required
+              price: Money required
+              category: String required
+            returns: Product
+            requires: ["name is not empty", "price > 0", "category is valid"]
+            ensures: ["Product created with unique ID", "Stock initialized to 0"]
+            publishes: [ProductCreated]
+          
+          updateProduct:
+            description: "Update existing product"
+            parameters:
+              id: UUID required
+              name: String
+              price: Money
+              category: String
+            returns: Product
+            requires: ["Product with ID exists", "price > 0 if specified"]
+            ensures: ["Product attributes updated", "Version timestamp updated"]
+            publishes: [ProductUpdated]
+          
+          getProduct:
+            description: "Get single product by ID"
+            parameters:
+              id: UUID required
+            returns: Product
+            requires: ["Product with ID exists"]
+            ensures: ["Returns complete product details"]
+          
+          deleteProduct:
+            description: "Delete a product"
+            parameters:
+              id: UUID required
+            returns: Boolean
+            requires: ["Product with ID exists", "No active orders reference this product"]
+            ensures: ["Product marked as deleted"]
+            publishes: [ProductDeleted]
+      
+      OrderController:
+        model: Order
+        description: "Manage order lifecycle"
+        actions:
+          createOrder:
+            description: "Create a new order"
+            parameters:
+              customerId: UUID required
+              items: String required
+            returns: Order
+            requires: ["Customer exists", "All products available", "Sufficient stock"]
+            ensures: ["Order created", "Stock reserved", "Total calculated"]
+            publishes: [OrderCreated]
+          
+          confirmOrder:
+            description: "Confirm order and process payment"
+            parameters:
+              id: UUID required
+              paymentInfo: String required
+            returns: Order
+            requires: ["Order exists", "Order is pending", "Payment is valid"]
+            ensures: ["Order confirmed", "Payment processed", "Inventory updated"]
+            publishes: [OrderConfirmed]
+    
+    events:
+      ProductCreated:
+        description: "New product was added to catalog"
+        attributes:
+          productId: UUID required
+          name: String required
+          category: String required
+          price: Money required
+      
+      ProductUpdated:
+        description: "Product information was modified"
+        attributes:
+          productId: UUID required
+          changes: String required
+          previousValues: String required
+      
+      ProductDeleted:
+        description: "Product was removed from catalog"
+        attributes:
+          productId: UUID required
+          deletedAt: DateTime required
+          reason: String required
+      
+      OrderCreated:
+        description: "New order was placed by customer"
+        attributes:
+          orderId: UUID required
+          customerId: UUID required
+          total: Money required
+          itemCount: Integer required
+      
+      OrderConfirmed:
+        description: "Order was confirmed and payment processed"
+        attributes:
+          orderId: UUID required
+          confirmationNumber: String required
+          paymentId: UUID required
+
+deployments: {}

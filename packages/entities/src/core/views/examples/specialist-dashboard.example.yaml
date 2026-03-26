@@ -1,0 +1,8 @@
+title: "Specialist Dashboard"
+description: "Specialist view inference with abstract dashboard type expanding to atomic components"
+difficulty: intermediate
+concepts: [views, dashboard, specialist]
+prerequisites: []
+category: view-inference
+order: 2
+companionFiles: [specialist-dashboard.md]

@@ -1,0 +1,26 @@
+components:
+  SpecVerseFundamentals:
+    version: "1.0.0"
+    description: "Example 01-02: Model with lifecycle state management"
+    
+    export:
+      models: [Product]
+    
+    import:
+      - from: "@specverse/primitives"
+        select: [Money]
+    
+    models:
+      Product:
+        description: "Product with inventory lifecycle management"
+        attributes:
+          id: UUID required
+          name: String required
+          price: Money required
+          currentStock: Integer required default=0
+        lifecycles:
+          inventory:
+            flow: out_of_stock -> in_stock -> low_stock -> out_of_stock
+
+deployments: {}
+
