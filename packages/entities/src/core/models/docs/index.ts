@@ -17,31 +17,31 @@ export const modelDocs: EntityDocReference[] = [
   {
     title: 'Basic Model',
     category: 'example',
-    path: 'examples/01-fundamentals/01-01-basic-model.specly',
+    path: './examples/basic-model.specly',
     description: 'Core model syntax: attributes with convention shorthand, type inference',
   },
   {
     title: 'Model with Lifecycle',
     category: 'example',
-    path: 'examples/01-fundamentals/01-02-model-with-lifecycle.specly',
+    path: './examples/model-with-lifecycle.specly',
     description: 'State machines on models: states, transitions, guards',
   },
   {
     title: 'Model with Behaviors',
     category: 'example',
-    path: 'examples/01-fundamentals/01-03-model-with-behaviors.specly',
+    path: './examples/model-with-behaviors.specly',
     description: 'Behaviors, parameters, contracts (pre/post/invariant)',
   },
   {
     title: 'Models with Relations',
     category: 'example',
-    path: 'examples/01-fundamentals/01-04-models-with-relations.specly',
+    path: './examples/models-with-relations.specly',
     description: 'Relationships: hasMany, belongsTo, hasOne, manyToMany',
   },
   {
     title: 'Behaviors with Steps',
     category: 'example',
-    path: 'examples/01-fundamentals/01-05-behaviors-with-steps.specly',
+    path: './examples/behaviors-with-steps.specly',
     description: 'Multi-step behaviors with detailed action sequences',
   },
 

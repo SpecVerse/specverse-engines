@@ -45,6 +45,9 @@ facets:
   # Test references
   tests: tests/index.ts
 
+  # Example specifications
+  examples: examples/
+
 # ============================================================================
 # Diagram Plugins
 # ============================================================================

@@ -17,13 +17,13 @@ export const deploymentDocs: EntityDocReference[] = [
   {
     title: 'Basic Deployment Intro',
     category: 'example',
-    path: 'examples/06-deploy/06-01-basic-deployment-intro.specly',
+    path: './examples/basic-deployment-intro.specly',
     description: 'Introduction to deployment specifications: environments, instances, capabilities',
   },
   {
     title: 'Enhanced Deployment Example',
     category: 'example',
-    path: 'examples/06-deploy/06-02-enhanced-deployment-example.specly',
+    path: './examples/enhanced-deployment-example.specly',
     description: 'Advanced deployment with storage, security, infrastructure, and monitoring instances',
   },
 

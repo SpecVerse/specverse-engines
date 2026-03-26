@@ -16,6 +16,7 @@ facets:
   generators: generators/index.ts
   docs: docs/index.ts
   tests: tests/index.ts
+  examples: examples/
 
 diagrams: []
 

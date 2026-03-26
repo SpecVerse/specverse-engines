@@ -17,7 +17,7 @@ export const viewDocs: EntityDocReference[] = [
   {
     title: 'Views and Components',
     category: 'example',
-    path: 'examples/03-architecture/03-04-views-and-components.specly',
+    path: './examples/views-and-components.specly',
     description: 'View definitions with UI components, subscriptions, and layout',
   },
 
@@ -25,31 +25,31 @@ export const viewDocs: EntityDocReference[] = [
   {
     title: 'Automatic CRUD Views',
     category: 'example',
-    path: 'examples/11-view-inference/09-01-automatic-crud-views.specly',
+    path: './examples/automatic-crud-views.specly',
     description: 'Level 1: Automatic CRUD view generation from models',
   },
   {
     title: 'Specialist Dashboard',
     category: 'example',
-    path: 'examples/11-view-inference/09-02-specialist-dashboard.specly',
+    path: './examples/specialist-dashboard.specly',
     description: 'Specialist dashboard view type with metrics and charts',
   },
   {
     title: 'Explicit Override',
     category: 'example',
-    path: 'examples/11-view-inference/09-03-explicit-override.specly',
+    path: './examples/explicit-override.specly',
     description: 'Explicit view definitions override inferred views',
   },
   {
     title: 'All Specialist Types',
     category: 'example',
-    path: 'examples/11-view-inference/09-04-all-specialist-types.specly',
+    path: './examples/all-specialist-types.specly',
     description: 'Comprehensive demonstration of all specialist view types',
   },
   {
     title: 'Test View Generation',
     category: 'example',
-    path: 'examples/11-view-inference/test-view-generation.specly',
+    path: './examples/test-view-generation.specly',
     description: 'Test specification for view inference validation',
   },
 ];
