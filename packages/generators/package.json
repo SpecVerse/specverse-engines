@@ -1,6 +1,6 @@
 {
   "name": "@specverse/engine-generators",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "description": "SpecVerse generators \u2014 AI view optimization, UML, documentation, diagrams",
   "type": "module",
   "main": "dist/index.js",
@@ -10,9 +10,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specverse/types": "3.5.2",
-    "@specverse/engine-entities": "3.5.2",
-    "@specverse/engine-parser": "3.5.2"
+    "@specverse/types": "3.5.3",
+    "@specverse/engine-entities": "3.5.3",
+    "@specverse/engine-parser": "3.5.3"
   },
   "devDependencies": {
     "@types/node": "^20.8.0"

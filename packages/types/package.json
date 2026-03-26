@@ -1,6 +1,6 @@
 {
   "name": "@specverse/types",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "description": "Shared type definitions for SpecVerse engines \u2014 AST, specs, engine interfaces",
   "type": "module",
   "main": "dist/index.js",

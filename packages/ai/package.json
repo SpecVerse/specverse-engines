@@ -1,6 +1,6 @@
 {
   "name": "@specverse/engine-ai",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "description": "SpecVerse AI engine \u2014 prompt building, suggestions, templates",
   "type": "module",
   "main": "dist/index.js",
@@ -10,7 +10,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@specverse/types": "3.5.2",
+    "@specverse/types": "3.5.3",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
