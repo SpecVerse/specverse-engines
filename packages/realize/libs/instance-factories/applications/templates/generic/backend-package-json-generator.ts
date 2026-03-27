@@ -9,12 +9,16 @@ import type { TemplateContext } from '@specverse/engine-realize';
 export default function generateBackendPackageJson(context: TemplateContext): string {
   const { spec } = context;
 
-  const pkg = {
-    name: `${(spec.metadata?.component || 'app').toLowerCase().replace(/\s+/g, '-')}-backend`,
+  const appName = (spec.metadata?.component || 'app').toLowerCase().replace(/\s+/g, '-');
+
+  const pkg: Record<string, any> = {
+    name: `${appName}-backend`,
     version: spec.metadata?.version || '1.0.0',
     description: `Backend API for ${spec.metadata?.component || 'application'}`,
-    private: true,
     type: 'module',
+    bin: {
+      [appName]: './bin/cli.mjs'
+    },
 
     scripts: {
       // Development
