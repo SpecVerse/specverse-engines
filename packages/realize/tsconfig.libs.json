@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/libs/instance-factories",
+    "rootDir": "libs/instance-factories",
+    "strict": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "noEmit": false
+  },
+  "include": ["libs/instance-factories"],
+  "exclude": [
+    "libs/instance-factories/**/__tests__",
+    "libs/instance-factories/test-generation.ts",
+    "libs/instance-factories/applications/templates/react/react-pattern-adapter.tsx",
+    "libs/instance-factories/applications/templates/react/tailwind-adapter-generator.ts",
+    "libs/instance-factories/views/templates/runtime/runtime-view-renderer.ts",
+    "libs/instance-factories/tools/templates/mcp/static/**",
+    "libs/instance-factories/tools/templates/vscode/**",
+    "libs/instance-factories/infrastructure/templates/**",
+    "libs/instance-factories/sdks/templates/**",
+    "libs/instance-factories/testing/templates/**",
+    "libs/instance-factories/validation/templates/**"
+  ]
+}

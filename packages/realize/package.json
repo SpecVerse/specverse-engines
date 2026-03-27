@@ -6,7 +6,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.libs.json",
+    "build:src": "tsc",
+    "build:libs": "tsc -p tsconfig.libs.json",
     "clean": "rm -rf dist"
   },
   "dependencies": {

@@ -23,6 +23,7 @@ interface CommandDef {
 export default function generateCLIEntry(context: TemplateContext): string {
   const { spec } = context;
 
+
   // Extract commands — check context.commands first (passed directly by CLI handler),
   // then fall back to searching spec
   const commands = context.commands
@@ -47,8 +48,12 @@ export default function generateCLIEntry(context: TemplateContext): string {
     `  register${capitalize(name)}Command(program);`
   ).join('\n');
 
-  // Get version from spec
-  const version = spec.version || spec.components?.[0]?.version || '1.0.0';
+  // Get version from spec — try multiple paths
+  const version = spec.version
+    || spec.metadata?.version
+    || context.componentVersion
+    || (Array.isArray(spec.components) ? spec.components[0]?.version : (Object.values(spec.components || {}) as any[])[0]?.version)
+    || '1.0.0';
 
   return `#!/usr/bin/env node
 /**
