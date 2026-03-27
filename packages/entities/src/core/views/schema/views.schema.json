@@ -45,16 +45,8 @@
               "description": "Whether this view is exported for reuse"
             },
             "layout": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/StandardLayout"
-                },
-                {
-                  "type": "object",
-                  "description": "Custom layout configuration"
-                }
-              ],
-              "description": "View layout definition"
+              "$ref": "#/$defs/StandardLayout",
+              "description": "View layout definition — standard patterns or custom configuration"
             },
             "subscribes_to": {
               "$ref": "#/$defs/SubscriptionsPattern",

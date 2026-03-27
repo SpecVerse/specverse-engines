@@ -1142,9 +1142,7 @@
           }
         }
       },
-      "required": [
-        "type"
-      ]
+      "additionalProperties": true
     },
     "ViewProperties": {
       "type": "object",
