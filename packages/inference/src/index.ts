@@ -18,6 +18,7 @@ export type { ComprehensiveInferenceResult } from './comprehensive-engine.js';
 
 // Quint → TypeScript transpiler
 export { transpileEntityGuards, transpileQuintFile, generateGuardsModule, type TranspiledGuard } from './quint-transpiler.js';
+export { transpileActions, generateActionsModule, type TranspiledAction } from './quint-transpiler.js';
 
 // ============================================================================
 // Engine adapter — implements SpecVerseEngine for discovery via EngineRegistry

@@ -175,6 +175,210 @@ export function generateGuardsModule(guards: TranspiledGuard[]): string {
   return lines.join('\n');
 }
 
+// ─── Action Transpilation (Phase 2: business logic) ─────────────────
+
+export interface TranspiledAction {
+  name: string;
+  params: string;
+  guards: string[];
+  effects: string[];
+  events: string[];
+  quint: string;
+  typescript: string;
+  module: string;
+  entity: string;
+}
+
+/**
+ * Transpile Quint action definitions into async TypeScript methods.
+ *
+ * Quint actions follow the pattern:
+ *   action name(params): bool = all {
+ *     guard1,                          // → precondition check
+ *     guard2,                          // → precondition check
+ *     model' = { ...model, field: x }, // → prisma update
+ *     emit(EventName, payload),        // → event emission
+ *   }
+ */
+export function transpileActions(content: string, entity: string, filename: string): TranspiledAction[] {
+  const actions: TranspiledAction[] = [];
+  const lines = content.split('\n');
+  const moduleName = extractModuleName(content) || entity;
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+
+    // Match: action name(params): returnType = all {
+    const actionDef = line.match(/^action\s+(\w+)\(([^)]*)\)\s*:\s*\w+\s*=\s*all\s*\{/);
+    if (actionDef) {
+      const [, name, params] = actionDef;
+      // Skip inference actions (generate*, expand*, init, step)
+      if (/^(generate|expand|init$|step$)/.test(name)) {
+        i = skipBlock(lines, i);
+        continue;
+      }
+
+      const body = extractBlock(lines, i);
+      const action = transpileAction(name, params, body, moduleName, entity);
+      if (action) actions.push(action);
+      i = skipBlock(lines, i);
+      continue;
+    }
+
+    i++;
+  }
+
+  return actions;
+}
+
+function transpileAction(
+  name: string,
+  params: string,
+  body: string,
+  moduleName: string,
+  entity: string
+): TranspiledAction | null {
+  const statements = splitActionStatements(body);
+  const guards: string[] = [];
+  const effects: string[] = [];
+  const events: string[] = [];
+
+  for (const stmt of statements) {
+    const trimmed = stmt.trim();
+    if (!trimmed) continue;
+
+    // State update: model' = { ...model, field: value }
+    const updateMatch = trimmed.match(/^(\w+)'\s*=\s*\{\s*\.\.\.(\w+),\s*(.+)\}/);
+    if (updateMatch) {
+      const [, , , fieldsStr] = updateMatch;
+      const fields = parseFieldUpdates(fieldsStr);
+      effects.push(generatePrismaUpdate(entity, fields));
+      continue;
+    }
+
+    // State update: model' = model (no-op, skip)
+    if (trimmed.match(/^\w+'\s*=\s*\w+$/)) continue;
+
+    // Primed variable set union: collection' = collection.union(...)
+    if (trimmed.match(/^\w+'\s*=\s*\w+\.union/)) continue;
+
+    // Event emission: emit(EventName, { payload })
+    const emitMatch = trimmed.match(/^emit\((\w+),\s*\{([^}]*)\}\)/);
+    if (emitMatch) {
+      const [, eventName, payload] = emitMatch;
+      events.push(`    this.emit('${eventName}', { ${transpileExpression(payload)} });`);
+      continue;
+    }
+
+    // Boolean primed: fullyExpanded' = false (skip inference state)
+    if (trimmed.match(/^\w+'\s*=\s*(true|false)$/)) continue;
+
+    // Everything else is a guard condition
+    guards.push(trimmed);
+  }
+
+  // Generate TypeScript
+  const tsParams = transpileParams(params);
+  const tsGuards = guards.map(g => {
+    const tsExpr = transpileExpression(g);
+    return `    if (!(${tsExpr})) {\n      throw new Error('Guard failed: ${g.replace(/'/g, "\\'")}');\n    }`;
+  });
+
+  const tsEffects = effects;
+  const tsEvents = events;
+
+  const tsBody = [
+    ...(tsGuards.length > 0 ? ['    // === GUARDS ===', ...tsGuards, ''] : []),
+    ...(tsEffects.length > 0 ? ['    // === EFFECTS ===', ...tsEffects, ''] : []),
+    ...(tsEvents.length > 0 ? ['    // === EVENTS ===', ...tsEvents] : []),
+  ].join('\n');
+
+  const typescript = `  async ${name}(${tsParams}): Promise<void> {\n${tsBody}\n  }`;
+
+  return {
+    name,
+    params,
+    guards,
+    effects,
+    events,
+    quint: `action ${name}(${params}) = all { ... }`,
+    typescript,
+    module: moduleName,
+    entity,
+  };
+}
+
+function splitActionStatements(body: string): string[] {
+  // Split on commas at the top level (not inside braces or parens)
+  const statements: string[] = [];
+  let current = '';
+  let depth = 0;
+
+  for (const char of body) {
+    if (char === '{' || char === '(') depth++;
+    if (char === '}' || char === ')') depth--;
+    if (char === ',' && depth === 0) {
+      statements.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  if (current.trim()) statements.push(current.trim());
+  return statements;
+}
+
+function parseFieldUpdates(fieldsStr: string): Array<{ field: string; value: string }> {
+  const fields: Array<{ field: string; value: string }> = [];
+  const parts = fieldsStr.split(',');
+  for (const part of parts) {
+    const match = part.trim().match(/(\w+)\s*:\s*(.+)/);
+    if (match) {
+      fields.push({ field: match[1], value: match[2].trim() });
+    }
+  }
+  return fields;
+}
+
+function generatePrismaUpdate(entity: string, fields: Array<{ field: string; value: string }>): string {
+  const dataEntries = fields.map(f => {
+    let val = f.value;
+    // Map Quint expressions to TypeScript
+    if (val === 'now()') val = 'new Date()';
+    else if (val === 'true' || val === 'false') val = val;
+    else if (/^\d+$/.test(val)) val = val;
+    else if (val.startsWith('"') || val.startsWith("'")) val = val;
+    else val = `'${val}'`; // Assume string literal for state names
+    return `${f.field}: ${val}`;
+  });
+
+  const modelVar = entity.charAt(0).toLowerCase() + entity.slice(1);
+  return `    await this.prisma.${modelVar}.update({\n      where: { id: params.id },\n      data: { ${dataEntries.join(', ')} },\n    });`;
+}
+
+/**
+ * Generate a TypeScript module from transpiled actions.
+ */
+export function generateActionsModule(actions: TranspiledAction[]): string {
+  if (actions.length === 0) return '';
+
+  const lines: string[] = [
+    '// ═══════════════════════════════════════════════════',
+    '// Business Logic Actions — Transpiled from Quint',
+    '// ═══════════════════════════════════════════════════',
+    '',
+  ];
+
+  for (const action of actions) {
+    lines.push(`  /** Action: ${action.name} (from ${action.module}) */`);
+    lines.push(action.typescript);
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
 // ─── Internal Helpers ────────────────────────────────────────────────
 
 function extractModuleName(content: string): string | null {

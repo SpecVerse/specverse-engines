@@ -6,7 +6,7 @@
  */
 
 import type { TemplateContext } from '@specverse/engine-realize';
-import { generateBehaviorBody, type BehaviorContext, type BehaviorMetadata, type OperationMetadata } from './behavior-generator.js';
+import { generateBehaviorBody, generateBehaviorWithHelpers, type BehaviorContext, type BehaviorMetadata, type OperationMetadata } from './behavior-generator.js';
 
 /**
  * Generate Prisma service
@@ -38,7 +38,7 @@ const prisma = new PrismaClient();
  */
 export class ${serviceName} {
   ${generateConstructor(service)}
-  ${generateOperations(service)}
+  ${generateOperationsWithHelpers(service)}
   ${generateEventSubscriptions(service)}
 }
 
@@ -89,6 +89,23 @@ function generateConstructor(service: any): string {
   }
 `;
 }
+
+/**
+ * Generate service operations + helper methods from step conventions.
+ */
+function generateOperationsWithHelpers(service: any): string {
+  const ops = generateOperations(service);
+  // Collect helpers from the operations module-level accumulator
+  if (_collectedHelpers.length > 0) {
+    const helpers = [...new Set(_collectedHelpers)].join('\n');
+    _collectedHelpers.length = 0;
+    return ops + '\n' + helpers;
+  }
+  return ops;
+}
+
+// Module-level accumulator for helper methods generated during operation building
+const _collectedHelpers: string[] = [];
 
 /**
  * Generate service operations
@@ -218,7 +235,9 @@ function generateOperationLogic(operation: any, service: any): string {
       idempotent: meta?.idempotent ?? false
     };
 
-    return generateBehaviorBody(behavior, opMeta, context);
+    const result = generateBehaviorWithHelpers(behavior, opMeta, context);
+    _collectedHelpers.push(...result.helperMethods);
+    return result.body;
   }
 
   // Fallback: placeholder
