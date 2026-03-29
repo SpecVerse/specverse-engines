@@ -27,6 +27,17 @@ export { DocumentationGenerator, type DocumentationOptions } from './documentati
 // Diagram engine
 export { UnifiedDiagramGenerator } from './diagram-engine/index.js';
 export { createPluginsFromRegistry } from './diagram-engine/index.js';
+export {
+  ERDiagramPlugin,
+  ClassDiagramPlugin,
+  EventFlowPlugin,
+  LifecyclePlugin,
+  ArchitecturePlugin,
+  DeploymentPlugin,
+  ManifestPlugin,
+  BaseDiagramPlugin,
+  type DiagramType,
+} from './diagram-engine/index.js';
 
 // ============================================================================
 // Engine adapter — implements SpecVerseEngine for discovery via EngineRegistry
